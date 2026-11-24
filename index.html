@@ -59,10 +59,44 @@
             font-family: 'Inter', sans-serif !important;
         }
 
+        /* Compact 16pt Title + 20% Reduced Font Sizes for Single-Page A4 Landscape Fit */
+        #printable-claim-sheet .pdf-company-title {
+            font-size: 16pt !important;
+            line-height: 1.2 !important;
+        }
+        #printable-claim-sheet .pdf-period-title {
+            font-size: 10pt !important;
+            line-height: 1.2 !important;
+        }
+        #printable-claim-sheet .pdf-meta-text {
+            font-size: 7.5pt !important;
+            line-height: 1.3 !important;
+        }
+        #printable-claim-sheet .pdf-micro-label {
+            font-size: 6.5pt !important;
+            line-height: 1.2 !important;
+        }
+        #printable-claim-sheet .pdf-table-header {
+            font-size: 6.5pt !important;
+            line-height: 1.2 !important;
+        }
+        #printable-claim-sheet .pdf-table-cell {
+            font-size: 7pt !important;
+            line-height: 1.25 !important;
+        }
+        #printable-claim-sheet .pdf-route-sub {
+            font-size: 6.5pt !important;
+            line-height: 1.2 !important;
+        }
+        #printable-claim-sheet .pdf-grand-total {
+            font-size: 8.5pt !important;
+            line-height: 1.2 !important;
+        }
+
         /* Print-specific formatting for Finance Official Claim Forms (A4 Landscape) */
         @page {
             size: A4 landscape;
-            margin: 10mm;
+            margin: 8mm;
         }
         @media print {
             body * {
@@ -520,11 +554,10 @@
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         <!-- ===================================================================== -->
-        <!-- TAB 1: LOG CLAIM ENTRY (PER-STOP EXPENSES + MULTI-STOP ROUTE)         -->
+        <!-- TAB 1: LOG CLAIM ENTRY (FULL-WIDTH MULTI-STOP & PER-STOP EXPENSES)    -->
         <!-- ===================================================================== -->
-        <section id="tab-entry" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Left Column: Entry Form -->
-            <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6">
+        <section id="tab-entry" class="tab-content max-w-5xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-7">
                 <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
                     <div>
                         <h2 id="form-mode-title" class="text-lg font-bold text-slate-900">New Claim Entry</h2>
@@ -801,40 +834,6 @@
                     </div>
                 </form>
             </div>
-
-            <!-- Right Column: Live Auto-Grouping Preview & Recent Items -->
-            <div class="lg:col-span-5 space-y-6">
-                <!-- Live Form Breakdown Card -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-diagram-project text-indigo-600"></i>
-                            Auto-Separated Claim Forms
-                        </h3>
-                        <button onclick="switchTab('forms')" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
-                            Open Claim Forms →
-                        </button>
-                    </div>
-                    <p class="text-xs text-slate-500 mb-4">
-                        Entries are automatically grouped by <strong>Month, Company & Staff</strong>:
-                    </p>
-
-                    <div id="live-forms-summary-list" class="space-y-2.5 max-h-[290px] overflow-y-auto pr-1">
-                        <!-- Dynamically populated -->
-                    </div>
-                </div>
-
-                <!-- Recent Entries Quick Feed -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-sm font-bold text-slate-900">Recently Logged Entries</h3>
-                        <button onclick="switchTab('log')" class="text-xs font-medium text-slate-500 hover:text-slate-800">View Full Log</button>
-                    </div>
-                    <div id="recent-entries-list" class="space-y-2.5">
-                        <!-- Dynamically populated -->
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- ===================================================================== -->
@@ -986,135 +985,135 @@
 
                 <!-- Active Official Sheet -->
                 <div id="sheet-active-content">
-                    <!-- Sheet Header -->
-                    <div class="flex flex-col sm:flex-row sm:items-start justify-between border-b-2 border-slate-900 pb-4 mb-5 gap-4">
+            <!-- Official Printable Claim Sheet Preview (Compact Single-Page A4 Landscape Layout) -->
+            <div id="printable-claim-sheet" class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 sm:p-6 max-w-7xl mx-auto">
+                <!-- Empty state if no forms -->
+                <div id="sheet-empty-state" class="hidden text-center py-12">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-2xl">
+                        <i class="fa-regular fa-folder-open"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800">No Accessible Claim Forms</h3>
+                    <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">Log a claim entry in Tab 1 to automatically generate your separated claim form here.</p>
+                    <button onclick="switchTab('entry')" class="mt-4 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Go to Log Claim</button>
+                </div>
+
+                <!-- Active Official Sheet -->
+                <div id="sheet-active-content">
+                    <!-- Clean Sheet Header (Company Full Name 16pt + Claim Period) -->
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between border-b-2 border-slate-900 pb-2.5 mb-3.5 gap-3">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold uppercase tracking-widest text-indigo-700">Staff Expense & Mileage Claim Form</span>
-                                <span id="sheet-lock-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                                    <i class="fa-solid fa-clock mr-1"></i> Draft / Open
-                                </span>
-                            </div>
-                            <h1 id="sheet-company-fullname" class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-0.5">ATLAS MARKING SDN BHD</h1>
-                            <p class="text-xs text-slate-500 mt-0.5">Entity Code: <span id="sheet-company-code" class="font-semibold text-slate-700">ATLAS</span></p>
+                            <h1 id="sheet-company-fullname" class="pdf-company-title font-extrabold text-slate-900 tracking-tight uppercase">ATLAS MARKING SDN BHD</h1>
                         </div>
-                        <div class="sm:text-right flex flex-col sm:items-end gap-1.5">
-                            <div class="inline-block bg-slate-100 border border-slate-300 rounded-xl px-3.5 py-2">
-                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Claim Period</span>
-                                <span id="sheet-period-label" class="text-base font-extrabold text-slate-900">NOVEMBER 2026</span>
+                        <div class="sm:text-right flex flex-col sm:items-end gap-1">
+                            <div class="inline-block bg-slate-100 border border-slate-300 rounded-lg px-3 py-1">
+                                <span class="pdf-micro-label block font-bold uppercase tracking-wider text-slate-500">Claim Period</span>
+                                <span id="sheet-period-label" class="pdf-period-title font-extrabold text-slate-900">NOVEMBER 2026</span>
                             </div>
-                            <p class="text-[11px] text-slate-400">Generated Date: <span id="sheet-generated-date"></span></p>
-                            <button type="button" id="btn-toggle-form-lock" onclick="toggleCurrentFormLock()" class="no-print hidden px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-lock"></i>
-                                <span id="btn-toggle-form-lock-text">Verify & Lock Form</span>
-                            </button>
+                            <p class="pdf-micro-label text-slate-400">Generated Date: <span id="sheet-generated-date"></span></p>
+                            <div class="no-print flex flex-wrap items-center gap-1.5 mt-0.5">
+                                <button type="button" id="btn-manager-verify-form" onclick="approveFormStage('manager')" class="hidden px-2.5 py-1 rounded-lg text-[11px] font-bold border border-indigo-300 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-user-check"></i>
+                                    <span id="btn-manager-verify-text">Verify (Manager)</span>
+                                </button>
+                                <button type="button" id="btn-finance-approve-form" onclick="approveFormStage('finance')" class="hidden px-2.5 py-1 rounded-lg text-[11px] font-bold border border-emerald-300 bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid fa-stamp"></i>
+                                    <span id="btn-finance-approve-text">Approve (Finance)</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Claimant Details Grid (Full Words Only) -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-5 text-xs">
+                    <!-- Claimant Details Grid (3 Clean Columns: Staff Name, NRIC, Mobile) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-3.5 pdf-meta-text">
                         <div>
-                            <span class="block text-[10px] font-bold uppercase text-slate-400">Staff Name (as per NRIC)</span>
+                            <span class="pdf-micro-label block font-bold uppercase text-slate-400">Staff Name (as per NRIC)</span>
                             <span id="sheet-staff-name" class="font-bold text-slate-900 uppercase">-</span>
                         </div>
                         <div>
-                            <span class="block text-[10px] font-bold uppercase text-slate-400">National Registration Identity Card Number</span>
+                            <span class="pdf-micro-label block font-bold uppercase text-slate-400">National Registration Identity Card Number</span>
                             <span id="sheet-staff-nric" class="font-bold text-slate-900">-</span>
                         </div>
                         <div>
-                            <span class="block text-[10px] font-bold uppercase text-slate-400">Mobile Telephone Number</span>
+                            <span class="pdf-micro-label block font-bold uppercase text-slate-400">Mobile Telephone Number</span>
                             <span id="sheet-staff-mobile" class="font-bold text-slate-900">-</span>
-                        </div>
-                        <div>
-                            <span class="block text-[10px] font-bold uppercase text-slate-400">Employed Under Company / Mileage Rate</span>
-                            <span id="sheet-staff-employed" class="font-bold text-slate-900">-</span>
                         </div>
                     </div>
 
-                    <!-- Line Items Table (Landscape A4 Multi-Column Breakdown — Full Words Only, No Receipt/Ref Column) -->
+                    <!-- Line Items Table (Uniform Column Widths Matching Mileage RM) -->
                     <div class="overflow-x-auto">
-                    <!-- Line Items Table (Landscape A4 Multi-Column Breakdown — Full Words Only, No Actual Kilometers Column) -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full border-collapse border border-slate-300 text-[11px]">
+                        <table class="w-full table-fixed border-collapse border border-slate-300 pdf-table-cell">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-800 font-bold uppercase text-[10px]">
-                                    <th class="border border-slate-300 py-2 px-1.5 text-center w-10">No.</th>
-                                    <th class="border border-slate-300 py-2 px-2 text-left w-24">Date</th>
-                                    <th class="border border-slate-300 py-2 px-2 text-left">Description & Route Details</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-right w-20 bg-indigo-50/70 text-indigo-950">Claim Kilometers</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-right w-20 bg-indigo-50/70 text-indigo-950">Mileage (RM)</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-right w-24">Public Transport / Grab / Petrol (RM)</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-right w-16">Parking (RM)</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-right w-16">Toll (RM)</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-right w-16">Meals (RM)</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-right w-24">Entertainment (RM)</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-right w-16">Others (RM)</th>
-                                    <th class="border border-slate-300 py-2 px-2 text-right w-20 bg-slate-200/70">Total (RM)</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-center w-20 no-print">Manage</th>
+                                <tr class="bg-slate-100 text-slate-800 font-bold uppercase pdf-table-header">
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[34px]">No.</th>
+                                    <th class="border border-slate-300 py-1.5 px-1.5 text-left w-[72px]">Date</th>
+                                    <th class="border border-slate-300 py-1.5 px-1.5 text-left">Description & Route Details</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px] bg-indigo-50/70 text-indigo-950">Claim Kilometers</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px] bg-indigo-50/70 text-indigo-950">Mileage (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Public Transport / Grab / Petrol (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Parking (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Toll (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Meals (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Entertainment (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Others (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[64px] bg-slate-200/70">Total (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[54px] no-print">Manage</th>
                                 </tr>
                             </thead>
                             <tbody id="sheet-items-tbody">
                                 <!-- Dynamically populated -->
                             </tbody>
                             <tfoot>
-                                <tr class="bg-slate-50 font-bold text-slate-900 text-[11px]">
-                                    <td colspan="3" class="border border-slate-300 py-2 px-2 text-right uppercase text-[10px] tracking-wider">Column Totals</td>
-                                    <td id="sheet-total-rounded-km" class="border border-slate-300 py-2 px-1.5 text-right text-indigo-700 bg-indigo-50/50">0</td>
-                                    <td id="sheet-col-mileage" class="border border-slate-300 py-2 px-1.5 text-right bg-indigo-50/50">0.00</td>
-                                    <td id="sheet-col-transport" class="border border-slate-300 py-2 px-1.5 text-right">0.00</td>
-                                    <td id="sheet-col-parking" class="border border-slate-300 py-2 px-1.5 text-right">0.00</td>
-                                    <td id="sheet-col-toll" class="border border-slate-300 py-2 px-1.5 text-right">0.00</td>
-                                    <td id="sheet-col-meals" class="border border-slate-300 py-2 px-1.5 text-right">0.00</td>
-                                    <td id="sheet-col-entertainment" class="border border-slate-300 py-2 px-1.5 text-right">0.00</td>
-                                    <td id="sheet-col-others" class="border border-slate-300 py-2 px-1.5 text-right">0.00</td>
-                                    <td id="sheet-total-amount" class="border border-slate-300 py-2 px-2 text-right text-sm bg-slate-200/70">RM 0.00</td>
-                                    <td class="border border-slate-300 py-2 px-1.5 no-print"></td>
+                                <tr class="bg-slate-50 font-bold text-slate-900 pdf-table-cell">
+                                    <td colspan="3" class="border border-slate-300 py-1.5 px-2 text-right uppercase pdf-table-header tracking-wider">Column Totals</td>
+                                    <td id="sheet-total-rounded-km" class="border border-slate-300 py-1.5 px-1 text-right text-indigo-700 bg-indigo-50/50">0</td>
+                                    <td id="sheet-col-mileage" class="border border-slate-300 py-1.5 px-1 text-right bg-indigo-50/50">0.00</td>
+                                    <td id="sheet-col-transport" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
+                                    <td id="sheet-col-parking" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
+                                    <td id="sheet-col-toll" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
+                                    <td id="sheet-col-meals" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
+                                    <td id="sheet-col-entertainment" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
+                                    <td id="sheet-col-others" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
+                                    <td id="sheet-total-amount" class="border border-slate-300 py-1.5 px-1 text-right pdf-grand-total bg-slate-200/70">RM 0.00</td>
+                                    <td class="border border-slate-300 py-1.5 px-1 no-print"></td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
 
-                    <!-- Summary Box (Clean Audit Layout — Notes & Policy Applied Removed) -->
-                    <div class="flex justify-end mt-5">
-                        <div class="w-full sm:w-96 bg-slate-50 border border-slate-300 rounded-xl p-3.5 space-y-1.5 text-xs">
-                            <div class="flex justify-between text-slate-600">
-                                <span>Mileage Claim (<span id="summary-km-count">0</span> kilometers):</span>
-                                <span id="summary-mileage-rm" class="font-semibold">RM 0.00</span>
-                            </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span>Parking & Toll Charges:</span>
-                                <span id="summary-parking-toll-rm" class="font-semibold">RM 0.00</span>
-                            </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span>Public Transport, Meals, Entertainment & Others:</span>
-                                <span id="summary-other-rm" class="font-semibold">RM 0.00</span>
-                            </div>
-                            <div class="border-t border-slate-300 pt-1.5 flex justify-between text-sm font-extrabold text-slate-900">
-                                <span>TOTAL PAYABLE AMOUNT:</span>
-                                <span id="summary-grand-total">RM 0.00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Signature Blocks -->
-                    <div class="grid grid-cols-3 gap-6 mt-10 pt-4 text-xs">
+                    <!-- Signature & Approval Blocks (Compact Spacing with Interactive dd-mmm-yyyy Date Pickers) -->
+                    <div class="grid grid-cols-3 gap-6 mt-6 pt-2 pdf-meta-text">
                         <div>
-                            <div class="border-b border-slate-400 h-10 mb-1.5"></div>
+                            <div class="border-b border-slate-400 h-8 mb-1"></div>
                             <p class="font-bold text-slate-800">Claimed By (Staff)</p>
-                            <p class="text-slate-500 text-[11px]">Full Name: <span id="sig-staff-name" class="uppercase">-</span></p>
-                            <p class="text-slate-500 text-[11px]">Date:</p>
+                            <p class="text-slate-600">Full Name: <span id="sig-staff-name" class="font-semibold text-slate-900 uppercase">-</span></p>
+                            <div class="text-slate-600 flex items-center gap-1.5 mt-0.5">
+                                <span>Date:</span>
+                                <span id="sig-staff-date-text" class="font-semibold text-slate-900">-</span>
+                                <input type="date" id="sig-staff-date-input" onchange="updateFormSignatureDate('staff', this.value)"
+                                    class="no-print text-[10px] border border-slate-300 rounded px-1.5 py-0.5 bg-slate-50 text-slate-800 cursor-pointer">
+                            </div>
                         </div>
                         <div>
-                            <div class="border-b border-slate-400 h-10 mb-1.5"></div>
+                            <div class="border-b border-slate-400 h-8 mb-1"></div>
                             <p class="font-bold text-slate-800">Verified By (Manager)</p>
-                            <p class="text-slate-500 text-[11px]">Full Name:</p>
-                            <p class="text-slate-500 text-[11px]">Date:</p>
+                            <p class="text-slate-600">Full Name: <span id="sig-manager-name" class="font-semibold text-slate-900 uppercase">-</span></p>
+                            <div class="text-slate-600 flex items-center gap-1.5 mt-0.5">
+                                <span>Date:</span>
+                                <span id="sig-manager-date-text" class="font-semibold text-slate-900">-</span>
+                                <input type="date" id="sig-manager-date-input" onchange="updateFormSignatureDate('manager', this.value)"
+                                    class="no-print hidden text-[10px] border border-slate-300 rounded px-1.5 py-0.5 bg-slate-50 text-slate-800 cursor-pointer">
+                            </div>
                         </div>
                         <div>
-                            <div class="border-b border-slate-400 h-10 mb-1.5"></div>
+                            <div class="border-b border-slate-400 h-8 mb-1"></div>
                             <p class="font-bold text-slate-800">Approved By (Finance Department)</p>
-                            <p class="text-slate-500 text-[11px]">Entity: <span id="sig-company-code">ATLAS</span></p>
-                            <p class="text-slate-500 text-[11px]">Date:</p>
+                            <p class="text-slate-600">Full Name: <span id="sig-finance-name" class="font-semibold text-slate-900 uppercase">-</span></p>
+                            <div class="text-slate-600 flex items-center gap-1.5 mt-0.5">
+                                <span>Date:</span>
+                                <span id="sig-finance-date-text" class="font-semibold text-slate-900">-</span>
+                                <input type="date" id="sig-finance-date-input" onchange="updateFormSignatureDate('finance', this.value)"
+                                    class="no-print hidden text-[10px] border border-slate-300 rounded px-1.5 py-0.5 bg-slate-50 text-slate-800 cursor-pointer">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1266,6 +1265,7 @@
             entries: [],
             deletedEntries: [],
             lockedForms: {},
+            formApprovals: {},
             announcement: DEFAULT_ANNOUNCEMENT
         };
 
@@ -1428,6 +1428,9 @@
             if (data.lockedForms && typeof data.lockedForms === 'object') {
                 appState.lockedForms = data.lockedForms;
             }
+            if (data.formApprovals && typeof data.formApprovals === 'object') {
+                appState.formApprovals = data.formApprovals;
+            }
             if (typeof data.announcement === 'string' && data.announcement.trim()) {
                 appState.announcement = data.announcement;
             }
@@ -1446,6 +1449,7 @@
                     entries: appState.entries,
                     deletedEntries: appState.deletedEntries,
                     lockedForms: appState.lockedForms,
+                    formApprovals: appState.formApprovals,
                     announcement: appState.announcement,
                     updatedAt: new Date().toISOString()
                 }, { merge: true });
@@ -2767,38 +2771,7 @@
             document.getElementById('badge-total-forms').textContent = `${groupList.length} Form${groupList.length === 1 ? '' : 's'}`;
             const mBadge = document.getElementById('m-badge-forms');
             if (mBadge) mBadge.textContent = `(${groupList.length})`;
-
-            const summaryContainer = document.getElementById('live-forms-summary-list');
-            if (groupList.length === 0) {
-                summaryContainer.innerHTML = `
-                    <div class="text-center py-6 px-3 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        <p class="text-xs text-slate-500">No forms generated yet. Add an entry on the left to start.</p>
-                    </div>`;
-            } else {
-                summaryContainer.innerHTML = groupList.map(g => {
-                    const comp = getCompanyById(g.companyId);
-                    const locked = isFormLocked(g.monthKey, g.companyId, g.staffName);
-                    return `
-                        <div onclick="openSpecificForm('${g.monthKey}', '${g.companyId}', '${escapeHtml(g.staffName)}')"
-                            class="cursor-pointer group p-3 rounded-xl border ${locked ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40'} transition flex items-center justify-between">
-                            <div>
-                                <div class="flex flex-wrap items-center gap-1.5">
-                                    <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-900 text-white">${comp.name}</span>
-                                    <span class="text-xs font-bold text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">${escapeHtml(g.staffName)}</span>
-                                    <span class="text-xs font-semibold text-slate-700">${formatMonthLabel(g.monthKey)}</span>
-                                    ${locked ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800"><i class="fa-solid fa-lock"></i> Locked</span>` : ''}
-                                </div>
-                                <p class="text-[11px] text-slate-500 mt-1">
-                                    ${g.entries.length} item${g.entries.length > 1 ? 's' : ''} • ${g.totalRoundedKm} kilometers
-                                </p>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-sm font-extrabold text-indigo-700">RM ${g.totalAmount.toFixed(2)}</span>
-                                <span class="text-[11px] text-indigo-500 group-hover:underline font-medium">View Form →</span>
-                            </div>
-                        </div>`;
-                }).join('');
-            }
+        }
 
             const recentContainer = document.getElementById('recent-entries-list');
             const recentSlice = visibleEntries.slice(0, 4);
@@ -2995,120 +2968,100 @@
         };
 
         // =========================================================================
-        // 12. CLAIM FORMS ENGINE (SEPARATED BY MONTH, COMPANY & STAFF NAME)
+        // 10. FORM APPROVAL & SIGNATURE DATE CONTROLS (STAFF, MANAGER & FINANCE)
         // =========================================================================
-        function populateFormSelectors() {
-            const visibleEntries = getVisibleEntriesForCurrentUser();
-            const monthSelect = document.getElementById('forms-month-select');
-            const staffSelect = document.getElementById('forms-staff-select');
-            const companySelect = document.getElementById('forms-company-select');
+        function getFormApprovalRecord(monthKey, companyId, staffName) {
+            const key = getFormLockKey(monthKey, companyId, staffName);
+            const existing = (appState.formApprovals && appState.formApprovals[key]) || {};
+            const legacyLock = appState.lockedForms && appState.lockedForms[key];
+            const todayIso = new Date().toISOString().split('T')[0];
 
-            const prevMonth = monthSelect.value;
-            const prevStaff = staffSelect.value;
-            const prevCompany = companySelect.value;
-
-            const uniqueMonths = [...new Set(visibleEntries.map(e => getMonthKey(e.date)))].sort().reverse();
-
-            if (uniqueMonths.length === 0) {
-                monthSelect.innerHTML = `<option value="">No Months</option>`;
-                staffSelect.innerHTML = `<option value="">No Staff</option>`;
-                companySelect.innerHTML = `<option value="">No Companies</option>`;
-                document.getElementById('month-company-pills').innerHTML = '';
-                return;
-            }
-
-            monthSelect.innerHTML = uniqueMonths.map(m =>
-                `<option value="${m}">${formatMonthLabel(m)}</option>`
-            ).join('');
-
-            if (prevMonth && uniqueMonths.includes(prevMonth)) {
-                monthSelect.value = prevMonth;
-            } else {
-                monthSelect.value = uniqueMonths[0];
-            }
-
-            syncStaffAndCompanyOptionsForSelectedMonth(prevStaff, prevCompany);
+            return {
+                staffDate: existing.staffDate || todayIso,
+                managerName: existing.managerName || '',
+                managerDate: existing.managerDate || '',
+                financeName: existing.financeName || (legacyLock ? (legacyLock.lockedBy || '') : ''),
+                financeDate: existing.financeDate || (legacyLock && legacyLock.lockedAt ? legacyLock.lockedAt.split('T')[0] : '')
+            };
         }
 
-        function syncStaffAndCompanyOptionsForSelectedMonth(preferredStaff = '', preferredCompany = '') {
-            const visibleEntries = getVisibleEntriesForCurrentUser();
-            const monthSelect = document.getElementById('forms-month-select');
-            const staffSelect = document.getElementById('forms-staff-select');
-            const companySelect = document.getElementById('forms-company-select');
-            const selectedMonth = monthSelect.value;
+        window.approveFormStage = function(stage) {
+            const monthKey = document.getElementById('forms-month-select').value;
+            const staffName = document.getElementById('forms-staff-select').value;
+            const companyId = document.getElementById('forms-company-select').value;
+            if (!monthKey || !companyId || !staffName) return;
 
-            const monthEntries = visibleEntries.filter(e => getMonthKey(e.date) === selectedMonth);
-            const staffNamesInMonth = [...new Set(monthEntries.map(e => (e.staffName || 'UNASSIGNED').trim().toUpperCase()))].sort();
+            const key = getFormLockKey(monthKey, companyId, staffName);
+            if (!appState.formApprovals) appState.formApprovals = {};
+            if (!appState.lockedForms) appState.lockedForms = {};
 
-            if (staffNamesInMonth.length === 0) {
-                staffSelect.innerHTML = `<option value="">No Staff</option>`;
-                companySelect.innerHTML = `<option value="">No Companies</option>`;
-                return;
+            const record = getFormApprovalRecord(monthKey, companyId, staffName);
+            const actorName = getActiveActorName().toUpperCase();
+            const todayIso = new Date().toISOString().split('T')[0];
+
+            if (stage === 'manager') {
+                if (currentRole !== 'manager' && !isAdminOrFinance()) {
+                    showToast('Only Managers, Finance, or SuperAdmin can verify this form.', 'error');
+                    return;
+                }
+                if (record.managerName) {
+                    record.managerName = '';
+                    record.managerDate = '';
+                    showToast('Manager verification cleared.', 'info');
+                } else {
+                    record.managerName = actorName;
+                    record.managerDate = todayIso;
+                    showToast(`Verified by Manager (${actorName})!`, 'success');
+                }
+            } else if (stage === 'finance') {
+                if (!isAdminOrFinance()) {
+                    showToast('Only Finance Team or SuperAdmin can approve this form.', 'error');
+                    return;
+                }
+                if (record.financeName) {
+                    record.financeName = '';
+                    record.financeDate = '';
+                    delete appState.lockedForms[key];
+                    showToast('Finance approval unlocked.', 'info');
+                } else {
+                    record.financeName = actorName;
+                    record.financeDate = todayIso;
+                    appState.lockedForms[key] = {
+                        lockedAt: new Date().toISOString(),
+                        lockedBy: actorName
+                    };
+                    showToast(`Approved & Locked by Finance (${actorName})!`, 'success');
+                }
             }
 
-            staffSelect.innerHTML = staffNamesInMonth.map(s =>
-                `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`
-            ).join('');
+            appState.formApprovals[key] = record;
+            persistState();
+            refreshAllUI();
+        };
 
-            if (preferredStaff && staffNamesInMonth.includes(preferredStaff)) {
-                staffSelect.value = preferredStaff;
-            } else {
-                staffSelect.value = staffNamesInMonth[0];
+        window.updateFormSignatureDate = function(stage, isoDateVal) {
+            if (!isoDateVal) return;
+            const monthKey = document.getElementById('forms-month-select').value;
+            const staffName = document.getElementById('forms-staff-select').value;
+            const companyId = document.getElementById('forms-company-select').value;
+            if (!monthKey || !companyId || !staffName) return;
+
+            const key = getFormLockKey(monthKey, companyId, staffName);
+            if (!appState.formApprovals) appState.formApprovals = {};
+            const record = getFormApprovalRecord(monthKey, companyId, staffName);
+
+            if (stage === 'staff') {
+                record.staffDate = isoDateVal;
+            } else if (stage === 'manager') {
+                if (currentRole !== 'manager' && !isAdminOrFinance()) return;
+                record.managerDate = isoDateVal;
+            } else if (stage === 'finance') {
+                if (!isAdminOrFinance()) return;
+                record.financeDate = isoDateVal;
             }
 
-            syncCompanyOptionsForSelectedMonthAndStaff(preferredCompany);
-        }
-
-        function syncCompanyOptionsForSelectedMonthAndStaff(preferredCompany = '') {
-            const visibleEntries = getVisibleEntriesForCurrentUser();
-            const selectedMonth = document.getElementById('forms-month-select').value;
-            const selectedStaff = document.getElementById('forms-staff-select').value;
-            const companySelect = document.getElementById('forms-company-select');
-
-            const entriesForMonthAndStaff = visibleEntries.filter(
-                e => getMonthKey(e.date) === selectedMonth && (e.staffName || 'UNASSIGNED').trim().toUpperCase() === selectedStaff
-            );
-            const companyIds = [...new Set(entriesForMonthAndStaff.map(e => e.companyId))];
-
-            companySelect.innerHTML = companyIds.map(cId => {
-                const c = getCompanyById(cId);
-                return `<option value="${cId}">${c.name} — ${c.fullName}</option>`;
-            }).join('');
-
-            if (preferredCompany && companyIds.includes(preferredCompany)) {
-                companySelect.value = preferredCompany;
-            } else if (companyIds.length > 0) {
-                companySelect.value = companyIds[0];
-            }
-
-            // Render quick pill switcher across accessible Company + Staff combinations in the selected month
-            const monthEntries = visibleEntries.filter(e => getMonthKey(e.date) === selectedMonth);
-            const comboMap = {};
-            monthEntries.forEach(e => {
-                const sName = (e.staffName || 'UNASSIGNED').trim().toUpperCase();
-                const key = `${e.companyId}__${sName}`;
-                if (!comboMap[key]) comboMap[key] = { companyId: e.companyId, staffName: sName };
-            });
-
-            const pillsContainer = document.getElementById('month-company-pills');
-            pillsContainer.innerHTML = `<span class="text-[11px] font-semibold text-slate-400 mr-1">Forms in ${formatMonthLabel(selectedMonth)}:</span>` +
-                Object.values(comboMap).map(combo => {
-                    const c = getCompanyById(combo.companyId);
-                    const isActive = combo.companyId === companySelect.value && combo.staffName === selectedStaff;
-                    const locked = isFormLocked(selectedMonth, combo.companyId, combo.staffName);
-                    return `
-                        <button onclick="openSpecificForm('${selectedMonth}', '${combo.companyId}', '${escapeHtml(combo.staffName)}')"
-                            class="px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 ${isActive ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
-                            <span>${c.name} • ${escapeHtml(combo.staffName)}</span>
-                            ${locked ? `<i class="fa-solid fa-lock text-[10px] ${isActive ? 'text-emerald-200' : 'text-emerald-600'}"></i>` : ''}
-                        </button>`;
-                }).join('');
-        }
-
-        window.handleFormMonthChange = function() {
-            const currentStaff = document.getElementById('forms-staff-select').value;
-            const currentCompany = document.getElementById('forms-company-select').value;
-            syncStaffAndCompanyOptionsForSelectedMonth(currentStaff, currentCompany);
+            appState.formApprovals[key] = record;
+            persistState();
             renderOfficialClaimSheet();
         };
 
@@ -3242,54 +3195,84 @@
             const company = getCompanyById(companyId);
             const periodLabel = formatMonthLabel(monthKey).toUpperCase();
             const locked = isFormLocked(monthKey, companyId, staffName);
-            const lockMeta = appState.lockedForms?.[getFormLockKey(monthKey, companyId, staffName)];
+            const approvalRecord = getFormApprovalRecord(monthKey, companyId, staffName);
 
             const matchedProfile = appState.staffProfiles.find(
                 s => s.fullName.trim().toUpperCase() === staffName
             );
-            const employedCompany = matchedProfile ? getCompanyById(matchedProfile.employedCompanyId) : null;
 
-            const lockBadge = document.getElementById('sheet-lock-badge');
-            if (locked) {
-                lockBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
-                lockBadge.innerHTML = `<i class="fa-solid fa-lock mr-1"></i> Verified & Locked by ${escapeHtml(lockMeta?.lockedBy || 'Finance')}`;
-            } else {
-                lockBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300';
-                lockBadge.innerHTML = '<i class="fa-solid fa-clock mr-1"></i> Draft / Open';
-            }
-
-            const lockBtn = document.getElementById('btn-toggle-form-lock');
-            const lockBtnText = document.getElementById('btn-toggle-form-lock-text');
-            if (isAdminOrFinance() || currentRole === 'manager') {
-                lockBtn.classList.remove('hidden');
-                if (locked) {
-                    lockBtn.className = 'no-print px-3 py-1.5 rounded-xl text-xs font-bold border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 transition flex items-center gap-1.5';
-                    lockBtn.querySelector('i').className = 'fa-solid fa-lock-open';
-                    lockBtnText.textContent = 'Unlock Form';
+            // Configure Manager Verify & Finance Approve Header Buttons
+            const mgrBtn = document.getElementById('btn-manager-verify-form');
+            const mgrBtnText = document.getElementById('btn-manager-verify-text');
+            if (currentRole === 'manager' || isAdminOrFinance()) {
+                mgrBtn.classList.remove('hidden');
+                if (approvalRecord.managerName) {
+                    mgrBtn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold border border-indigo-300 bg-indigo-100 hover:bg-indigo-200 text-indigo-900 transition flex items-center gap-1';
+                    mgrBtnText.textContent = 'Clear Manager Verify';
                 } else {
-                    lockBtn.className = 'no-print px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-300 bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1.5 shadow-2xs';
-                    lockBtn.querySelector('i').className = 'fa-solid fa-lock';
-                    lockBtnText.textContent = 'Verify & Lock Form';
+                    mgrBtn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold border border-indigo-300 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 transition flex items-center gap-1';
+                    mgrBtnText.textContent = 'Verify (Manager)';
                 }
             } else {
-                lockBtn.classList.add('hidden');
+                mgrBtn.classList.add('hidden');
             }
 
-            // Populate Header & Claimant Details
+            const finBtn = document.getElementById('btn-finance-approve-form');
+            const finBtnText = document.getElementById('btn-finance-approve-text');
+            if (isAdminOrFinance()) {
+                finBtn.classList.remove('hidden');
+                if (approvalRecord.financeName || locked) {
+                    finBtn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 transition flex items-center gap-1';
+                    finBtn.querySelector('i').className = 'fa-solid fa-lock-open';
+                    finBtnText.textContent = 'Unlock Finance Approval';
+                } else {
+                    finBtn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold border border-emerald-300 bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1 shadow-2xs';
+                    finBtn.querySelector('i').className = 'fa-solid fa-stamp';
+                    finBtnText.textContent = 'Approve (Finance)';
+                }
+            } else {
+                finBtn.classList.add('hidden');
+            }
+
+            // Populate Header & 3-Column Claimant Details
             document.getElementById('sheet-company-fullname').textContent = company.fullName;
-            document.getElementById('sheet-company-code').textContent = company.name;
             document.getElementById('sheet-period-label').textContent = periodLabel;
             document.getElementById('sheet-generated-date').textContent = formatAuditDate(new Date().toISOString().split('T')[0]);
 
             document.getElementById('sheet-staff-name').textContent = staffName;
             document.getElementById('sheet-staff-nric').textContent = matchedProfile ? matchedProfile.nric : 'Not Registered';
             document.getElementById('sheet-staff-mobile').textContent = matchedProfile ? matchedProfile.mobile : '-';
-            document.getElementById('sheet-staff-employed').textContent = employedCompany
-                ? `${employedCompany.fullName} (RM 0.60 per kilometer)`
-                : 'RM 0.60 per kilometer';
 
+            // Populate Signature Blocks & Interactive dd-mmm-yyyy Date Pickers
             document.getElementById('sig-staff-name').textContent = staffName;
-            document.getElementById('sig-company-code').textContent = company.name;
+            document.getElementById('sig-staff-date-text').textContent = approvalRecord.staffDate ? formatAuditDate(approvalRecord.staffDate) : '-';
+            const staffDateInput = document.getElementById('sig-staff-date-input');
+            staffDateInput.value = approvalRecord.staffDate || '';
+            if (!locked || isAdminOrFinance()) {
+                staffDateInput.classList.remove('hidden');
+            } else {
+                staffDateInput.classList.add('hidden');
+            }
+
+            document.getElementById('sig-manager-name').textContent = approvalRecord.managerName || '';
+            document.getElementById('sig-manager-date-text').textContent = approvalRecord.managerDate ? formatAuditDate(approvalRecord.managerDate) : '';
+            const mgrDateInput = document.getElementById('sig-manager-date-input');
+            mgrDateInput.value = approvalRecord.managerDate || '';
+            if ((currentRole === 'manager' || isAdminOrFinance()) && approvalRecord.managerName) {
+                mgrDateInput.classList.remove('hidden');
+            } else {
+                mgrDateInput.classList.add('hidden');
+            }
+
+            document.getElementById('sig-finance-name').textContent = approvalRecord.financeName || '';
+            document.getElementById('sig-finance-date-text').textContent = approvalRecord.financeDate ? formatAuditDate(approvalRecord.financeDate) : '';
+            const finDateInput = document.getElementById('sig-finance-date-input');
+            finDateInput.value = approvalRecord.financeDate || '';
+            if (isAdminOrFinance() && approvalRecord.financeName) {
+                finDateInput.classList.remove('hidden');
+            } else {
+                finDateInput.classList.add('hidden');
+            }
 
             // Expand stops into individual numbered rows (Stop 1 = No. 1, Stop 2 = No. 2, etc.)
             const expandedRows = expandEntriesIntoSheetRows(items);
@@ -3318,36 +3301,36 @@
 
                 const canManage = isAdminOrFinance() || !locked;
                 const editAuditNote = (row.lastEditedBy && row.lastEditedAt)
-                    ? `<div class="no-print mt-1 text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 inline-block">Edited by ${escapeHtml(row.lastEditedBy)}, ${formatAuditDateTime(row.lastEditedAt)}</div>`
+                    ? `<div class="no-print mt-0.5 pdf-micro-label font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded px-1 py-0.2 inline-block">Edited by ${escapeHtml(row.lastEditedBy)}, ${formatAuditDateTime(row.lastEditedAt)}</div>`
                     : '';
 
                 return `
                     <tr>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-center font-semibold text-slate-700">${idx + 1}</td>
-                        <td class="border border-slate-300 py-1.5 px-2 whitespace-nowrap font-medium">${formatAuditDate(row.date)}</td>
-                        <td class="border border-slate-300 py-1.5 px-2">
+                        <td class="border border-slate-300 py-1 px-1 text-center font-semibold text-slate-700">${idx + 1}</td>
+                        <td class="border border-slate-300 py-1 px-1.5 whitespace-nowrap font-medium">${formatAuditDate(row.date)}</td>
+                        <td class="border border-slate-300 py-1 px-1.5 break-words">
                             <div class="font-semibold text-slate-900">${escapeHtml(row.purpose)}</div>
-                            ${row.routeText ? `<div class="text-[10px] text-slate-600 mt-0.5">${escapeHtml(row.routeText)}</div>` : ''}
+                            ${row.routeText ? `<div class="pdf-route-sub text-slate-600 mt-0.5">${escapeHtml(row.routeText)}</div>` : ''}
                             ${editAuditNote}
                         </td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right font-bold text-indigo-900 bg-indigo-50/30">${row.roundedKm > 0 ? row.roundedKm : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right bg-indigo-50/30">${row.mileageAmt > 0 ? row.mileageAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.transportAmt > 0 ? row.transportAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.parkingAmt > 0 ? row.parkingAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.tollAmt > 0 ? row.tollAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.mealsAmt > 0 ? row.mealsAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.entertainmentAmt > 0 ? row.entertainmentAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.othersAmt > 0 ? row.othersAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-2 text-right font-bold text-slate-900 bg-slate-100/60">${row.totalAmt.toFixed(2)}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-center whitespace-nowrap no-print">
+                        <td class="border border-slate-300 py-1 px-1 text-right font-bold text-indigo-900 bg-indigo-50/30">${row.roundedKm > 0 ? row.roundedKm : '-'}</td>
+                        <td class="border border-slate-300 py-1 px-1 text-right bg-indigo-50/30">${row.mileageAmt > 0 ? row.mileageAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1 px-1 text-right">${row.transportAmt > 0 ? row.transportAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1 px-1 text-right">${row.parkingAmt > 0 ? row.parkingAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1 px-1 text-right">${row.tollAmt > 0 ? row.tollAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1 px-1 text-right">${row.mealsAmt > 0 ? row.mealsAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1 px-1 text-right">${row.entertainmentAmt > 0 ? row.entertainmentAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1 px-1 text-right">${row.othersAmt > 0 ? row.othersAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1 px-1 text-right font-bold text-slate-900 bg-slate-100/60">${row.totalAmt.toFixed(2)}</td>
+                        <td class="border border-slate-300 py-1 px-1 text-center whitespace-nowrap no-print">
                             ${canManage ? `
-                                <button type="button" onclick="editEntry('${row.entryId}')" title="Edit Entry" class="px-1.5 py-1 text-indigo-600 hover:bg-indigo-50 rounded">
+                                <button type="button" onclick="editEntry('${row.entryId}')" title="Edit Entry" class="px-1 py-0.5 text-indigo-600 hover:bg-indigo-50 rounded">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
-                                <button type="button" onclick="deleteEntry('${row.entryId}')" title="Remove Entry" class="px-1.5 py-1 text-rose-600 hover:bg-rose-50 rounded">
+                                <button type="button" onclick="deleteEntry('${row.entryId}')" title="Remove Entry" class="px-1 py-0.5 text-rose-600 hover:bg-rose-50 rounded">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
-                            ` : `<span class="text-[10px] text-slate-400">Locked</span>`}
+                            ` : `<span class="pdf-micro-label text-slate-400">Locked</span>`}
                         </td>
                     </tr>`;
             }).join('');
@@ -3361,12 +3344,6 @@
             document.getElementById('sheet-col-entertainment').textContent = sumEntertainment.toFixed(2);
             document.getElementById('sheet-col-others').textContent = sumOthers.toFixed(2);
             document.getElementById('sheet-total-amount').textContent = `RM ${grandTotal.toFixed(2)}`;
-
-            document.getElementById('summary-km-count').textContent = totalRoundedKm;
-            document.getElementById('summary-mileage-rm').textContent = `RM ${sumMileage.toFixed(2)}`;
-            document.getElementById('summary-parking-toll-rm').textContent = `RM ${(sumParking + sumToll).toFixed(2)}`;
-            document.getElementById('summary-other-rm').textContent = `RM ${(sumTransport + sumMeals + sumEntertainment + sumOthers).toFixed(2)}`;
-            document.getElementById('summary-grand-total').textContent = `RM ${grandTotal.toFixed(2)}`;
         };
 
         function formatTitleCaseName(nameStr, maxWords = 0) {
