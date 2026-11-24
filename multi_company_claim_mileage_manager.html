@@ -1,0 +1,33 @@
+<!-- ... existing code ... -->
+    <!-- Application Core Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // FIREBASE CLOUD CONFIG (Connected to your onehax-claims Firebase project)
+        // =========================================================================
+        const MANUAL_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBkoqynJLUy6HOpwAab5QALMq83PW8iamk",
+            authDomain: "onehax-claims.firebaseapp.com",
+            projectId: "onehax-claims",
+            storageBucket: "onehax-claims.firebasestorage.app",
+            messagingSenderId: "354358457542",
+            appId: "1:354358457542:web:aaf19ad13e5b05248a53c7",
+            measurementId: "G-SKSGXM9T68"
+        };
+        const MANUAL_WORKSPACE_ID = "onehax-claims-live";
+        // =========================================================================
+
+        // Environment & Firebase Setup (Automatically uses your pasted config when hosted externally)
+        const hasManualConfig = MANUAL_FIREBASE_CONFIG.apiKey && !MANUAL_FIREBASE_CONFIG.apiKey.includes("PASTE_YOUR");
+        const appId = typeof __app_id !== 'undefined' ? __app_id : MANUAL_WORKSPACE_ID;
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+            ? JSON.parse(__firebase_config)
+            : (hasManualConfig ? MANUAL_FIREBASE_CONFIG : null);
+
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+// ... existing code ...
