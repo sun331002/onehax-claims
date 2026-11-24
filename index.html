@@ -44,7 +44,21 @@
             background: #94a3b8;
         }
 
-        /* Print-specific formatting for Finance Official Claim Forms */
+        /* Remove up/down number input spinners to prevent accidental value changes */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Print-specific formatting for Finance Official Claim Forms (A4 Landscape) */
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
         @media print {
             body * {
                 visibility: hidden;
@@ -57,11 +71,14 @@
                 left: 0;
                 top: 0;
                 width: 100%;
+                max-width: 100% !important;
                 box-shadow: none !important;
                 border: none !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
             .no-print {
                 display: none !important;
@@ -263,14 +280,17 @@
             <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                 <div>
                     <h3 class="text-sm font-bold text-slate-900" id="receipt-viewer-title">Attached Receipt</h3>
-                    <p class="text-xs text-slate-500" id="receipt-viewer-subtitle"></p>
+                    <p class="text-[11px] text-slate-500" id="receipt-viewer-subtitle"></p>
                 </div>
-                <button onclick="closeReceiptViewer()" class="w-9 h-9 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-200/70 flex items-center justify-center">
-                    <i class="fa-solid fa-xmark text-base"></i>
+                <button onclick="closeReceiptViewer()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="p-4 overflow-auto flex items-center justify-center bg-slate-900/5 flex-1">
-                <img id="receipt-viewer-img" src="" alt="Receipt Attachment" class="max-w-full max-h-[68vh] rounded-xl shadow-md object-contain">
+            <div class="p-4 bg-slate-950 flex items-center justify-center overflow-auto flex-1">
+                <img id="receipt-viewer-img" src="" alt="Receipt Attachment" class="max-w-full max-h-[68vh] rounded-lg object-contain">
+            </div>
+            <div class="px-5 py-3 border-t border-slate-200 bg-white flex justify-end">
+                <button onclick="closeReceiptViewer()" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold">Close Preview</button>
             </div>
         </div>
     </div>
@@ -279,12 +299,12 @@
     <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 no-print">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full p-6 space-y-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <div>
                     <h3 id="confirm-modal-title" class="text-base font-bold text-slate-900">Confirm Action</h3>
-                    <p id="confirm-modal-msg" class="text-xs text-slate-600 mt-1">Are you sure?</p>
+                    <p id="confirm-modal-msg" class="text-xs text-slate-600 mt-0.5">Are you sure?</p>
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
@@ -294,38 +314,37 @@
         </div>
     </div>
 
-    <!-- Main Workspace -->
+    <!-- Main Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         <!-- ===================================================================== -->
-        <!-- TAB 1: LOG CLAIM ENTRY (PER-ENTRY COMPANY & ROUNDUP MILEAGE)          -->
+        <!-- TAB 1: LOG CLAIM ENTRY (PER-ENTRY COMPANY & DATE SELECTION)           -->
         <!-- ===================================================================== -->
         <section id="tab-entry" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-6">
             <!-- Left Column: Entry Form -->
             <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6">
                 <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900" id="form-mode-title">New Claim Entry</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Select the specific company & date for each receipt or trip.</p>
+                        <h2 id="form-mode-title" class="text-lg font-bold text-slate-900">New Claim Entry</h2>
+                        <p class="text-xs text-slate-500">Select company, date, and toggle all items for this receipt or trip.</p>
                     </div>
-                    <span id="editing-badge" class="hidden px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
+                    <span id="editing-badge" class="hidden px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
                         <i class="fa-solid fa-pen-to-square mr-1"></i> Editing Entry
                     </span>
                 </div>
 
                 <form id="claim-entry-form" onsubmit="handleSaveEntry(event)" class="space-y-4">
-                    <input type="hidden" id="entry-id" value="">
+                    <input type="hidden" id="entry-id">
 
-                    <!-- Row 1: Company Selector & Date -->
+                    <!-- Row 1: Company & Date -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                 1. Claim Company <span class="text-rose-500">*</span>
                             </label>
                             <div class="relative">
-                                <select id="entry-company" required onchange="recalculateMileage()"
+                                <select id="entry-company" onchange="recalculateEntryTotal()" required
                                     class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 text-slate-900 font-semibold text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition appearance-none">
-                                    <!-- Populated dynamically -->
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
                                     <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -339,52 +358,65 @@
                                 2. Date of Expense <span class="text-rose-500">*</span>
                             </label>
                             <input type="date" id="entry-date" required
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 text-slate-900 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 text-slate-900 font-medium text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                             <p class="text-[11px] text-slate-400 mt-1">Determines which monthly statement it belongs to.</p>
                         </div>
                     </div>
 
-                    <!-- Row 2: Claim Category -->
+                    <!-- Row 2: Trip / Expense Components (Toggle Multiple per Entry) -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                            3. Claim Category <span class="text-rose-500">*</span>
-                        </label>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="category-selector-grid">
-                            <button type="button" onclick="selectCategory('Mileage')" data-cat="Mileage"
-                                class="cat-pill active flex items-center gap-2 px-3 py-3 sm:py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/70 text-indigo-900 text-xs font-semibold transition">
-                                <i class="fa-solid fa-car text-indigo-600"></i>
-                                <span>Mileage (km)</span>
+                        <div class="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                                3. Claim Items for This Entry / Trip <span class="text-rose-500">*</span>
+                            </label>
+                            <span class="text-[11px] text-slate-400">Tap to include/exclude (e.g. Mileage + Toll + Parking)</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="component-toggle-grid">
+                            <button type="button" onclick="toggleExpenseComponent('mileage')" id="toggle-comp-mileage"
+                                class="comp-pill flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/80 text-indigo-950 text-xs font-bold transition">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-car text-indigo-600"></i> Mileage (km)</span>
+                                <i class="fa-solid fa-circle-check text-indigo-600" id="check-comp-mileage"></i>
                             </button>
-                            <button type="button" onclick="selectCategory('Toll / Parking')" data-cat="Toll / Parking"
-                                class="cat-pill flex items-center gap-2 px-3 py-3 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
-                                <i class="fa-solid fa-road text-sky-600"></i>
-                                <span>Toll / Parking</span>
+                            <button type="button" onclick="toggleExpenseComponent('parking')" id="toggle-comp-parking"
+                                class="comp-pill flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-square-parking text-sky-600"></i> Parking</span>
+                                <i class="fa-regular fa-circle text-slate-300" id="check-comp-parking"></i>
                             </button>
-                            <button type="button" onclick="selectCategory('Food & Refreshment')" data-cat="Food & Refreshment"
-                                class="cat-pill flex items-center gap-2 px-3 py-3 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
-                                <i class="fa-solid fa-utensils text-amber-600"></i>
-                                <span>Meals / Refreshment</span>
+                            <button type="button" onclick="toggleExpenseComponent('toll')" id="toggle-comp-toll"
+                                class="comp-pill flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-road text-teal-600"></i> Toll</span>
+                                <i class="fa-regular fa-circle text-slate-300" id="check-comp-toll"></i>
                             </button>
-                            <button type="button" onclick="selectCategory('Accommodation / Travel')" data-cat="Accommodation / Travel"
-                                class="cat-pill flex items-center gap-2 px-3 py-3 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
-                                <i class="fa-solid fa-hotel text-purple-600"></i>
-                                <span>Hotel / Flight</span>
+                            <button type="button" onclick="toggleExpenseComponent('transport')" id="toggle-comp-transport"
+                                class="comp-pill flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-taxi text-amber-600"></i> Grab / Transport</span>
+                                <i class="fa-regular fa-circle text-slate-300" id="check-comp-transport"></i>
                             </button>
-                            <button type="button" onclick="selectCategory('Printing / Stationery')" data-cat="Printing / Stationery"
-                                class="cat-pill flex items-center gap-2 px-3 py-3 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
-                                <i class="fa-solid fa-print text-emerald-600"></i>
-                                <span>Office / Printing</span>
+                            <button type="button" onclick="toggleExpenseComponent('meals')" id="toggle-comp-meals"
+                                class="comp-pill flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-utensils text-orange-600"></i> Meals</span>
+                                <i class="fa-regular fa-circle text-slate-300" id="check-comp-meals"></i>
                             </button>
-                            <button type="button" onclick="selectCategory('Others')" data-cat="Others"
-                                class="cat-pill flex items-center gap-2 px-3 py-3 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
-                                <i class="fa-solid fa-receipt text-slate-600"></i>
-                                <span>Others</span>
+                            <button type="button" onclick="toggleExpenseComponent('entertainment')" id="toggle-comp-entertainment"
+                                class="comp-pill flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-champagne-glasses text-purple-600"></i> Entertainment</span>
+                                <i class="fa-regular fa-circle text-slate-300" id="check-comp-entertainment"></i>
                             </button>
                         </div>
-                        <input type="hidden" id="entry-category" value="Mileage">
+                        <div class="mt-2 flex items-center justify-between">
+                            <button type="button" onclick="toggleExpenseComponent('others')" id="toggle-comp-others"
+                                class="comp-pill inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition">
+                                <i class="fa-solid fa-receipt text-slate-600"></i>
+                                <span>+ Add Other Expense (Office / Hotel / Misc)</span>
+                                <i class="fa-regular fa-circle text-slate-300 ml-1" id="check-comp-others"></i>
+                            </button>
+                            <button type="button" onclick="setGrabPreset()" class="text-[11px] font-semibold text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition">
+                                <i class="fa-solid fa-taxi mr-1"></i> Going by Grab? (Hide Mileage)
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Dynamic Mileage Calculator Box (Shown when Category == Mileage) -->
+                    <!-- Dynamic Mileage Calculator Box (Shown when Mileage is toggled ON) -->
                     <div id="mileage-calculator-box" class="bg-indigo-50/70 border border-indigo-200/80 rounded-2xl p-4 space-y-3">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-bold text-indigo-950 uppercase tracking-wider flex items-center gap-1.5">
@@ -399,8 +431,8 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                             <div>
                                 <label class="block text-xs font-medium text-slate-700 mb-1">Actual Distance (km) <span class="text-rose-500">*</span></label>
-                                <input type="number" step="0.01" min="0" id="entry-actual-km" oninput="recalculateMileage()" placeholder="e.g. 12.3"
-                                    class="w-full px-3 py-2 rounded-xl border border-indigo-300 bg-white text-slate-900 font-semibold text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <input type="number" step="0.01" min="0" id="entry-actual-km" oninput="recalculateEntryTotal()" placeholder="e.g. 12.3"
+                                    class="no-wheel w-full px-3 py-2 rounded-xl border border-indigo-300 bg-white text-slate-900 font-semibold text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                             </div>
 
                             <div class="bg-white rounded-xl px-3 py-2 border border-indigo-200 flex flex-col justify-center">
@@ -425,31 +457,99 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                             <div>
                                 <label class="block text-xs font-medium text-slate-700 mb-1">From (Origin)</label>
-                                <input type="text" id="entry-from" placeholder="e.g. Office / PJ"
+                                <input type="text" id="entry-from" placeholder="e.g. Atlas Serdang"
                                     class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-700 mb-1">To (Destination / Client)</label>
-                                <input type="text" id="entry-to" placeholder="e.g. Sunway Pyramid Site"
+                                <input type="text" id="entry-to" placeholder="e.g. Amway PJ HQ"
                                     class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Standard Expense Amount Box (Shown when Category != Mileage) -->
-                    <div id="standard-amount-box" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 border border-slate-200 rounded-2xl p-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Claim Amount (RM) <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 font-semibold text-sm">RM</span>
-                                <input type="number" step="0.01" min="0" id="entry-amount" placeholder="0.00"
-                                    class="w-full pl-11 pr-3.5 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <!-- Additional Expense Amount Inputs (Shown for whichever items are toggled ON) -->
+                    <div id="additional-expenses-box" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-coins text-emerald-600"></i>
+                                Selected Expense Amounts (RM)
+                            </span>
+                            <span class="text-[11px] text-slate-500">Enter RM for each selected item</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div id="field-wrap-parking" class="hidden">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Parking (RM)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold text-xs">RM</span>
+                                    <input type="number" step="0.01" min="0" id="entry-parking" oninput="recalculateEntryTotal()" placeholder="0.00"
+                                        class="no-wheel w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div id="field-wrap-toll" class="hidden">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Toll (RM)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold text-xs">RM</span>
+                                    <input type="number" step="0.01" min="0" id="entry-toll" oninput="recalculateEntryTotal()" placeholder="0.00"
+                                        class="no-wheel w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div id="field-wrap-transport" class="hidden">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Public Transport / Grab / Petrol (RM)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold text-xs">RM</span>
+                                    <input type="number" step="0.01" min="0" id="entry-transport" oninput="recalculateEntryTotal()" placeholder="0.00"
+                                        class="no-wheel w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div id="field-wrap-meals" class="hidden">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Meals / Refreshment (RM)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold text-xs">RM</span>
+                                    <input type="number" step="0.01" min="0" id="entry-meals" oninput="recalculateEntryTotal()" placeholder="0.00"
+                                        class="no-wheel w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div id="field-wrap-entertainment" class="hidden">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Entertainment (RM)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold text-xs">RM</span>
+                                    <input type="number" step="0.01" min="0" id="entry-entertainment" oninput="recalculateEntryTotal()" placeholder="0.00"
+                                        class="no-wheel w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div id="field-wrap-others" class="hidden">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Others / Misc (RM)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-semibold text-xs">RM</span>
+                                    <input type="number" step="0.01" min="0" id="entry-others" oninput="recalculateEntryTotal()" placeholder="0.00"
+                                        class="no-wheel w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Receipt / Tax Invoice No.</label>
-                            <input type="text" id="entry-receipt" placeholder="e.g. INV-88412 or TnG"
+
+                        <div class="pt-1">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Receipt / TnG / Invoice Reference No. (Optional)</label>
+                            <input type="text" id="entry-receipt" placeholder="e.g. TnG / GRAB-8821 / INV-991"
                                 class="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Combined Entry Total Banner -->
+                    <div class="bg-slate-900 text-white rounded-2xl px-4 py-3 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-bold block">Combined Entry Total</span>
+                            <span id="entry-breakdown-summary" class="text-xs text-slate-300">Mileage: RM 0.00</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-indigo-300 font-semibold mr-1">RM</span>
+                            <span id="display-combined-total" class="text-xl font-extrabold text-white">0.00</span>
                         </div>
                     </div>
 
@@ -458,7 +558,7 @@
                         <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                             4. Purpose / Description <span class="text-rose-500">*</span>
                         </label>
-                        <input type="text" id="entry-description" required placeholder="e.g. Client meeting with Packtica vendor / Site inspection"
+                        <input type="text" id="entry-description" required placeholder="e.g. Meeting ShanShan at Amway PJ HQ"
                             class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/50 text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
 
@@ -578,10 +678,9 @@
                             <tr class="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-50/70">
                                 <th class="py-3 px-3 rounded-tl-xl">Date</th>
                                 <th class="py-3 px-3">Company</th>
-                                <th class="py-3 px-3">Category</th>
                                 <th class="py-3 px-3">Description / Route</th>
-                                <th class="py-3 px-3 text-right">Mileage (Actual → Rounded)</th>
-                                <th class="py-3 px-3 text-right">Claim (RM)</th>
+                                <th class="py-3 px-3">Included Items Breakdown</th>
+                                <th class="py-3 px-3 text-right">Total (RM)</th>
                                 <th class="py-3 px-3 text-center">Receipt</th>
                                 <th class="py-3 px-3 text-center rounded-tr-xl">Actions</th>
                             </tr>
@@ -640,8 +739,8 @@
                 </div>
             </div>
 
-            <!-- Official Printable Claim Form Sheet -->
-            <div id="printable-claim-sheet" class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-8 max-w-5xl mx-auto">
+            <!-- Official Printable Claim Form Sheet (Wide A4 Landscape Layout) -->
+            <div id="printable-claim-sheet" class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-7 max-w-7xl mx-auto">
                 <!-- Populated dynamically with official claim sheet layout -->
             </div>
         </section>
@@ -792,7 +891,7 @@
         // Default Companies based on user's uploaded forms (ATLAS & Packtica) — Fixed RM 0.60/km
         const FIXED_MILEAGE_RATE = 0.60;
         const DEFAULT_COMPANIES = [
-            { id: 'comp_atlas', name: 'ATLAS', fullName: 'ATLAS VENDING (M) SDN BHD', rate: FIXED_MILEAGE_RATE, color: 'indigo' },
+            { id: 'comp_atlas', name: 'ATLAS', fullName: 'ATLAS MARKING SDN BHD', rate: FIXED_MILEAGE_RATE, color: 'indigo' },
             { id: 'comp_packtica', name: 'Packtica', fullName: 'PACKTICA SDN BHD', rate: FIXED_MILEAGE_RATE, color: 'emerald' }
         ];
 
@@ -805,14 +904,32 @@
             financePin: '8888'
         };
 
+        // Load and migrate cached companies (ensures ATLAS uses Atlas Marking Sdn Bhd)
+        let loadedCompanies = JSON.parse(localStorage.getItem('cf_companies')) || [...DEFAULT_COMPANIES];
+        loadedCompanies = loadedCompanies.map(c => {
+            if (c.id === 'comp_atlas' && c.fullName === 'ATLAS VENDING (M) SDN BHD') {
+                return { ...c, fullName: 'ATLAS MARKING SDN BHD', rate: FIXED_MILEAGE_RATE };
+            }
+            return { ...c, rate: FIXED_MILEAGE_RATE };
+        });
+
         // Application State
         let state = {
             profile: JSON.parse(localStorage.getItem('cf_profile')) || { ...DEFAULT_PROFILE },
-            companies: JSON.parse(localStorage.getItem('cf_companies')) || [...DEFAULT_COMPANIES],
+            companies: loadedCompanies,
             claims: JSON.parse(localStorage.getItem('cf_claims')) || [],
             lockedForms: JSON.parse(localStorage.getItem('cf_locked_forms')) || {},
             activeRole: sessionStorage.getItem('cf_active_role') || null,
             selectedLoginRole: 'staff',
+            activeComponents: {
+                mileage: true,
+                parking: false,
+                toll: false,
+                transport: false,
+                meals: false,
+                entertainment: false,
+                others: false
+            },
             currentReceiptDataUrl: '',
             selectedFormMonth: '',
             selectedFormCompanyId: ''
@@ -899,7 +1016,12 @@
                     const data = docSnap.data();
                     if (data.profile) state.profile = { ...DEFAULT_PROFILE, ...data.profile };
                     if (data.companies && data.companies.length > 0) {
-                        state.companies = data.companies.map(c => ({ ...c, rate: FIXED_MILEAGE_RATE }));
+                        state.companies = data.companies.map(c => {
+                            if (c.id === 'comp_atlas' && c.fullName === 'ATLAS VENDING (M) SDN BHD') {
+                                return { ...c, fullName: 'ATLAS MARKING SDN BHD', rate: FIXED_MILEAGE_RATE };
+                            }
+                            return { ...c, rate: FIXED_MILEAGE_RATE };
+                        });
                     }
                     if (data.lockedForms) state.lockedForms = data.lockedForms;
                     saveLocalCache();
@@ -1215,67 +1337,209 @@
                 state.companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
             if (currentFilterVal) filterSelect.value = currentFilterVal;
-            recalculateMileage();
+            recalculateEntryTotal();
         }
 
-        // Category Selection Pills
-        function selectCategory(cat) {
-            document.getElementById('entry-category').value = cat;
-            document.querySelectorAll('.cat-pill').forEach(btn => {
-                if (btn.dataset.cat === cat) {
-                    btn.className = 'cat-pill active flex items-center gap-2 px-3 py-3 sm:py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/70 text-indigo-900 text-xs font-semibold transition';
-                } else {
-                    btn.className = 'cat-pill flex items-center gap-2 px-3 py-3 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition';
+        // Toggle Multiple Expense Components per Entry (Mileage, Parking, Toll, Grab/Transport, Meals, Entertainment, Others)
+        function toggleExpenseComponent(key) {
+            state.activeComponents[key] = !state.activeComponents[key];
+            syncComponentToggleUI();
+            recalculateEntryTotal();
+        }
+
+        // Quick preset when traveling by Grab / Public Transport (hides Mileage, turns on Grab/Transport)
+        function setGrabPreset() {
+            state.activeComponents.mileage = false;
+            state.activeComponents.transport = true;
+            syncComponentToggleUI();
+            recalculateEntryTotal();
+            const transportInput = document.getElementById('entry-transport');
+            if (transportInput) transportInput.focus();
+        }
+
+        function syncComponentToggleUI() {
+            const keys = ['mileage', 'parking', 'toll', 'transport', 'meals', 'entertainment', 'others'];
+            keys.forEach(k => {
+                const isOn = Boolean(state.activeComponents[k]);
+                const btn = document.getElementById(`toggle-comp-${k}`);
+                const chk = document.getElementById(`check-comp-${k}`);
+
+                if (btn) {
+                    if (k === 'others') {
+                        btn.className = isOn
+                            ? 'comp-pill inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/80 text-indigo-950 text-xs font-bold transition'
+                            : 'comp-pill inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition';
+                    } else {
+                        btn.className = isOn
+                            ? 'comp-pill flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/80 text-indigo-950 text-xs font-bold transition'
+                            : 'comp-pill flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition';
+                    }
+                }
+                if (chk) {
+                    chk.className = isOn
+                        ? 'fa-solid fa-circle-check text-indigo-600'
+                        : 'fa-regular fa-circle text-slate-300';
                 }
             });
 
+            // Show/hide Mileage Calculator Box
             const mileageBox = document.getElementById('mileage-calculator-box');
-            const standardBox = document.getElementById('standard-amount-box');
+            if (mileageBox) {
+                if (state.activeComponents.mileage) {
+                    mileageBox.classList.remove('hidden');
+                } else {
+                    mileageBox.classList.add('hidden');
+                }
+            }
 
-            if (cat === 'Mileage') {
-                mileageBox.classList.remove('hidden');
-                standardBox.classList.add('hidden');
-                recalculateMileage();
-            } else {
-                mileageBox.classList.add('hidden');
-                standardBox.classList.remove('hidden');
+            // Show/hide Additional Expenses Container & Individual Fields
+            const extraKeys = ['parking', 'toll', 'transport', 'meals', 'entertainment', 'others'];
+            let anyExtraOn = false;
+            extraKeys.forEach(k => {
+                const wrap = document.getElementById(`field-wrap-${k}`);
+                if (wrap) {
+                    if (state.activeComponents[k]) {
+                        wrap.classList.remove('hidden');
+                        anyExtraOn = true;
+                    } else {
+                        wrap.classList.add('hidden');
+                    }
+                }
+            });
+
+            const addBox = document.getElementById('additional-expenses-box');
+            if (addBox) {
+                if (anyExtraOn) {
+                    addBox.classList.remove('hidden');
+                } else {
+                    addBox.classList.add('hidden');
+                }
             }
         }
 
-        // Live Mileage Round-Up & Fixed RM 0.60/km Amount Calculation
-        function recalculateMileage() {
+        // Live Mileage Round-Up & Multi-Item Entry Total Calculation
+        function recalculateEntryTotal() {
             const rate = FIXED_MILEAGE_RATE;
+            let mileageAmount = 0;
+            let roundedKm = 0;
 
-            const actualInput = document.getElementById('entry-actual-km').value;
-            const actualKm = parseFloat(actualInput) || 0;
-            const roundedKm = roundUpMileage(actualKm);
-            const totalAmount = roundedKm * rate;
+            if (state.activeComponents.mileage) {
+                const actualInput = document.getElementById('entry-actual-km').value;
+                const actualKm = parseFloat(actualInput) || 0;
+                roundedKm = roundUpMileage(actualKm);
+                mileageAmount = Number((roundedKm * rate).toFixed(2));
 
-            document.getElementById('display-rate-per-km').textContent = `RM ${rate.toFixed(2)}`;
-            document.getElementById('display-rounded-km').textContent = roundedKm;
-            document.getElementById('display-mileage-amount').textContent = formatRM(totalAmount);
+                document.getElementById('display-rate-per-km').textContent = `RM ${rate.toFixed(2)}`;
+                document.getElementById('display-rounded-km').textContent = roundedKm;
+                document.getElementById('display-mileage-amount').textContent = formatRM(mileageAmount);
 
-            const diffBadge = document.getElementById('roundup-diff-badge');
-            const diff = roundedKm - actualKm;
-            if (actualKm > 0 && diff > 0.001) {
-                diffBadge.textContent = `+${diff.toFixed(2)} km rounded`;
-                diffBadge.classList.remove('hidden');
-            } else {
-                diffBadge.classList.add('hidden');
+                const diffBadge = document.getElementById('roundup-diff-badge');
+                const diff = roundedKm - actualKm;
+                if (actualKm > 0 && diff > 0.001) {
+                    diffBadge.textContent = `+${diff.toFixed(2)} km rounded`;
+                    diffBadge.classList.remove('hidden');
+                } else {
+                    diffBadge.classList.add('hidden');
+                }
+            }
+
+            const parkingAmt = state.activeComponents.parking ? (parseFloat(document.getElementById('entry-parking').value) || 0) : 0;
+            const tollAmt = state.activeComponents.toll ? (parseFloat(document.getElementById('entry-toll').value) || 0) : 0;
+            const transportAmt = state.activeComponents.transport ? (parseFloat(document.getElementById('entry-transport').value) || 0) : 0;
+            const mealsAmt = state.activeComponents.meals ? (parseFloat(document.getElementById('entry-meals').value) || 0) : 0;
+            const entertainmentAmt = state.activeComponents.entertainment ? (parseFloat(document.getElementById('entry-entertainment').value) || 0) : 0;
+            const othersAmt = state.activeComponents.others ? (parseFloat(document.getElementById('entry-others').value) || 0) : 0;
+
+            const combinedTotal = Number((mileageAmount + parkingAmt + tollAmt + transportAmt + mealsAmt + entertainmentAmt + othersAmt).toFixed(2));
+
+            const parts = [];
+            if (state.activeComponents.mileage && mileageAmount > 0) parts.push(`Mileage (${roundedKm}km): RM ${formatRM(mileageAmount)}`);
+            if (parkingAmt > 0) parts.push(`Parking: RM ${formatRM(parkingAmt)}`);
+            if (tollAmt > 0) parts.push(`Toll: RM ${formatRM(tollAmt)}`);
+            if (transportAmt > 0) parts.push(`Grab/Transport: RM ${formatRM(transportAmt)}`);
+            if (mealsAmt > 0) parts.push(`Meals: RM ${formatRM(mealsAmt)}`);
+            if (entertainmentAmt > 0) parts.push(`Entertainment: RM ${formatRM(entertainmentAmt)}`);
+            if (othersAmt > 0) parts.push(`Others: RM ${formatRM(othersAmt)}`);
+
+            const summaryEl = document.getElementById('entry-breakdown-summary');
+            if (summaryEl) {
+                summaryEl.textContent = parts.length > 0 ? parts.join(' + ') : 'Select items and enter amounts above';
+            }
+            const totalEl = document.getElementById('display-combined-total');
+            if (totalEl) {
+                totalEl.textContent = formatRM(combinedTotal);
             }
         }
 
-        // Save or Update Entry (Syncs to Cloud)
+        // Normalize legacy single-category claims into structured breakdown fields
+        function getEntryAmounts(item) {
+            if (item.hasBreakdown) {
+                return {
+                    actualKm: Number(item.actualKm || 0),
+                    roundedKm: Number(item.roundedKm || 0),
+                    mileageAmount: Number(item.mileageAmount || 0),
+                    transportAmount: Number(item.transportAmount || 0),
+                    parkingAmount: Number(item.parkingAmount || 0),
+                    tollAmount: Number(item.tollAmount || 0),
+                    mealsAmount: Number(item.mealsAmount || 0),
+                    entertainmentAmount: Number(item.entertainmentAmount || 0),
+                    othersAmount: Number(item.othersAmount || 0),
+                    totalAmount: Number(item.amount || 0)
+                };
+            }
+            // Legacy compatibility for older single-category entries
+            const amt = Number(item.amount || 0);
+            return {
+                actualKm: item.category === 'Mileage' ? Number(item.actualKm || 0) : 0,
+                roundedKm: item.category === 'Mileage' ? Number(item.roundedKm || 0) : 0,
+                mileageAmount: item.category === 'Mileage' ? amt : 0,
+                transportAmount: item.category === 'Accommodation / Travel' ? amt : 0,
+                parkingAmount: 0,
+                tollAmount: item.category === 'Toll / Parking' ? amt : 0,
+                mealsAmount: item.category === 'Food & Refreshment' ? amt : 0,
+                entertainmentAmount: 0,
+                othersAmount: (item.category === 'Printing / Stationery' || item.category === 'Others') ? amt : 0,
+                totalAmount: amt
+            };
+        }
+
+        function buildBreakdownBadgesHtml(item) {
+            const b = getEntryAmounts(item);
+            const badges = [];
+            if (b.mileageAmount > 0) {
+                badges.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 border border-indigo-200/70 text-[11px] font-semibold">Mileage ${Number(b.actualKm).toFixed(1)}→${b.roundedKm}km (RM ${formatRM(b.mileageAmount)})</span>`);
+            }
+            if (b.parkingAmount > 0) {
+                badges.push(`<span class="inline-flex items-center px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200/70 text-[11px] font-medium">Parking: RM ${formatRM(b.parkingAmount)}</span>`);
+            }
+            if (b.tollAmount > 0) {
+                badges.push(`<span class="inline-flex items-center px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200/70 text-[11px] font-medium">Toll: RM ${formatRM(b.tollAmount)}</span>`);
+            }
+            if (b.transportAmount > 0) {
+                badges.push(`<span class="inline-flex items-center px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/70 text-[11px] font-medium">Grab/Transport: RM ${formatRM(b.transportAmount)}</span>`);
+            }
+            if (b.mealsAmount > 0) {
+                badges.push(`<span class="inline-flex items-center px-2 py-0.5 rounded bg-orange-50 text-orange-800 border border-orange-200/70 text-[11px] font-medium">Meals: RM ${formatRM(b.mealsAmount)}</span>`);
+            }
+            if (b.entertainmentAmount > 0) {
+                badges.push(`<span class="inline-flex items-center px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200/70 text-[11px] font-medium">Entertainment: RM ${formatRM(b.entertainmentAmount)}</span>`);
+            }
+            if (b.othersAmount > 0) {
+                badges.push(`<span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-medium">Others: RM ${formatRM(b.othersAmount)}</span>`);
+            }
+            return badges.length > 0 ? `<div class="flex flex-wrap gap-1">${badges.join('')}</div>` : '-';
+        }
+
+        // Save or Update Entry (Supports Bundled Mileage + Parking + Toll + Transport + Meals + Entertainment + Others)
         async function handleSaveEntry(e) {
             e.preventDefault();
             const id = document.getElementById('entry-id').value;
             const companyId = document.getElementById('entry-company').value;
             const date = document.getElementById('entry-date').value;
-            const category = document.getElementById('entry-category').value;
             const description = document.getElementById('entry-description').value.trim();
 
             if (!companyId || !date || !description) {
-                showToast('Please fill in all required fields.', 'error');
+                showToast('Please fill in company, date, and purpose.', 'error');
                 return;
             }
 
@@ -1290,42 +1554,66 @@
 
             let actualKm = 0;
             let roundedKm = 0;
-            let amount = 0;
+            let mileageAmount = 0;
             let fromLoc = '';
             let toLoc = '';
-            let receiptNo = '';
 
-            if (category === 'Mileage') {
+            if (state.activeComponents.mileage) {
                 actualKm = parseFloat(document.getElementById('entry-actual-km').value) || 0;
                 if (actualKm <= 0) {
-                    showToast('Please enter a valid distance in km.', 'error');
+                    showToast('Please enter Actual Distance (km) or turn off Mileage if going by Grab.', 'error');
                     return;
                 }
                 roundedKm = roundUpMileage(actualKm);
-                amount = Number((roundedKm * rate).toFixed(2));
+                mileageAmount = Number((roundedKm * rate).toFixed(2));
                 fromLoc = document.getElementById('entry-from').value.trim();
                 toLoc = document.getElementById('entry-to').value.trim();
-            } else {
-                amount = parseFloat(document.getElementById('entry-amount').value) || 0;
-                if (amount <= 0) {
-                    showToast('Please enter a valid claim amount in RM.', 'error');
-                    return;
-                }
-                receiptNo = document.getElementById('entry-receipt').value.trim();
             }
+
+            const parkingAmount = state.activeComponents.parking ? Number((parseFloat(document.getElementById('entry-parking').value) || 0).toFixed(2)) : 0;
+            const tollAmount = state.activeComponents.toll ? Number((parseFloat(document.getElementById('entry-toll').value) || 0).toFixed(2)) : 0;
+            const transportAmount = state.activeComponents.transport ? Number((parseFloat(document.getElementById('entry-transport').value) || 0).toFixed(2)) : 0;
+            const mealsAmount = state.activeComponents.meals ? Number((parseFloat(document.getElementById('entry-meals').value) || 0).toFixed(2)) : 0;
+            const entertainmentAmount = state.activeComponents.entertainment ? Number((parseFloat(document.getElementById('entry-entertainment').value) || 0).toFixed(2)) : 0;
+            const othersAmount = state.activeComponents.others ? Number((parseFloat(document.getElementById('entry-others').value) || 0).toFixed(2)) : 0;
+            const receiptNo = document.getElementById('entry-receipt').value.trim();
+
+            const totalAmount = Number((mileageAmount + parkingAmount + tollAmount + transportAmount + mealsAmount + entertainmentAmount + othersAmount).toFixed(2));
+
+            if (totalAmount <= 0) {
+                showToast('Please enter at least one valid mileage distance or RM amount.', 'error');
+                return;
+            }
+
+            const includedLabels = [];
+            if (mileageAmount > 0) includedLabels.push('Mileage');
+            if (parkingAmount > 0) includedLabels.push('Parking');
+            if (tollAmount > 0) includedLabels.push('Toll');
+            if (transportAmount > 0) includedLabels.push('Grab/Transport');
+            if (mealsAmount > 0) includedLabels.push('Meals');
+            if (entertainmentAmount > 0) includedLabels.push('Entertainment');
+            if (othersAmount > 0) includedLabels.push('Others');
 
             const entryObj = {
                 id: id || 'clm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                hasBreakdown: true,
                 companyId,
                 companyName: company ? company.name : 'Unknown',
                 date,
-                month, // YYYY-MM
-                category,
+                month,
+                category: includedLabels.join(' + '),
                 description,
                 actualKm,
                 roundedKm,
                 rateApplied: rate,
-                amount,
+                mileageAmount,
+                parkingAmount,
+                tollAmount,
+                transportAmount,
+                mealsAmount,
+                entertainmentAmount,
+                othersAmount,
+                amount: totalAmount,
                 fromLoc,
                 toLoc,
                 receiptNo,
@@ -1336,13 +1624,12 @@
             if (id) {
                 const idx = state.claims.findIndex(item => item.id === id);
                 if (idx !== -1) state.claims[idx] = entryObj;
-                showToast(`Updated ${entryObj.companyName} claim (${formatMonthLabel(entryObj.month)})`);
+                showToast(`Updated ${entryObj.companyName} entry (RM ${formatRM(totalAmount)})`);
             } else {
                 state.claims.push(entryObj);
-                showToast(`Added to ${entryObj.companyName} — ${formatMonthLabel(entryObj.month)} Form`);
+                showToast(`Added RM ${formatRM(totalAmount)} to ${entryObj.companyName} — ${formatMonthLabel(entryObj.month)}`);
             }
 
-            // Set default viewing form to the newly added month & company
             state.selectedFormMonth = entryObj.month;
             state.selectedFormCompanyId = entryObj.companyId;
 
@@ -1351,22 +1638,38 @@
             refreshAllViews();
         }
 
-        // Reset Entry Form
+        // Reset Entry Form (Mileage ON by default, extras reset to OFF)
         function resetEntryForm() {
             document.getElementById('entry-id').value = '';
             document.getElementById('entry-actual-km').value = '';
             document.getElementById('entry-from').value = '';
             document.getElementById('entry-to').value = '';
-            document.getElementById('entry-amount').value = '';
+            document.getElementById('entry-parking').value = '';
+            document.getElementById('entry-toll').value = '';
+            document.getElementById('entry-transport').value = '';
+            document.getElementById('entry-meals').value = '';
+            document.getElementById('entry-entertainment').value = '';
+            document.getElementById('entry-others').value = '';
             document.getElementById('entry-receipt').value = '';
             document.getElementById('entry-description').value = '';
             clearReceiptAttachment();
+
+            state.activeComponents = {
+                mileage: true,
+                parking: false,
+                toll: false,
+                transport: false,
+                meals: false,
+                entertainment: false,
+                others: false
+            };
+            syncComponentToggleUI();
 
             document.getElementById('form-mode-title').textContent = 'New Claim Entry';
             document.getElementById('editing-badge').classList.add('hidden');
             document.getElementById('btn-submit-text').textContent = 'Add Claim to Form';
             document.getElementById('btn-cancel-edit').classList.add('hidden');
-            recalculateMileage();
+            recalculateEntryTotal();
         }
 
         // Edit Existing Entry
@@ -1380,21 +1683,36 @@
             }
 
             switchTab('entry');
+            const b = getEntryAmounts(item);
+
             document.getElementById('entry-id').value = item.id;
             document.getElementById('entry-company').value = item.companyId;
             document.getElementById('entry-date').value = item.date;
-            selectCategory(item.category);
             document.getElementById('entry-description').value = item.description;
 
-            if (item.category === 'Mileage') {
-                document.getElementById('entry-actual-km').value = item.actualKm;
-                document.getElementById('entry-from').value = item.fromLoc || '';
-                document.getElementById('entry-to').value = item.toLoc || '';
-                recalculateMileage();
-            } else {
-                document.getElementById('entry-amount').value = item.amount;
-                document.getElementById('entry-receipt').value = item.receiptNo || '';
-            }
+            state.activeComponents = {
+                mileage: b.mileageAmount > 0 || b.actualKm > 0,
+                parking: b.parkingAmount > 0,
+                toll: b.tollAmount > 0,
+                transport: b.transportAmount > 0,
+                meals: b.mealsAmount > 0,
+                entertainment: b.entertainmentAmount > 0,
+                others: b.othersAmount > 0
+            };
+            syncComponentToggleUI();
+
+            document.getElementById('entry-actual-km').value = b.actualKm > 0 ? b.actualKm : '';
+            document.getElementById('entry-from').value = item.fromLoc || '';
+            document.getElementById('entry-to').value = item.toLoc || '';
+            document.getElementById('entry-parking').value = b.parkingAmount > 0 ? b.parkingAmount : '';
+            document.getElementById('entry-toll').value = b.tollAmount > 0 ? b.tollAmount : '';
+            document.getElementById('entry-transport').value = b.transportAmount > 0 ? b.transportAmount : '';
+            document.getElementById('entry-meals').value = b.mealsAmount > 0 ? b.mealsAmount : '';
+            document.getElementById('entry-entertainment').value = b.entertainmentAmount > 0 ? b.entertainmentAmount : '';
+            document.getElementById('entry-others').value = b.othersAmount > 0 ? b.othersAmount : '';
+            document.getElementById('entry-receipt').value = item.receiptNo || '';
+
+            recalculateEntryTotal();
 
             if (item.receiptImage) {
                 state.currentReceiptDataUrl = item.receiptImage;
@@ -1443,7 +1761,7 @@
 
             openConfirmModal(
                 'Delete Claim Entry?',
-                'This entry will be removed from the shared workspace for both you and Finance.',
+                `Remove "${item.description}" (RM ${formatRM(item.amount)}) from ${item.companyName}?`,
                 async () => {
                     state.claims = state.claims.filter(c => c.id !== id);
                     await removeClaimFromCloud(id);
@@ -1453,7 +1771,7 @@
             );
         }
 
-        // Group Claims by Month -> Company
+        // Group Claims by Month -> Company (With Column Totals Matching Official Claim Sheet)
         function getGroupedForms() {
             const groups = {};
             state.claims.forEach(item => {
@@ -1472,20 +1790,31 @@
                         totalMileageActual: 0,
                         totalMileageRounded: 0,
                         totalMileageRM: 0,
+                        totalTransportRM: 0,
+                        totalParkingRM: 0,
+                        totalTollRM: 0,
+                        totalMealsRM: 0,
+                        totalEntertainmentRM: 0,
+                        totalOthersRM: 0,
                         totalOtherRM: 0,
                         grandTotalRM: 0
                     };
                 }
                 const g = groups[m][cId];
+                const b = getEntryAmounts(item);
                 g.items.push(item);
-                if (item.category === 'Mileage') {
-                    g.totalMileageActual += Number(item.actualKm || 0);
-                    g.totalMileageRounded += Number(item.roundedKm || 0);
-                    g.totalMileageRM += Number(item.amount || 0);
-                } else {
-                    g.totalOtherRM += Number(item.amount || 0);
-                }
-                g.grandTotalRM += Number(item.amount || 0);
+
+                g.totalMileageActual += b.actualKm;
+                g.totalMileageRounded += b.roundedKm;
+                g.totalMileageRM += b.mileageAmount;
+                g.totalTransportRM += b.transportAmount;
+                g.totalParkingRM += b.parkingAmount;
+                g.totalTollRM += b.tollAmount;
+                g.totalMealsRM += b.mealsAmount;
+                g.totalEntertainmentRM += b.entertainmentAmount;
+                g.totalOthersRM += b.othersAmount;
+                g.totalOtherRM += (b.transportAmount + b.parkingAmount + b.tollAmount + b.mealsAmount + b.entertainmentAmount + b.othersAmount);
+                g.grandTotalRM += b.totalAmount;
             });
 
             Object.values(groups).forEach(compMap => {
@@ -1587,9 +1916,7 @@
                             ${item.receiptImage ? `<button type="button" onclick="openReceiptViewer('${item.receiptImage}', '${item.companyName} (${item.date})', '${item.description.replace(/'/g, "\\'")}')" class="ml-1 text-indigo-600 hover:text-indigo-800" title="View Receipt"><i class="fa-solid fa-image"></i></button>` : ''}
                         </div>
                         <p class="text-slate-700 font-medium truncate mt-0.5">${item.description}</p>
-                        ${item.category === 'Mileage'
-                            ? `<span class="text-[10px] text-emerald-700 font-medium">${item.actualKm}km → <strong>${item.roundedKm}km</strong></span>`
-                            : `<span class="text-[10px] text-slate-400">${item.category}</span>`}
+                        <div class="mt-1">${buildBreakdownBadgesHtml(item)}</div>
                     </div>
                     <div class="text-right shrink-0">
                         <span class="font-bold text-slate-900 block">RM ${formatRM(item.amount)}</span>
@@ -1619,7 +1946,7 @@
 
             const tbody = document.getElementById('unified-log-tbody');
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-400 text-sm">No claim entries match the selected filters.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="py-10 text-center text-slate-400 text-sm">No claim entries match the selected filters.</td></tr>`;
                 return;
             }
 
@@ -1632,17 +1959,15 @@
                         <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-800 border border-indigo-200/70">${item.companyName}</span>
                         ${locked ? '<span class="ml-1 text-[10px] text-emerald-700 font-semibold" title="Locked by Finance"><i class="fa-solid fa-lock"></i></span>' : ''}
                     </td>
-                    <td class="py-3 px-3 text-xs text-slate-600 whitespace-nowrap">${item.category}</td>
                     <td class="py-3 px-3 text-slate-800">
                         <div class="font-medium">${item.description}</div>
-                        ${item.category === 'Mileage' && (item.fromLoc || item.toLoc)
+                        ${(item.fromLoc || item.toLoc)
                             ? `<div class="text-[11px] text-slate-400">${item.fromLoc || '-'} → ${item.toLoc || '-'}</div>`
-                            : (item.receiptNo ? `<div class="text-[11px] text-slate-400">Ref: ${item.receiptNo}</div>` : '')}
+                            : ''}
+                        ${item.receiptNo ? `<div class="text-[11px] text-slate-400">Ref: ${item.receiptNo}</div>` : ''}
                     </td>
-                    <td class="py-3 px-3 text-right whitespace-nowrap text-xs">
-                        ${item.category === 'Mileage'
-                            ? `<span class="text-slate-400">${Number(item.actualKm).toFixed(2)} km</span> → <strong class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">${item.roundedKm} km</strong>`
-                            : `<span class="text-slate-300">-</span>`}
+                    <td class="py-3 px-3">
+                        ${buildBreakdownBadgesHtml(item)}
                     </td>
                     <td class="py-3 px-3 text-right font-bold text-slate-900 whitespace-nowrap">RM ${formatRM(item.amount)}</td>
                     <td class="py-3 px-3 text-center whitespace-nowrap">
@@ -1686,42 +2011,44 @@
                 return;
             }
 
-            monthSelect.innerHTML = months.map(m =>
-                `<option value="${m}">${formatMonthLabel(m)} (${Object.keys(groups[m]).length} Compan${Object.keys(groups[m]).length > 1 ? 'ies' : 'y'})</option>`
-            ).join('');
-
-            if (!state.selectedFormMonth || !groups[state.selectedFormMonth]) {
+            if (!state.selectedFormMonth || !months.includes(state.selectedFormMonth)) {
                 state.selectedFormMonth = months[0];
             }
+
+            monthSelect.innerHTML = months.map(m => {
+                const count = Object.keys(groups[m]).length;
+                return `<option value="${m}">${formatMonthLabel(m)} (${count} ${count === 1 ? 'Company' : 'Companies'})</option>`;
+            }).join('');
             monthSelect.value = state.selectedFormMonth;
 
-            const companyIdsInMonth = Object.keys(groups[state.selectedFormMonth]);
-            document.getElementById('month-company-count').textContent = companyIdsInMonth.length;
+            const compMap = groups[state.selectedFormMonth];
+            const companyIds = Object.keys(compMap);
+            document.getElementById('month-company-count').textContent = companyIds.length;
 
-            if (!state.selectedFormCompanyId || !groups[state.selectedFormMonth][state.selectedFormCompanyId]) {
-                state.selectedFormCompanyId = companyIdsInMonth[0];
+            if (!state.selectedFormCompanyId || !companyIds.includes(state.selectedFormCompanyId)) {
+                state.selectedFormCompanyId = companyIds[0];
             }
 
-            // Render Company Tabs
             const tabsContainer = document.getElementById('forms-company-tabs');
-            tabsContainer.innerHTML = companyIdsInMonth.map(cId => {
-                const f = groups[state.selectedFormMonth][cId];
-                const isSelected = cId === state.selectedFormCompanyId;
-                const locked = isFormLocked(state.selectedFormMonth, cId);
+            tabsContainer.innerHTML = companyIds.map(cId => {
+                const f = compMap[cId];
+                const isActive = cId === state.selectedFormCompanyId;
+                const locked = isFormLocked(f.month, cId);
                 return `
-                <button onclick="selectFormCompany('${cId}')"
-                    class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 border ${isSelected
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-md'
-                        : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}">
-                    <i class="fa-solid ${locked ? 'fa-lock text-emerald-400' : 'fa-building'} ${isSelected ? '' : (locked ? 'text-emerald-600' : 'text-indigo-600')}"></i>
-                    <span>${f.companyName} Form</span>
-                    <span class="px-2 py-0.5 rounded-full text-[11px] ${isSelected ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-600'}">
-                        RM ${formatRM(f.grandTotalRM)}
-                    </span>
-                </button>`;
+                    <button onclick="selectFormCompany('${cId}')"
+                        class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 border ${isActive
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100'
+                            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'}">
+                        <i class="fa-solid ${locked ? 'fa-lock text-emerald-300' : 'fa-building'}"></i>
+                        <span>${f.companyName}</span>
+                        <span class="px-1.5 py-0.5 rounded-md text-[10px] ${isActive ? 'bg-indigo-500 text-white' : 'bg-slate-200 text-slate-700'}">
+                            RM ${formatRM(f.grandTotalRM)}
+                        </span>
+                    </button>
+                `;
             }).join('');
 
-            renderOfficialClaimSheet(groups[state.selectedFormMonth][state.selectedFormCompanyId]);
+            renderOfficialClaimSheet(compMap[state.selectedFormCompanyId]);
         }
 
         function handleFormMonthChange() {
@@ -1734,7 +2061,7 @@
             renderFinanceFormsTab();
         }
 
-        // Render Printable Official Claim Sheet for Selected Month & Company
+        // Render Printable Official Claim Sheet for Selected Month & Company (Multi-Column Layout)
         function renderOfficialClaimSheet(form) {
             if (!form) {
                 const groups = getGroupedForms();
@@ -1748,35 +2075,60 @@
             const locked = isFormLocked(form.month, form.companyId);
             const isFinance = state.activeRole === 'finance';
 
-            const rowsHtml = form.items.map((item, idx) => `
-                <tr class="border-b border-slate-300 text-xs">
-                    <td class="py-2.5 px-2.5 text-center border-r border-slate-300 font-medium">${idx + 1}</td>
-                    <td class="py-2.5 px-2.5 border-r border-slate-300 whitespace-nowrap">${item.date}</td>
-                    <td class="py-2.5 px-2.5 border-r border-slate-300 font-medium">${item.category}</td>
-                    <td class="py-2.5 px-2.5 border-r border-slate-300">
+            const rowsHtml = form.items.map((item, idx) => {
+                const b = getEntryAmounts(item);
+                return `
+                <tr class="border-b border-slate-300 text-[11px]">
+                    <td class="py-2 px-1.5 text-center border-r border-slate-300 font-medium">${idx + 1}</td>
+                    <td class="py-2 px-1.5 border-r border-slate-300 whitespace-nowrap">${item.date}</td>
+                    <td class="py-2 px-2 border-r border-slate-300">
                         <div class="font-semibold text-slate-900">${item.description}</div>
-                        ${item.category === 'Mileage' && (item.fromLoc || item.toLoc)
-                            ? `<div class="text-[11px] text-slate-600">Route: ${item.fromLoc || '-'} → ${item.toLoc || '-'}</div>`
-                            : (item.receiptNo ? `<div class="text-[11px] text-slate-600">Receipt Ref: ${item.receiptNo}</div>` : '')}
+                        ${(item.fromLoc || item.toLoc)
+                            ? `<div class="text-[10px] text-slate-600">Route: ${item.fromLoc || '-'} → ${item.toLoc || '-'}</div>`
+                            : ''}
                     </td>
-                    <td class="py-2.5 px-2.5 text-right border-r border-slate-300 whitespace-nowrap">
-                        ${item.category === 'Mileage' ? Number(item.actualKm).toFixed(2) + ' km' : '-'}
+                    <td class="py-2 px-1.5 border-r border-slate-300 text-[10px] text-slate-600 whitespace-nowrap">
+                        ${item.receiptNo || '-'}
                     </td>
-                    <td class="py-2.5 px-2.5 text-right border-r border-slate-300 font-bold whitespace-nowrap">
-                        ${item.category === 'Mileage' ? item.roundedKm + ' km' : '-'}
+                    <td class="py-2 px-1.5 text-right border-r border-slate-300 whitespace-nowrap">
+                        ${b.actualKm > 0 ? Number(b.actualKm).toFixed(2) : '-'}
                     </td>
-                    <td class="py-2.5 px-2.5 text-right font-bold text-slate-900 whitespace-nowrap">
-                        ${formatRM(item.amount)}
+                    <td class="py-2 px-1.5 text-right border-r border-slate-300 font-semibold text-indigo-900 whitespace-nowrap">
+                        ${b.roundedKm > 0 ? b.roundedKm : '-'}
                     </td>
-                    <td class="py-2.5 px-2 text-center border-l border-slate-300 whitespace-nowrap no-print">
+                    <td class="py-2 px-1.5 text-right border-r border-slate-300 bg-slate-50/70 font-medium whitespace-nowrap">
+                        ${b.mileageAmount > 0 ? formatRM(b.mileageAmount) : '-'}
+                    </td>
+                    <td class="py-2 px-1.5 text-right border-r border-slate-300 whitespace-nowrap">
+                        ${b.transportAmount > 0 ? formatRM(b.transportAmount) : '-'}
+                    </td>
+                    <td class="py-2 px-1.5 text-right border-r border-slate-300 whitespace-nowrap">
+                        ${b.parkingAmount > 0 ? formatRM(b.parkingAmount) : '-'}
+                    </td>
+                    <td class="py-2 px-1.5 text-right border-r border-slate-300 whitespace-nowrap">
+                        ${b.tollAmount > 0 ? formatRM(b.tollAmount) : '-'}
+                    </td>
+                    <td class="py-2 px-1.5 text-right border-r border-slate-300 whitespace-nowrap">
+                        ${b.mealsAmount > 0 ? formatRM(b.mealsAmount) : '-'}
+                    </td>
+                    <td class="py-2 px-1.5 text-right border-r border-slate-300 whitespace-nowrap">
+                        ${b.entertainmentAmount > 0 ? formatRM(b.entertainmentAmount) : '-'}
+                    </td>
+                    <td class="py-2 px-1.5 text-right border-r border-slate-300 whitespace-nowrap">
+                        ${b.othersAmount > 0 ? formatRM(b.othersAmount) : '-'}
+                    </td>
+                    <td class="py-2 px-2 text-right font-bold text-slate-900 whitespace-nowrap">
+                        ${formatRM(b.totalAmount)}
+                    </td>
+                    <td class="py-2 px-1.5 text-center border-l border-slate-300 whitespace-nowrap no-print">
                         ${item.receiptImage
-                            ? `<button type="button" onclick="openReceiptViewer('${item.receiptImage}', '${form.companyName} — ${item.date}', '${item.description.replace(/'/g, "\\'")}')" class="px-2 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-[11px]">
-                                <i class="fa-solid fa-image mr-0.5"></i> Photo
+                            ? `<button type="button" onclick="openReceiptViewer('${item.receiptImage}', '${form.companyName} — ${item.date}', '${item.description.replace(/'/g, "\\'")}')" class="px-1.5 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-[10px]">
+                                <i class="fa-solid fa-image"></i>
                                </button>`
-                            : `<span class="text-slate-300 text-[11px]">-</span>`}
+                            : `<span class="text-slate-300">-</span>`}
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
 
             sheet.innerHTML = `
                 <!-- Finance Approval & Lock Banner (Hidden on Print) -->
@@ -1840,30 +2192,47 @@
                     </div>
                 </div>
 
-                <!-- Itemized Claim Table -->
+                <!-- Itemized Multi-Column Claim Table (A4 Landscape Layout with All Fields) -->
                 <div class="overflow-x-auto border border-slate-400 rounded-lg mb-5">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-200 border-b border-slate-400 text-[11px] font-extrabold uppercase text-slate-800">
-                                <th class="py-2.5 px-2.5 text-center border-r border-slate-300 w-10">No.</th>
-                                <th class="py-2.5 px-2.5 border-r border-slate-300 w-24">Date</th>
-                                <th class="py-2.5 px-2.5 border-r border-slate-300 w-32">Category</th>
-                                <th class="py-2.5 px-2.5 border-r border-slate-300">Description / Route / Receipt Ref</th>
-                                <th class="py-2.5 px-2.5 text-right border-r border-slate-300 w-24">Actual KM</th>
-                                <th class="py-2.5 px-2.5 text-right border-r border-slate-300 w-28">Claim KM<br><span class="text-[9px] font-normal">(Rounded Up)</span></th>
-                                <th class="py-2.5 px-2.5 text-right w-28">Amount (RM)</th>
-                                <th class="py-2.5 px-2 text-center border-l border-slate-300 w-20 no-print">Receipt</th>
+                            <tr class="bg-slate-200 border-b border-slate-400 text-[10px] font-extrabold uppercase text-slate-800">
+                                <th rowspan="2" class="py-2 px-1.5 text-center border-r border-slate-300 w-8">No.</th>
+                                <th rowspan="2" class="py-2 px-1.5 border-r border-slate-300 w-20">Date</th>
+                                <th rowspan="2" class="py-2 px-2 border-r border-slate-300 min-w-[160px]">Purpose / Route</th>
+                                <th rowspan="2" class="py-2 px-1.5 border-r border-slate-300 w-24">Receipt / Ref</th>
+                                <th colspan="3" class="py-1 px-1.5 text-center border-r border-b border-slate-300">Mileage (RM ${FIXED_MILEAGE_RATE.toFixed(2)}/km)</th>
+                                <th rowspan="2" class="py-2 px-1.5 text-right border-r border-slate-300 w-20">Public Transport / Grab / Petrol</th>
+                                <th rowspan="2" class="py-2 px-1.5 text-right border-r border-slate-300 w-16">Parking</th>
+                                <th rowspan="2" class="py-2 px-1.5 text-right border-r border-slate-300 w-16">Toll</th>
+                                <th rowspan="2" class="py-2 px-1.5 text-right border-r border-slate-300 w-16">Meals</th>
+                                <th rowspan="2" class="py-2 px-1.5 text-right border-r border-slate-300 w-16">Entertain-ment</th>
+                                <th rowspan="2" class="py-2 px-1.5 text-right border-r border-slate-300 w-16">Others</th>
+                                <th rowspan="2" class="py-2 px-2 text-right w-24">Total (RM)</th>
+                                <th rowspan="2" class="py-2 px-1.5 text-center border-l border-slate-300 w-10 no-print">Pic</th>
+                            </tr>
+                            <tr class="bg-slate-200 border-b border-slate-400 text-[10px] font-bold text-slate-700">
+                                <th class="py-1 px-1.5 text-right border-r border-slate-300 w-14">Actual km</th>
+                                <th class="py-1 px-1.5 text-right border-r border-slate-300 w-14">Claim km</th>
+                                <th class="py-1 px-1.5 text-right border-r border-slate-300 w-16">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${rowsHtml}
                         </tbody>
                         <tfoot>
-                            <tr class="bg-slate-100 border-t-2 border-slate-400 text-xs font-bold">
-                                <td colspan="4" class="py-2.5 px-3 text-right border-r border-slate-300 uppercase">Subtotal Mileage & Expenses</td>
-                                <td class="py-2.5 px-2.5 text-right border-r border-slate-300 text-slate-600">${form.totalMileageActual.toFixed(2)} km</td>
-                                <td class="py-2.5 px-2.5 text-right border-r border-slate-300 text-indigo-800">${form.totalMileageRounded} km</td>
-                                <td class="py-2.5 px-2.5 text-right text-slate-900">RM ${formatRM(form.grandTotalRM)}</td>
+                            <tr class="bg-slate-100 border-t-2 border-slate-400 text-[11px] font-bold">
+                                <td colspan="4" class="py-2.5 px-2 text-right border-r border-slate-300 uppercase">Column Totals</td>
+                                <td class="py-2.5 px-1.5 text-right border-r border-slate-300 text-slate-600">${form.totalMileageActual.toFixed(2)}</td>
+                                <td class="py-2.5 px-1.5 text-right border-r border-slate-300 text-indigo-800">${form.totalMileageRounded} km</td>
+                                <td class="py-2.5 px-1.5 text-right border-r border-slate-300">${formatRM(form.totalMileageRM)}</td>
+                                <td class="py-2.5 px-1.5 text-right border-r border-slate-300">${formatRM(form.totalTransportRM)}</td>
+                                <td class="py-2.5 px-1.5 text-right border-r border-slate-300">${formatRM(form.totalParkingRM)}</td>
+                                <td class="py-2.5 px-1.5 text-right border-r border-slate-300">${formatRM(form.totalTollRM)}</td>
+                                <td class="py-2.5 px-1.5 text-right border-r border-slate-300">${formatRM(form.totalMealsRM)}</td>
+                                <td class="py-2.5 px-1.5 text-right border-r border-slate-300">${formatRM(form.totalEntertainmentRM)}</td>
+                                <td class="py-2.5 px-1.5 text-right border-r border-slate-300">${formatRM(form.totalOthersRM)}</td>
+                                <td class="py-2.5 px-2 text-right text-slate-900">RM ${formatRM(form.grandTotalRM)}</td>
                                 <td class="no-print border-l border-slate-300"></td>
                             </tr>
                         </tfoot>
@@ -1879,14 +2248,18 @@
                         <p>• Form generated exclusively for <strong>${form.companyFullName}</strong> (${formatMonthLabel(form.month)}).</p>
                     </div>
 
-                    <div class="w-full sm:w-72 border border-slate-300 rounded-xl p-3.5 bg-slate-50 text-xs space-y-1.5">
+                    <div class="w-full sm:w-80 border border-slate-300 rounded-xl p-3.5 bg-slate-50 text-xs space-y-1.5">
                         <div class="flex justify-between">
                             <span class="text-slate-600">Mileage Claim (${form.totalMileageRounded} km):</span>
                             <span class="font-semibold">RM ${formatRM(form.totalMileageRM)}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-slate-600">Other Expenses / Receipts:</span>
-                            <span class="font-semibold">RM ${formatRM(form.totalOtherRM)}</span>
+                            <span class="text-slate-600">Parking & Toll:</span>
+                            <span class="font-semibold">RM ${formatRM(form.totalParkingRM + form.totalTollRM)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-600">Grab / Meals / Ent. / Others:</span>
+                            <span class="font-semibold">RM ${formatRM(form.totalTransportRM + form.totalMealsRM + form.totalEntertainmentRM + form.totalOthersRM)}</span>
                         </div>
                         <div class="border-t border-slate-300 pt-1.5 flex justify-between text-sm font-extrabold text-slate-900">
                             <span>TOTAL PAYABLE:</span>
@@ -1919,7 +2292,7 @@
             `;
         }
 
-        // Export Single Company Monthly Excel (.xlsx)
+        // Export Single Company Monthly Excel (.xlsx) with Multi-Column Breakdown
         function buildCompanyWorkbook(form) {
             const p = state.profile;
             const wsData = [
@@ -1927,40 +2300,53 @@
                 [`Claim Period: ${formatMonthLabel(form.month)}`, '', '', `Company Code: ${form.companyName}`],
                 [`Staff Name: ${p.name}`, `Employee ID: ${p.staffId}`, `Department: ${p.department}`, `Vehicle No: ${p.vehicleNo}`],
                 [],
-                ['No.', 'Date', 'Category', 'Description / Route / Receipt Ref', 'Actual Distance (km)', 'Rounded Distance (km)', 'Rate (RM/km)', 'Claim Amount (RM)']
+                ['No.', 'Date', 'Description / Route / Receipt Ref', 'Actual KM', 'Claim KM (Rounded)', 'Mileage (RM)', 'Public Transport / Grab / Petrol (RM)', 'Parking (RM)', 'Toll (RM)', 'Meals (RM)', 'Entertainment / Others (RM)', 'Total Amount (RM)']
             ];
 
             form.items.forEach((item, index) => {
-                const desc = item.category === 'Mileage' && (item.fromLoc || item.toLoc)
+                const b = getEntryAmounts(item);
+                const desc = (item.fromLoc || item.toLoc)
                     ? `${item.description} (${item.fromLoc || '-'} -> ${item.toLoc || '-'})`
                     : (item.receiptNo ? `${item.description} [Ref: ${item.receiptNo}]` : item.description);
+                const entOthers = Number((b.entertainmentAmount + b.othersAmount).toFixed(2));
 
                 wsData.push([
                     index + 1,
                     item.date,
-                    item.category,
                     desc,
-                    item.category === 'Mileage' ? Number(item.actualKm) : '',
-                    item.category === 'Mileage' ? Number(item.roundedKm) : '',
-                    item.category === 'Mileage' ? FIXED_MILEAGE_RATE : '',
-                    Number(item.amount)
+                    b.actualKm > 0 ? Number(b.actualKm) : '',
+                    b.roundedKm > 0 ? Number(b.roundedKm) : '',
+                    b.mileageAmount > 0 ? Number(b.mileageAmount) : '',
+                    b.transportAmount > 0 ? Number(b.transportAmount) : '',
+                    b.parkingAmount > 0 ? Number(b.parkingAmount) : '',
+                    b.tollAmount > 0 ? Number(b.tollAmount) : '',
+                    b.mealsAmount > 0 ? Number(b.mealsAmount) : '',
+                    entOthers > 0 ? entOthers : '',
+                    Number(b.totalAmount)
                 ]);
             });
 
+            const totalEntOthers = Number((form.totalEntertainmentRM + form.totalOthersRM).toFixed(2));
             wsData.push([]);
             wsData.push([
-                '', '', '', 'TOTAL',
+                '', '', 'TOTAL',
                 Number(form.totalMileageActual.toFixed(2)),
                 form.totalMileageRounded,
-                '',
+                Number(form.totalMileageRM.toFixed(2)),
+                Number(form.totalTransportRM.toFixed(2)),
+                Number(form.totalParkingRM.toFixed(2)),
+                Number(form.totalTollRM.toFixed(2)),
+                Number(form.totalMealsRM.toFixed(2)),
+                totalEntOthers,
                 Number(form.grandTotalRM.toFixed(2))
             ]);
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             ws['!cols'] = [
-                { wch: 6 }, { wch: 13 }, { wch: 22 }, { wch: 44 },
-                { wch: 18 }, { wch: 20 }, { wch: 14 }, { wch: 18 }
+                { wch: 6 }, { wch: 13 }, { wch: 42 }, { wch: 12 },
+                { wch: 16 }, { wch: 14 }, { wch: 24 }, { wch: 13 },
+                { wch: 13 }, { wch: 13 }, { wch: 20 }, { wch: 18 }
             ];
             XLSX.utils.book_append_sheet(wb, ws, `${form.companyName} Claim`);
             return wb;
@@ -1998,20 +2384,27 @@
                 showToast('No entries to export.', 'error');
                 return;
             }
-            const rows = state.claims.map((c, idx) => ({
-                'No.': idx + 1,
-                'Month': c.month,
-                'Date': c.date,
-                'Company': c.companyName,
-                'Category': c.category,
-                'Description': c.description,
-                'From': c.fromLoc || '',
-                'To': c.toLoc || '',
-                'Actual KM': c.category === 'Mileage' ? c.actualKm : '',
-                'Rounded KM': c.category === 'Mileage' ? c.roundedKm : '',
-                'Rate (RM/km)': c.category === 'Mileage' ? FIXED_MILEAGE_RATE : '',
-                'Amount (RM)': c.amount
-            }));
+            const rows = state.claims.map((c, idx) => {
+                const b = getEntryAmounts(c);
+                return {
+                    'No.': idx + 1,
+                    'Month': c.month,
+                    'Date': c.date,
+                    'Company': c.companyName,
+                    'Description': c.description,
+                    'From': c.fromLoc || '',
+                    'To': c.toLoc || '',
+                    'Actual KM': b.actualKm > 0 ? b.actualKm : '',
+                    'Rounded KM': b.roundedKm > 0 ? b.roundedKm : '',
+                    'Mileage (RM)': b.mileageAmount > 0 ? b.mileageAmount : '',
+                    'Grab / Transport (RM)': b.transportAmount > 0 ? b.transportAmount : '',
+                    'Parking (RM)': b.parkingAmount > 0 ? b.parkingAmount : '',
+                    'Toll (RM)': b.tollAmount > 0 ? b.tollAmount : '',
+                    'Meals (RM)': b.mealsAmount > 0 ? b.mealsAmount : '',
+                    'Entertainment / Others (RM)': (b.entertainmentAmount + b.othersAmount) > 0 ? (b.entertainmentAmount + b.othersAmount) : '',
+                    'Total Amount (RM)': b.totalAmount
+                };
+            });
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(rows);
             XLSX.utils.book_append_sheet(wb, ws, 'All Claims Log');
@@ -2154,46 +2547,49 @@
 
             const samples = [
                 {
-                    id: 'demo_1', companyId: 'comp_atlas', companyName: 'ATLAS',
-                    date: '2025-06-05', month: '2025-06', category: 'Mileage',
-                    description: 'Vending Machine Site Audit - Mid Valley',
-                    fromLoc: 'PJ HQ', toLoc: 'Mid Valley Megamall',
-                    actualKm: 12.3, roundedKm: 13, rateApplied: FIXED_MILEAGE_RATE, amount: 7.80, receiptNo: '', receiptImage: ''
+                    id: 'demo_1', hasBreakdown: true, companyId: 'comp_atlas', companyName: 'ATLAS',
+                    date: '2025-06-05', month: '2025-06', category: 'Mileage + Parking + Toll',
+                    description: 'Client Visit - Amway PJ HQ (ShanShan)',
+                    fromLoc: 'Atlas Serdang', toLoc: 'Amway PJ HQ',
+                    actualKm: 41.0, roundedKm: 41, rateApplied: FIXED_MILEAGE_RATE,
+                    mileageAmount: 24.60, parkingAmount: 5.00, tollAmount: 2.30, transportAmount: 0, mealsAmount: 0, entertainmentAmount: 0, othersAmount: 0,
+                    amount: 31.90, receiptNo: 'TNG-20250605', receiptImage: ''
                 },
                 {
-                    id: 'demo_2', companyId: 'comp_atlas', companyName: 'ATLAS',
-                    date: '2025-06-12', month: '2025-06', category: 'Toll / Parking',
-                    description: 'TnG Toll & Basement Parking - Mid Valley',
-                    fromLoc: '', toLoc: '',
-                    actualKm: 0, roundedKm: 0, rateApplied: FIXED_MILEAGE_RATE, amount: 14.50, receiptNo: 'TNG-20250612', receiptImage: ''
+                    id: 'demo_2', hasBreakdown: true, companyId: 'comp_atlas', companyName: 'ATLAS',
+                    date: '2025-06-12', month: '2025-06', category: 'Grab/Transport + Meals',
+                    description: 'KL Sentral Client Meeting via Grab',
+                    fromLoc: 'Serdang', toLoc: 'KL Sentral',
+                    actualKm: 0, roundedKm: 0, rateApplied: FIXED_MILEAGE_RATE,
+                    mileageAmount: 0, parkingAmount: 0, tollAmount: 0, transportAmount: 28.00, mealsAmount: 35.50, entertainmentAmount: 0, othersAmount: 0,
+                    amount: 63.50, receiptNo: 'GRAB-8841', receiptImage: ''
                 },
                 {
-                    id: 'demo_3', companyId: 'comp_packtica', companyName: 'Packtica',
-                    date: '2025-06-18', month: '2025-06', category: 'Mileage',
+                    id: 'demo_3', hasBreakdown: true, companyId: 'comp_packtica', companyName: 'Packtica',
+                    date: '2025-06-18', month: '2025-06', category: 'Mileage + Toll',
                     description: 'Security Label Sample Delivery to Client',
                     fromLoc: 'Subang Office', toLoc: 'Shah Alam Industrial Park',
-                    actualKm: 18.1, roundedKm: 19, rateApplied: FIXED_MILEAGE_RATE, amount: 11.40, receiptNo: '', receiptImage: ''
+                    actualKm: 18.1, roundedKm: 19, rateApplied: FIXED_MILEAGE_RATE,
+                    mileageAmount: 11.40, parkingAmount: 0, tollAmount: 3.79, transportAmount: 0, mealsAmount: 0, entertainmentAmount: 0, othersAmount: 0,
+                    amount: 15.19, receiptNo: '', receiptImage: ''
                 },
                 {
-                    id: 'demo_4', companyId: 'comp_packtica', companyName: 'Packtica',
-                    date: '2025-09-09', month: '2025-09', category: 'Mileage',
+                    id: 'demo_4', hasBreakdown: true, companyId: 'comp_packtica', companyName: 'Packtica',
+                    date: '2025-09-09', month: '2025-09', category: 'Mileage + Parking + Toll',
                     description: 'Packaging Printing Press Inspection',
                     fromLoc: 'Subang Office', toLoc: 'Klang Utama',
-                    actualKm: 24.4, roundedKm: 25, rateApplied: FIXED_MILEAGE_RATE, amount: 15.00, receiptNo: '', receiptImage: ''
+                    actualKm: 24.4, roundedKm: 25, rateApplied: FIXED_MILEAGE_RATE,
+                    mileageAmount: 15.00, parkingAmount: 4.00, tollAmount: 6.20, transportAmount: 0, mealsAmount: 0, entertainmentAmount: 0, othersAmount: 0,
+                    amount: 25.20, receiptNo: '', receiptImage: ''
                 },
                 {
-                    id: 'demo_5', companyId: 'comp_packtica', companyName: 'Packtica',
-                    date: '2025-09-15', month: '2025-09', category: 'Food & Refreshment',
+                    id: 'demo_5', hasBreakdown: true, companyId: 'comp_packtica', companyName: 'Packtica',
+                    date: '2025-09-15', month: '2025-09', category: 'Meals',
                     description: 'Client Lunch Discussion (Packtica Project)',
                     fromLoc: '', toLoc: '',
-                    actualKm: 0, roundedKm: 0, rateApplied: FIXED_MILEAGE_RATE, amount: 68.90, receiptNo: 'INV-99301', receiptImage: ''
-                },
-                {
-                    id: 'demo_6', companyId: 'comp_atlas', companyName: 'ATLAS',
-                    date: '2025-09-22', month: '2025-09', category: 'Mileage',
-                    description: 'Client Restock Follow-up - Sunway',
-                    fromLoc: 'PJ HQ', toLoc: 'Sunway Geo',
-                    actualKm: 9.2, roundedKm: 10, rateApplied: FIXED_MILEAGE_RATE, amount: 6.00, receiptNo: '', receiptImage: ''
+                    actualKm: 0, roundedKm: 0, rateApplied: FIXED_MILEAGE_RATE,
+                    mileageAmount: 0, parkingAmount: 0, tollAmount: 0, transportAmount: 0, mealsAmount: 68.90, entertainmentAmount: 0, othersAmount: 0,
+                    amount: 68.90, receiptNo: 'INV-99301', receiptImage: ''
                 }
             ];
 
@@ -2231,8 +2627,9 @@
 
         // Expose functions globally for inline HTML event handlers
         window.switchTab = switchTab;
-        window.selectCategory = selectCategory;
-        window.recalculateMileage = recalculateMileage;
+        window.toggleExpenseComponent = toggleExpenseComponent;
+        window.setGrabPreset = setGrabPreset;
+        window.recalculateEntryTotal = recalculateEntryTotal;
         window.handleSaveEntry = handleSaveEntry;
         window.resetEntryForm = resetEntryForm;
         window.editEntry = editEntry;
@@ -2277,7 +2674,17 @@
 
             populateCompanyDropdowns();
             populateSettingsForm();
+            syncComponentToggleUI();
             applyRoleUI();
+
+            // Prevent mouse-wheel scrolling from accidentally changing number input values
+            document.addEventListener('wheel', function () {
+                if (document.activeElement && document.activeElement.type === 'number') {
+                    document.activeElement.blur();
+                }
+            }, { passive: true });
+
+            refreshAllViews();
 
             // Initialize Firebase Cloud Sync
             if (firebaseConfig) {
@@ -2286,6 +2693,14 @@
                     auth = getAuth(app);
                     db = getFirestore(app);
 
+                    const initAuth = async () => {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    };
+
                     onAuthStateChanged(auth, (user) => {
                         if (user) {
                             currentUser = user;
@@ -2293,30 +2708,24 @@
                             const dot = document.getElementById('sync-status-dot');
                             const txt = document.getElementById('sync-status-text');
                             if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
-                            if (txt) txt.textContent = 'Cloud Sync Connected (Issuer & Finance Live)';
-                            const uidInput = document.getElementById('settings-user-id');
-                            if (uidInput) uidInput.value = `${appId} (User: ${user.uid.slice(0, 6)}...)`;
+                            if (txt) txt.textContent = 'Connected & Synced (Live Cloud Workspace)';
                             startRealtimeListeners();
                         }
                     });
 
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
+                    await initAuth();
                 } catch (err) {
-                    console.error('Firebase init failed, running in offline local mode:', err);
+                    console.error('Firebase initialization failed, using local mode:', err);
                     const dot = document.getElementById('sync-status-dot');
                     const txt = document.getElementById('sync-status-text');
-                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
-                    if (txt) txt.textContent = 'Offline Local Mode (Browser Storage)';
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
+                    if (txt) txt.textContent = 'Offline Mode (Saved locally on this device)';
                 }
             } else {
                 const dot = document.getElementById('sync-status-dot');
                 const txt = document.getElementById('sync-status-text');
-                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
-                if (txt) txt.textContent = 'Local Browser Storage Mode';
+                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
+                if (txt) txt.textContent = 'Local Browser Mode';
             }
         };
     </script>
