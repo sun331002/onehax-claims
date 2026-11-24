@@ -89,7 +89,7 @@
             line-height: 1.2 !important;
         }
         #printable-claim-sheet .pdf-company-logo {
-            height: 8mm !important;
+            height: 12mm !important;
             width: auto !important;
             max-width: 100%;
             object-fit: contain;
@@ -1039,41 +1039,41 @@
                         </div>
                     </div>
 
-                    <!-- Line Items Table (Rebalanced Column Widths — Zero Overlap, Wider Total Column) -->
+                    <!-- Line Items Table (Equal-Width Numeric Columns, Center-Aligned Headers, Zero Overlap) -->
                     <div class="overflow-x-auto">
                         <table class="w-full table-fixed border-collapse border border-slate-300 pdf-table-cell">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-800 font-bold uppercase pdf-table-header">
-                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[30px]">No.</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-left w-[68px]">Date</th>
-                                    <th class="border border-slate-300 py-1.5 px-1.5 text-left w-[22%]">Description & Route Details</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[56px] bg-indigo-50/70 text-indigo-950 break-words">Claim Kilometers</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[56px] bg-indigo-50/70 text-indigo-950 break-words">Mileage (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[68px] break-words">Public Transport / Grab / Petrol (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[54px] break-words">Parking (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[50px] break-words">Toll (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[52px] break-words">Meals (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[74px] break-words">Entertainment (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[54px] break-words">Others (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1.5 text-right w-[74px] bg-slate-200/80 break-words">Total (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[50px] no-print">Manage</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[28px]">No.</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[66px]">Date</th>
+                                    <th class="border border-slate-300 py-1.5 px-1.5 text-center w-[23%]">Description & Route Details</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[62px] bg-indigo-50/70 text-indigo-950">Claim<br>Kilometers</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[62px] bg-indigo-50/70 text-indigo-950">Mileage</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[62px]">Public<br>Transport /<br>Grab / Petrol</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[62px]">Parking</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[62px]">Toll</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[62px]">Meals</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[62px]">Entertain-<br>ment</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[62px]">Others</th>
+                                    <th class="border border-slate-300 py-1.5 px-1.5 text-center w-[74px] bg-slate-200/80">Total (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[48px] no-print">Manage</th>
                                 </tr>
                             </thead>
                             <tbody id="sheet-items-tbody">
                                 <!-- Dynamically populated -->
                             </tbody>
                             <tfoot>
-                                <tr class="bg-slate-50 font-bold text-slate-900 pdf-table-cell">
+                                <tr class="bg-[#3D8E8F] font-bold text-white pdf-table-cell">
                                     <td colspan="3" class="border border-slate-300 py-1.5 px-2 text-right uppercase pdf-table-header tracking-wider">Column Totals</td>
-                                    <td id="sheet-total-rounded-km" class="border border-slate-300 py-1.5 px-1 text-right text-indigo-700 bg-indigo-50/50">0</td>
-                                    <td id="sheet-col-mileage" class="border border-slate-300 py-1.5 px-1 text-right bg-indigo-50/50">0.00</td>
+                                    <td id="sheet-total-rounded-km" class="border border-slate-300 py-1.5 px-1 text-right">0</td>
+                                    <td id="sheet-col-mileage" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
                                     <td id="sheet-col-transport" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
                                     <td id="sheet-col-parking" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
                                     <td id="sheet-col-toll" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
                                     <td id="sheet-col-meals" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
                                     <td id="sheet-col-entertainment" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
                                     <td id="sheet-col-others" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
-                                    <td id="sheet-total-amount" class="border border-slate-300 py-1.5 px-1.5 text-right pdf-table-cell font-bold bg-slate-300 text-slate-950 whitespace-nowrap">RM 0.00</td>
+                                    <td id="sheet-total-amount" class="border border-slate-300 py-1.5 px-1.5 text-right pdf-table-cell font-bold whitespace-nowrap">RM 0.00</td>
                                     <td class="border border-slate-300 py-1.5 px-1 no-print"></td>
                                 </tr>
                             </tfoot>
@@ -1228,13 +1228,9 @@
         const RETENTION_DAYS = 180; // 6 months retention for receipt attachments
         const RETENTION_MS = RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
-        // Crisp built-in vector logos for ATLAS Marking and Packtica (renders at 8mm height in PDF)
-        const DEFAULT_ATLAS_LOGO_SVG = "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 95"><polygon points="5,90 36,12 63,12 94,90 67,90 49.5,43 32,90" fill="#13334c"/><polygon points="36,74 49.5,56 63,74" fill="#24b49c"/><polygon points="73,12 99,12 130,90 104,90" fill="#24b49c"/><polygon points="109,12 135,12 166,90 140,90" fill="#24b49c"/><text x="182" y="62" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="60" letter-spacing="3" fill="#13334c">ATLAS</text><circle cx="484" cy="14" r="9" fill="none" stroke="#13334c" stroke-width="2.2"/><text x="484" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="11" fill="#13334c">R</text><text x="186" y="88" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="22" letter-spacing="13.5" fill="#24b49c">MARKING</text></svg>`);
-        const DEFAULT_PACKTICA_LOGO_SVG = "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 95"><rect x="6" y="10" width="68" height="68" rx="14" fill="#0f766e"/><path d="M22 44 L40 26 L58 44 L40 62 Z" fill="none" stroke="#ffffff" stroke-width="6"/><circle cx="40" cy="44" r="6" fill="#fbbf24"/><text x="88" y="54" font-family="Arial Black, sans-serif" font-weight="900" font-size="40" letter-spacing="2" fill="#0f172a">PACKTICA</text><text x="90" y="76" font-family="Arial, sans-serif" font-weight="700" font-size="13" letter-spacing="2.2" fill="#0f766e">STRENGTHEN YOUR BUSINESS!</text></svg>`);
-
         const DEFAULT_COMPANIES = [
-            { id: 'ATLAS', name: 'ATLAS', fullName: 'ATLAS MARKING SDN BHD', ratePerKm: 0.60, logoDataUrl: DEFAULT_ATLAS_LOGO_SVG },
-            { id: 'PACKTICA', name: 'Packtica', fullName: 'PACKTICA SDN BHD', ratePerKm: 0.60, logoDataUrl: DEFAULT_PACKTICA_LOGO_SVG }
+            { id: 'ATLAS', name: 'ATLAS', fullName: 'ATLAS MARKING SDN BHD', ratePerKm: 0.60, logoDataUrl: '' },
+            { id: 'PACKTICA', name: 'Packtica', fullName: 'PACKTICA SDN BHD', ratePerKm: 0.60, logoDataUrl: '' }
         ];
 
         const DEFAULT_STAFF_PROFILES = [
@@ -1410,11 +1406,10 @@
             if (!data) return;
             if (Array.isArray(data.companies) && data.companies.length > 0) {
                 appState.companies = data.companies.map(c => {
-                    const defaultLogo = c.id === 'ATLAS' ? DEFAULT_ATLAS_LOGO_SVG : (c.id === 'PACKTICA' ? DEFAULT_PACKTICA_LOGO_SVG : '');
                     if (c.id === 'ATLAS' && c.fullName === 'ATLAS VENDING (M) SDN BHD') {
-                        return { ...c, fullName: 'ATLAS MARKING SDN BHD', ratePerKm: 0.60, logoDataUrl: c.logoDataUrl || defaultLogo };
+                        return { ...c, fullName: 'ATLAS MARKING SDN BHD', ratePerKm: 0.60, logoDataUrl: c.logoDataUrl || '' };
                     }
-                    return { ...c, ratePerKm: 0.60, logoDataUrl: c.logoDataUrl || defaultLogo };
+                    return { ...c, ratePerKm: 0.60, logoDataUrl: c.logoDataUrl || '' };
                 });
             }
             if (Array.isArray(data.staffProfiles) && data.staffProfiles.length > 0) {
@@ -3301,9 +3296,8 @@
             // Populate Header (8mm Logo + 16pt Company Title) & 3-Column Claimant Details
             const logoWrap = document.getElementById('sheet-company-logo-wrap');
             const logoImg = document.getElementById('sheet-company-logo');
-            const activeLogo = company.logoDataUrl || (company.id === 'ATLAS' ? DEFAULT_ATLAS_LOGO_SVG : (company.id === 'PACKTICA' ? DEFAULT_PACKTICA_LOGO_SVG : ''));
-            if (activeLogo) {
-                logoImg.src = activeLogo;
+            if (company.logoDataUrl) {
+                logoImg.src = company.logoDataUrl;
                 logoWrap.classList.remove('hidden');
             } else {
                 logoImg.src = '';
