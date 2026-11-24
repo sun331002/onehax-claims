@@ -236,7 +236,7 @@
                 <form id="superadmin-login-form" onsubmit="handleSuperAdminLogin(event)" class="hidden space-y-4">
                     <div>
                         <label for="login-superadmin-id" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">2. SuperAdmin ID</label>
-                        <input type="text" id="login-superadmin-id" required placeholder="Super Admin"
+                        <input type="text" id="login-superadmin-id" required value="admin" placeholder="admin"
                             class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-slate-50 text-center text-base font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition">
                     </div>
 
@@ -971,20 +971,6 @@
                 </div>
             </div>
 
-            <!-- Official Printable Claim Sheet Preview (A4 Landscape Layout — Yearly Audit Compliant) -->
-            <div id="printable-claim-sheet" class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 sm:p-8 max-w-7xl mx-auto">
-                <!-- Empty state if no forms -->
-                <div id="sheet-empty-state" class="hidden text-center py-12">
-                    <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-2xl">
-                        <i class="fa-regular fa-folder-open"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-800">No Accessible Claim Forms</h3>
-                    <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">Log a claim entry in Tab 1 to automatically generate your separated claim form here.</p>
-                    <button onclick="switchTab('entry')" class="mt-4 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Go to Log Claim</button>
-                </div>
-
-                <!-- Active Official Sheet -->
-                <div id="sheet-active-content">
             <!-- Official Printable Claim Sheet Preview (Compact Single-Page A4 Landscape Layout) -->
             <div id="printable-claim-sheet" class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 sm:p-6 max-w-7xl mx-auto">
                 <!-- Empty state if no forms -->
@@ -1752,7 +1738,7 @@
             const enteredId = document.getElementById('login-superadmin-id').value.trim();
             const enteredPass = document.getElementById('login-superadmin-pass').value.trim();
 
-            if (enteredId.toLowerCase() === 'super admin' && enteredPass === '333666') {
+            if (enteredId.toLowerCase() === 'admin' && enteredPass === '333666') {
                 currentRole = 'superadmin';
                 currentStaffId = null;
                 sessionStorage.setItem('claimflow_active_role', 'superadmin');
@@ -2773,37 +2759,6 @@
             if (mBadge) mBadge.textContent = `(${groupList.length})`;
         }
 
-            const recentContainer = document.getElementById('recent-entries-list');
-            const recentSlice = visibleEntries.slice(0, 4);
-            if (recentSlice.length === 0) {
-                recentContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No recent items logged.</p>`;
-            } else {
-                recentContainer.innerHTML = recentSlice.map(e => {
-                    const comp = getCompanyById(e.companyId);
-                    const locked = isFormLocked(getMonthKey(e.date), e.companyId, e.staffName || '');
-                    const tags = getEntryBreakdownTags(e);
-                    return `
-                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-2">
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-[11px] font-bold text-indigo-700">${comp.name}</span>
-                                    <span class="text-[11px] font-semibold text-slate-700">• ${escapeHtml(e.staffName || 'Staff')}</span>
-                                    <span class="text-[11px] text-slate-400">• ${formatAuditDate(e.date)}</span>
-                                    ${e.receiptImage ? `<i class="fa-solid fa-paperclip text-[10px] text-emerald-600" title="Receipt attached"></i>` : ''}
-                                    ${locked ? `<i class="fa-solid fa-lock text-[10px] text-emerald-600" title="Locked"></i>` : ''}
-                                </div>
-                                <p class="text-xs font-semibold text-slate-800 truncate mt-0.5">${escapeHtml(e.description)}</p>
-                                <p class="text-[10px] text-slate-500 truncate mt-0.5">${tags.join(' • ')}</p>
-                            </div>
-                            <div class="text-right shrink-0">
-                                <span class="block text-xs font-extrabold text-slate-900">RM ${parseFloat(e.amount).toFixed(2)}</span>
-                                ${(!locked || isAdminOrFinance()) ? `<button onclick="editEntry('${e.id}')" class="text-[11px] text-indigo-600 hover:underline font-medium">Edit</button>` : `<span class="text-[10px] text-slate-400">Locked</span>`}
-                            </div>
-                        </div>`;
-                }).join('');
-            }
-        }
-
         function formatStopExpenseInline(stop) {
             const se = stop.expenses || {};
             const parts = [];
@@ -2970,6 +2925,96 @@
         // =========================================================================
         // 10. FORM APPROVAL & SIGNATURE DATE CONTROLS (STAFF, MANAGER & FINANCE)
         // =========================================================================
+        function populateFormSelectors() {
+            const groupsMap = getGroupedFormsMap();
+            const allGroups = Object.values(groupsMap);
+
+            const monthSelect = document.getElementById('forms-month-select');
+            const staffSelect = document.getElementById('forms-staff-select');
+            const companySelect = document.getElementById('forms-company-select');
+            const pillsContainer = document.getElementById('month-company-pills');
+
+            if (!monthSelect || !staffSelect || !companySelect) return;
+
+            if (allGroups.length === 0) {
+                monthSelect.innerHTML = `<option value="">No Data</option>`;
+                staffSelect.innerHTML = `<option value="">No Staff</option>`;
+                companySelect.innerHTML = `<option value="">No Forms</option>`;
+                if (pillsContainer) {
+                    pillsContainer.innerHTML = `<span class="text-xs text-slate-400">No separated forms yet.</span>`;
+                }
+                return;
+            }
+
+            const prevMonth = monthSelect.value;
+            const prevStaff = staffSelect.value;
+            const prevCompany = companySelect.value;
+
+            const uniqueMonths = [...new Set(allGroups.map(g => g.monthKey))].sort().reverse();
+            monthSelect.innerHTML = uniqueMonths.map(m => `<option value="${m}">${formatMonthLabel(m)}</option>`).join('');
+
+            const selectedMonth = uniqueMonths.includes(prevMonth) ? prevMonth : uniqueMonths[0];
+            monthSelect.value = selectedMonth;
+
+            syncStaffAndCompanyOptionsForSelectedMonth(prevStaff, prevCompany);
+        }
+
+        function syncStaffAndCompanyOptionsForSelectedMonth(preferredStaff = '', preferredCompany = '') {
+            const monthKey = document.getElementById('forms-month-select').value;
+            const staffSelect = document.getElementById('forms-staff-select');
+            const groupsInMonth = Object.values(getGroupedFormsMap()).filter(g => g.monthKey === monthKey);
+
+            const uniqueStaff = [...new Set(groupsInMonth.map(g => g.staffName))].sort();
+            staffSelect.innerHTML = uniqueStaff.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+
+            const selectedStaff = uniqueStaff.includes(preferredStaff) ? preferredStaff : (uniqueStaff[0] || '');
+            staffSelect.value = selectedStaff;
+
+            syncCompanyOptionsForSelectedMonthAndStaff(preferredCompany);
+        }
+
+        function syncCompanyOptionsForSelectedMonthAndStaff(preferredCompany = '') {
+            const monthKey = document.getElementById('forms-month-select').value;
+            const staffName = document.getElementById('forms-staff-select').value;
+            const companySelect = document.getElementById('forms-company-select');
+            const pillsContainer = document.getElementById('month-company-pills');
+
+            const groupsInMonth = Object.values(getGroupedFormsMap()).filter(g => g.monthKey === monthKey);
+            const groupsForStaff = groupsInMonth.filter(g => g.staffName === staffName);
+
+            companySelect.innerHTML = groupsForStaff.map(g => {
+                const comp = getCompanyById(g.companyId);
+                return `<option value="${g.companyId}">${comp.name} — ${comp.fullName} (RM ${g.totalAmount.toFixed(2)})</option>`;
+            }).join('');
+
+            if (preferredCompany && groupsForStaff.some(g => g.companyId === preferredCompany)) {
+                companySelect.value = preferredCompany;
+            }
+
+            if (pillsContainer) {
+                pillsContainer.innerHTML = `<span class="text-[11px] font-semibold text-slate-400 mr-1">Forms in ${formatMonthLabel(monthKey)}:</span>` +
+                    groupsInMonth.map(g => {
+                        const comp = getCompanyById(g.companyId);
+                        const isSelected = g.companyId === companySelect.value && g.staffName === staffName;
+                        const locked = isFormLocked(monthKey, g.companyId, g.staffName);
+                        return `
+                            <button type="button" onclick="openSpecificForm('${monthKey}', '${g.companyId}', '${escapeHtml(g.staffName)}')"
+                                class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-2 ${isSelected ? 'bg-slate-900 text-white border-slate-900 shadow-2xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                                ${locked ? '<i class="fa-solid fa-lock text-emerald-400 text-[10px]"></i>' : ''}
+                                <span>${comp.name} (${escapeHtml(g.staffName)})</span>
+                                <span class="${isSelected ? 'text-indigo-300' : 'text-indigo-600'} font-bold">RM ${g.totalAmount.toFixed(2)}</span>
+                            </button>`;
+                    }).join('');
+            }
+        }
+
+        window.handleFormMonthChange = function() {
+            const currentStaff = document.getElementById('forms-staff-select').value;
+            const currentCompany = document.getElementById('forms-company-select').value;
+            syncStaffAndCompanyOptionsForSelectedMonth(currentStaff, currentCompany);
+            renderOfficialClaimSheet();
+        };
+
         function getFormApprovalRecord(monthKey, companyId, staffName) {
             const key = getFormLockKey(monthKey, companyId, staffName);
             const existing = (appState.formApprovals && appState.formApprovals[key]) || {};
