@@ -88,9 +88,11 @@
             font-size: 6.5pt !important;
             line-height: 1.2 !important;
         }
-        #printable-claim-sheet .pdf-grand-total {
-            font-size: 8.5pt !important;
-            line-height: 1.2 !important;
+        #printable-claim-sheet .pdf-company-logo {
+            height: 8mm !important;
+            width: auto !important;
+            max-width: 100%;
+            object-fit: contain;
         }
 
         /* Print-specific formatting for Finance Official Claim Forms (A4 Landscape) */
@@ -422,6 +424,15 @@
                     <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Full Registered Legal Name *</label>
                     <input type="text" id="modal-company-fullname" required placeholder="e.g. ATLAS MARKING SDN BHD"
                         class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Company Logo (Optional — PNG / JPG / SVG)</label>
+                    <input type="file" id="modal-company-logo-file" accept="image/*" onchange="handleCompanyLogoUpload(event)"
+                        class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <div id="modal-company-logo-preview-wrap" class="hidden mt-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                        <img id="modal-company-logo-preview" src="" alt="Company Logo Preview" class="h-8 w-auto object-contain">
+                        <button type="button" onclick="clearModalCompanyLogo()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold">Remove Logo</button>
+                    </div>
                 </div>
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
                     <span class="text-xs font-semibold text-slate-600">Standard Mileage Rate</span>
@@ -985,9 +996,12 @@
 
                 <!-- Active Official Sheet -->
                 <div id="sheet-active-content">
-                    <!-- Clean Sheet Header (Company Full Name 16pt + Claim Period) -->
+                    <!-- Clean Sheet Header (8mm Logo + Company Full Name 16pt + Claim Period) -->
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between border-b-2 border-slate-900 pb-2.5 mb-3.5 gap-3">
-                        <div>
+                        <div class="space-y-1.5">
+                            <div id="sheet-company-logo-wrap" class="hidden">
+                                <img id="sheet-company-logo" src="" alt="Company Logo" class="pdf-company-logo">
+                            </div>
                             <h1 id="sheet-company-fullname" class="pdf-company-title font-extrabold text-slate-900 tracking-tight uppercase">ATLAS MARKING SDN BHD</h1>
                         </div>
                         <div class="sm:text-right flex flex-col sm:items-end gap-1">
@@ -1025,24 +1039,24 @@
                         </div>
                     </div>
 
-                    <!-- Line Items Table (Uniform Column Widths Matching Mileage RM) -->
+                    <!-- Line Items Table (Rebalanced Column Widths — Zero Overlap, Wider Total Column) -->
                     <div class="overflow-x-auto">
                         <table class="w-full table-fixed border-collapse border border-slate-300 pdf-table-cell">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-800 font-bold uppercase pdf-table-header">
-                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[34px]">No.</th>
-                                    <th class="border border-slate-300 py-1.5 px-1.5 text-left w-[72px]">Date</th>
-                                    <th class="border border-slate-300 py-1.5 px-1.5 text-left">Description & Route Details</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px] bg-indigo-50/70 text-indigo-950">Claim Kilometers</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px] bg-indigo-50/70 text-indigo-950">Mileage (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Public Transport / Grab / Petrol (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Parking (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Toll (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Meals (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Entertainment (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[58px]">Others (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[64px] bg-slate-200/70">Total (RM)</th>
-                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[54px] no-print">Manage</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[30px]">No.</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-left w-[68px]">Date</th>
+                                    <th class="border border-slate-300 py-1.5 px-1.5 text-left w-[22%]">Description & Route Details</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[56px] bg-indigo-50/70 text-indigo-950 break-words">Claim Kilometers</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[56px] bg-indigo-50/70 text-indigo-950 break-words">Mileage (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[68px] break-words">Public Transport / Grab / Petrol (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[54px] break-words">Parking (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[50px] break-words">Toll (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[52px] break-words">Meals (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[74px] break-words">Entertainment (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-right w-[54px] break-words">Others (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1.5 text-right w-[74px] bg-slate-200/80 break-words">Total (RM)</th>
+                                    <th class="border border-slate-300 py-1.5 px-1 text-center w-[50px] no-print">Manage</th>
                                 </tr>
                             </thead>
                             <tbody id="sheet-items-tbody">
@@ -1059,7 +1073,7 @@
                                     <td id="sheet-col-meals" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
                                     <td id="sheet-col-entertainment" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
                                     <td id="sheet-col-others" class="border border-slate-300 py-1.5 px-1 text-right">0.00</td>
-                                    <td id="sheet-total-amount" class="border border-slate-300 py-1.5 px-1 text-right pdf-grand-total bg-slate-200/70">RM 0.00</td>
+                                    <td id="sheet-total-amount" class="border border-slate-300 py-1.5 px-1.5 text-right pdf-table-cell font-bold bg-slate-300 text-slate-950 whitespace-nowrap">RM 0.00</td>
                                     <td class="border border-slate-300 py-1.5 px-1 no-print"></td>
                                 </tr>
                             </tfoot>
@@ -1070,7 +1084,7 @@
                     <div class="grid grid-cols-3 gap-6 mt-6 pt-2 pdf-meta-text">
                         <div>
                             <div class="border-b border-slate-400 h-8 mb-1"></div>
-                            <p class="font-bold text-slate-800">Claimed By (Staff)</p>
+                            <p class="font-bold text-slate-800">Claimed By</p>
                             <p class="text-slate-600">Full Name: <span id="sig-staff-name" class="font-semibold text-slate-900 uppercase">-</span></p>
                             <div class="text-slate-600 flex items-center gap-1.5 mt-0.5">
                                 <span>Date:</span>
@@ -1214,9 +1228,13 @@
         const RETENTION_DAYS = 180; // 6 months retention for receipt attachments
         const RETENTION_MS = RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
+        // Crisp built-in vector logos for ATLAS Marking and Packtica (renders at 8mm height in PDF)
+        const DEFAULT_ATLAS_LOGO_SVG = "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 95"><polygon points="5,90 36,12 63,12 94,90 67,90 49.5,43 32,90" fill="#13334c"/><polygon points="36,74 49.5,56 63,74" fill="#24b49c"/><polygon points="73,12 99,12 130,90 104,90" fill="#24b49c"/><polygon points="109,12 135,12 166,90 140,90" fill="#24b49c"/><text x="182" y="62" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="60" letter-spacing="3" fill="#13334c">ATLAS</text><circle cx="484" cy="14" r="9" fill="none" stroke="#13334c" stroke-width="2.2"/><text x="484" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="11" fill="#13334c">R</text><text x="186" y="88" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="22" letter-spacing="13.5" fill="#24b49c">MARKING</text></svg>`);
+        const DEFAULT_PACKTICA_LOGO_SVG = "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 95"><rect x="6" y="10" width="68" height="68" rx="14" fill="#0f766e"/><path d="M22 44 L40 26 L58 44 L40 62 Z" fill="none" stroke="#ffffff" stroke-width="6"/><circle cx="40" cy="44" r="6" fill="#fbbf24"/><text x="88" y="54" font-family="Arial Black, sans-serif" font-weight="900" font-size="40" letter-spacing="2" fill="#0f172a">PACKTICA</text><text x="90" y="76" font-family="Arial, sans-serif" font-weight="700" font-size="13" letter-spacing="2.2" fill="#0f766e">STRENGTHEN YOUR BUSINESS!</text></svg>`);
+
         const DEFAULT_COMPANIES = [
-            { id: 'ATLAS', name: 'ATLAS', fullName: 'ATLAS MARKING SDN BHD', ratePerKm: 0.60 },
-            { id: 'PACKTICA', name: 'Packtica', fullName: 'PACKTICA SDN BHD', ratePerKm: 0.60 }
+            { id: 'ATLAS', name: 'ATLAS', fullName: 'ATLAS MARKING SDN BHD', ratePerKm: 0.60, logoDataUrl: DEFAULT_ATLAS_LOGO_SVG },
+            { id: 'PACKTICA', name: 'Packtica', fullName: 'PACKTICA SDN BHD', ratePerKm: 0.60, logoDataUrl: DEFAULT_PACKTICA_LOGO_SVG }
         ];
 
         const DEFAULT_STAFF_PROFILES = [
@@ -1392,10 +1410,11 @@
             if (!data) return;
             if (Array.isArray(data.companies) && data.companies.length > 0) {
                 appState.companies = data.companies.map(c => {
+                    const defaultLogo = c.id === 'ATLAS' ? DEFAULT_ATLAS_LOGO_SVG : (c.id === 'PACKTICA' ? DEFAULT_PACKTICA_LOGO_SVG : '');
                     if (c.id === 'ATLAS' && c.fullName === 'ATLAS VENDING (M) SDN BHD') {
-                        return { ...c, fullName: 'ATLAS MARKING SDN BHD', ratePerKm: 0.60 };
+                        return { ...c, fullName: 'ATLAS MARKING SDN BHD', ratePerKm: 0.60, logoDataUrl: c.logoDataUrl || defaultLogo };
                     }
-                    return { ...c, ratePerKm: 0.60 };
+                    return { ...c, ratePerKm: 0.60, logoDataUrl: c.logoDataUrl || defaultLogo };
                 });
             }
             if (Array.isArray(data.staffProfiles) && data.staffProfiles.length > 0) {
@@ -3279,7 +3298,18 @@
                 finBtn.classList.add('hidden');
             }
 
-            // Populate Header & 3-Column Claimant Details
+            // Populate Header (8mm Logo + 16pt Company Title) & 3-Column Claimant Details
+            const logoWrap = document.getElementById('sheet-company-logo-wrap');
+            const logoImg = document.getElementById('sheet-company-logo');
+            const activeLogo = company.logoDataUrl || (company.id === 'ATLAS' ? DEFAULT_ATLAS_LOGO_SVG : (company.id === 'PACKTICA' ? DEFAULT_PACKTICA_LOGO_SVG : ''));
+            if (activeLogo) {
+                logoImg.src = activeLogo;
+                logoWrap.classList.remove('hidden');
+            } else {
+                logoImg.src = '';
+                logoWrap.classList.add('hidden');
+            }
+
             document.getElementById('sheet-company-fullname').textContent = company.fullName;
             document.getElementById('sheet-period-label').textContent = periodLabel;
             document.getElementById('sheet-generated-date').textContent = formatAuditDate(new Date().toISOString().split('T')[0]);
@@ -3707,6 +3737,7 @@
                             <span class="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
                                 RM 0.60 / km
                             </span>
+                            ${c.logoDataUrl ? `<span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200"><i class="fa-solid fa-image mr-1"></i>Logo Ready</span>` : ''}
                         </div>
                         <p class="text-xs font-medium text-slate-700 mt-1.5">${c.fullName}</p>
                     </div>
@@ -3875,7 +3906,7 @@
                         subordinates
                     };
                 }
-                showToast(`Updated user profile: ${fullName} (${role.toUpperCase()})`, 'success');
+                showToast(`Updated profile for ${fullName}.`, 'success');
             } else {
                 appState.staffProfiles.push({
                     id: 'staff_' + Date.now(),
@@ -3887,22 +3918,21 @@
                     subordinates,
                     password: ''
                 });
-                showToast(`Added ${fullName} as ${role.toUpperCase()} (ID: ${nricCheck.digits.slice(-6)}, Pass: ${nricCheck.digits.slice(-4)})`, 'success');
+                showToast(`Added ${fullName} (${role.toUpperCase()})! Default password: ${nricCheck.digits.slice(-4)}.`, 'success');
             }
 
             closeStaffModal();
             persistState();
-            applyRolePermissions();
             refreshAllUI();
         };
 
         window.deleteStaffProfile = function(id) {
-            if (!isAdminOrFinance()) return;
+            if (!isAdminOrFinance() || appState.staffProfiles.length <= 1) return;
             const staff = appState.staffProfiles.find(s => s.id === id);
             if (!staff) return;
             openConfirmModal(
-                'Remove User Profile',
-                `Remove ${staff.fullName} (${staff.nric}) from the Directory? Existing claim entries will remain in history.`,
+                'Delete User Profile',
+                `Remove ${staff.fullName} (${staff.nric}) from the directory?`,
                 () => {
                     appState.staffProfiles = appState.staffProfiles.filter(s => s.id !== id);
                     persistState();
@@ -3912,13 +3942,36 @@
             );
         };
 
-        // Company Modal Functions
+        // Company Modal Functions (With Company Logo Upload)
+        let currentModalCompanyLogo = '';
+
+        window.handleCompanyLogoUpload = function(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentModalCompanyLogo = e.target.result;
+                document.getElementById('modal-company-logo-preview').src = currentModalCompanyLogo;
+                document.getElementById('modal-company-logo-preview-wrap').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.clearModalCompanyLogo = function() {
+            currentModalCompanyLogo = '';
+            const fileInput = document.getElementById('modal-company-logo-file');
+            if (fileInput) fileInput.value = '';
+            document.getElementById('modal-company-logo-preview').src = '';
+            document.getElementById('modal-company-logo-preview-wrap').classList.add('hidden');
+        };
+
         window.openAddCompanyModal = function() {
             if (!isAdminOrFinance()) return;
             document.getElementById('company-modal-title').textContent = 'Add Entity / Company';
             document.getElementById('modal-company-id').value = '';
             document.getElementById('modal-company-name').value = '';
             document.getElementById('modal-company-fullname').value = '';
+            clearModalCompanyLogo();
             const modal = document.getElementById('company-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -3931,6 +3984,15 @@
             document.getElementById('modal-company-id').value = comp.id;
             document.getElementById('modal-company-name').value = comp.name;
             document.getElementById('modal-company-fullname').value = comp.fullName;
+            const fileInput = document.getElementById('modal-company-logo-file');
+            if (fileInput) fileInput.value = '';
+            if (comp.logoDataUrl) {
+                currentModalCompanyLogo = comp.logoDataUrl;
+                document.getElementById('modal-company-logo-preview').src = comp.logoDataUrl;
+                document.getElementById('modal-company-logo-preview-wrap').classList.remove('hidden');
+            } else {
+                clearModalCompanyLogo();
+            }
             const modal = document.getElementById('company-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -3953,7 +4015,13 @@
             if (editId) {
                 const idx = appState.companies.findIndex(c => c.id === editId);
                 if (idx !== -1) {
-                    appState.companies[idx] = { ...appState.companies[idx], name, fullName, ratePerKm: 0.60 };
+                    appState.companies[idx] = {
+                        ...appState.companies[idx],
+                        name,
+                        fullName,
+                        ratePerKm: 0.60,
+                        logoDataUrl: currentModalCompanyLogo
+                    };
                 }
                 showToast(`Updated ${name} (${fullName})`, 'success');
             } else {
@@ -3962,7 +4030,8 @@
                     id: newId,
                     name,
                     fullName,
-                    ratePerKm: 0.60
+                    ratePerKm: 0.60,
+                    logoDataUrl: currentModalCompanyLogo
                 });
                 showToast(`Added ${name} (${fullName})`, 'success');
             }
