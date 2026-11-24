@@ -1033,13 +1033,14 @@
 
                     <!-- Line Items Table (Landscape A4 Multi-Column Breakdown — Full Words Only, No Receipt/Ref Column) -->
                     <div class="overflow-x-auto">
+                    <!-- Line Items Table (Landscape A4 Multi-Column Breakdown — Full Words Only, No Actual Kilometers Column) -->
+                    <div class="overflow-x-auto">
                         <table class="w-full border-collapse border border-slate-300 text-[11px]">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-800 font-bold uppercase text-[10px]">
-                                    <th class="border border-slate-300 py-2 px-1.5 text-center w-10">Number</th>
+                                    <th class="border border-slate-300 py-2 px-1.5 text-center w-10">No.</th>
                                     <th class="border border-slate-300 py-2 px-2 text-left w-24">Date</th>
-                                    <th class="border border-slate-300 py-2 px-2 text-left">Description & Multi-Stop Route Details</th>
-                                    <th class="border border-slate-300 py-2 px-1.5 text-right w-20">Actual Kilometers</th>
+                                    <th class="border border-slate-300 py-2 px-2 text-left">Description & Route Details</th>
                                     <th class="border border-slate-300 py-2 px-1.5 text-right w-20 bg-indigo-50/70 text-indigo-950">Claim Kilometers</th>
                                     <th class="border border-slate-300 py-2 px-1.5 text-right w-20 bg-indigo-50/70 text-indigo-950">Mileage (RM)</th>
                                     <th class="border border-slate-300 py-2 px-1.5 text-right w-24">Public Transport / Grab / Petrol (RM)</th>
@@ -1058,7 +1059,6 @@
                             <tfoot>
                                 <tr class="bg-slate-50 font-bold text-slate-900 text-[11px]">
                                     <td colspan="3" class="border border-slate-300 py-2 px-2 text-right uppercase text-[10px] tracking-wider">Column Totals</td>
-                                    <td id="sheet-total-actual-km" class="border border-slate-300 py-2 px-1.5 text-right">0.00</td>
                                     <td id="sheet-total-rounded-km" class="border border-slate-300 py-2 px-1.5 text-right text-indigo-700 bg-indigo-50/50">0</td>
                                     <td id="sheet-col-mileage" class="border border-slate-300 py-2 px-1.5 text-right bg-indigo-50/50">0.00</td>
                                     <td id="sheet-col-transport" class="border border-slate-300 py-2 px-1.5 text-right">0.00</td>
@@ -3126,6 +3126,87 @@
             renderOfficialClaimSheet();
         };
 
+        // Expand each entry's stops into individual numbered rows (Stop 1 -> No. 1, Stop 2 -> No. 2, etc.)
+        function expandEntriesIntoSheetRows(items) {
+            const expandedRows = [];
+            items.forEach(item => {
+                const rate = parseFloat(item.ratePerKm) || 0.60;
+                const c = getEntryComponents(item);
+
+                if (Array.isArray(item.stops) && item.stops.length > 0) {
+                    const targetRoundedTotal = parseInt(item.roundedKm) || 0;
+                    let allocatedRoundedKm = 0;
+
+                    item.stops.forEach((stop, sIdx) => {
+                        const isLastStop = sIdx === item.stops.length - 1;
+                        const legDist = parseFloat(stop.distance) || 0;
+                        let legRoundedKm = isLastStop
+                            ? Math.max(0, targetRoundedTotal - allocatedRoundedKm)
+                            : roundUpKm(legDist);
+                        if (!isLastStop && allocatedRoundedKm + legRoundedKm > targetRoundedTotal) {
+                            legRoundedKm = Math.max(0, targetRoundedTotal - allocatedRoundedKm);
+                        }
+                        allocatedRoundedKm += legRoundedKm;
+
+                        const legMileageAmt = parseFloat((legRoundedKm * rate).toFixed(2));
+                        const se = stop.expenses || {};
+                        const legTransport = parseFloat(se.transport) || 0;
+                        const legParking = parseFloat(se.parking) || 0;
+                        const legToll = parseFloat(se.toll) || 0;
+                        const legMeals = parseFloat(se.meals) || 0;
+                        const legEntertainment = parseFloat(se.entertainment) || 0;
+                        const legOthers = parseFloat(se.others) || 0;
+                        const legTotal = parseFloat((legMileageAmt + legTransport + legParking + legToll + legMeals + legEntertainment + legOthers).toFixed(2));
+
+                        const prevStop = sIdx === 0 ? (item.from || 'Origin') : item.stops[sIdx - 1].to;
+                        const destLabel = stop.time ? `${stop.to} (${stop.time})` : stop.to;
+
+                        expandedRows.push({
+                            entryId: item.id,
+                            date: item.date,
+                            purpose: stop.purpose || item.description,
+                            routeText: `${prevStop} → ${destLabel}`,
+                            isFirstLegOfEntry: sIdx === 0,
+                            totalStopsCount: item.stops.length,
+                            lastEditedBy: sIdx === 0 ? item.lastEditedBy : '',
+                            lastEditedAt: sIdx === 0 ? item.lastEditedAt : '',
+                            roundedKm: legRoundedKm,
+                            mileageAmt: legMileageAmt,
+                            transportAmt: legTransport,
+                            parkingAmt: legParking,
+                            tollAmt: legToll,
+                            mealsAmt: legMeals,
+                            entertainmentAmt: legEntertainment,
+                            othersAmt: legOthers,
+                            totalAmt: legTotal
+                        });
+                    });
+                } else {
+                    const routeText = (item.from || item.to) ? `${item.from || '-'} → ${item.to || '-'}` : '';
+                    expandedRows.push({
+                        entryId: item.id,
+                        date: item.date,
+                        purpose: item.description,
+                        routeText,
+                        isFirstLegOfEntry: true,
+                        totalStopsCount: 1,
+                        lastEditedBy: item.lastEditedBy,
+                        lastEditedAt: item.lastEditedAt,
+                        roundedKm: parseInt(item.roundedKm) || 0,
+                        mileageAmt: c.mileageAmt,
+                        transportAmt: c.transportAmt,
+                        parkingAmt: c.parkingAmt,
+                        tollAmt: c.tollAmt,
+                        mealsAmt: c.mealsAmt,
+                        entertainmentAmt: c.entertainmentAmt,
+                        othersAmt: c.othersAmt,
+                        totalAmt: parseFloat(item.amount) || 0
+                    });
+                }
+            });
+            return expandedRows;
+        }
+
         window.renderOfficialClaimSheet = function() {
             const visibleEntries = getVisibleEntriesForCurrentUser();
             const monthKey = document.getElementById('forms-month-select').value;
@@ -3210,8 +3291,9 @@
             document.getElementById('sig-staff-name').textContent = staffName;
             document.getElementById('sig-company-code').textContent = company.name;
 
-            // Populate Table Rows (Yearly-Audit Compliant: dd-mmm-yyyy dates, full words, no Receipt/Ref column)
-            let totalActualKm = 0;
+            // Expand stops into individual numbered rows (Stop 1 = No. 1, Stop 2 = No. 2, etc.)
+            const expandedRows = expandEntriesIntoSheetRows(items);
+
             let totalRoundedKm = 0;
             let sumMileage = 0;
             let sumTransport = 0;
@@ -3223,53 +3305,46 @@
             let grandTotal = 0;
 
             const tbody = document.getElementById('sheet-items-tbody');
-            tbody.innerHTML = items.map((item, idx) => {
-                const c = getEntryComponents(item);
-                const actKm = parseFloat(item.actualKm) || 0;
-                const rndKm = parseInt(item.roundedKm) || 0;
-                const amt = parseFloat(item.amount) || 0;
-
-                totalActualKm += actKm;
-                totalRoundedKm += rndKm;
-                sumMileage += c.mileageAmt;
-                sumTransport += c.transportAmt;
-                sumParking += c.parkingAmt;
-                sumToll += c.tollAmt;
-                sumMeals += c.mealsAmt;
-                sumEntertainment += c.entertainmentAmt;
-                sumOthers += c.othersAmt;
-                grandTotal += amt;
+            tbody.innerHTML = expandedRows.map((row, idx) => {
+                totalRoundedKm += row.roundedKm;
+                sumMileage += row.mileageAmt;
+                sumTransport += row.transportAmt;
+                sumParking += row.parkingAmt;
+                sumToll += row.tollAmt;
+                sumMeals += row.mealsAmt;
+                sumEntertainment += row.entertainmentAmt;
+                sumOthers += row.othersAmt;
+                grandTotal += row.totalAmt;
 
                 const canManage = isAdminOrFinance() || !locked;
-                const editAuditNote = (item.lastEditedBy && item.lastEditedAt)
-                    ? `<div class="no-print mt-1 text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 inline-block">Edited by ${escapeHtml(item.lastEditedBy)}, ${formatAuditDateTime(item.lastEditedAt)}</div>`
+                const editAuditNote = (row.lastEditedBy && row.lastEditedAt)
+                    ? `<div class="no-print mt-1 text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 inline-block">Edited by ${escapeHtml(row.lastEditedBy)}, ${formatAuditDateTime(row.lastEditedAt)}</div>`
                     : '';
 
                 return `
                     <tr>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-center text-slate-700">${idx + 1}</td>
-                        <td class="border border-slate-300 py-1.5 px-2 whitespace-nowrap font-medium">${formatAuditDate(item.date)}</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-center font-semibold text-slate-700">${idx + 1}</td>
+                        <td class="border border-slate-300 py-1.5 px-2 whitespace-nowrap font-medium">${formatAuditDate(row.date)}</td>
                         <td class="border border-slate-300 py-1.5 px-2">
-                            <div class="font-semibold text-slate-900">${escapeHtml(item.description)}</div>
-                            ${formatRouteDisplayHtml(item)}
+                            <div class="font-semibold text-slate-900">${escapeHtml(row.purpose)}</div>
+                            ${row.routeText ? `<div class="text-[10px] text-slate-600 mt-0.5">${escapeHtml(row.routeText)}</div>` : ''}
                             ${editAuditNote}
                         </td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right text-slate-700">${actKm > 0 ? actKm.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right font-bold text-indigo-900 bg-indigo-50/30">${rndKm > 0 ? rndKm : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right bg-indigo-50/30">${c.mileageAmt > 0 ? c.mileageAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${c.transportAmt > 0 ? c.transportAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${c.parkingAmt > 0 ? c.parkingAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${c.tollAmt > 0 ? c.tollAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${c.mealsAmt > 0 ? c.mealsAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${c.entertainmentAmt > 0 ? c.entertainmentAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${c.othersAmt > 0 ? c.othersAmt.toFixed(2) : '-'}</td>
-                        <td class="border border-slate-300 py-1.5 px-2 text-right font-bold text-slate-900 bg-slate-100/60">${amt.toFixed(2)}</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-right font-bold text-indigo-900 bg-indigo-50/30">${row.roundedKm > 0 ? row.roundedKm : '-'}</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-right bg-indigo-50/30">${row.mileageAmt > 0 ? row.mileageAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.transportAmt > 0 ? row.transportAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.parkingAmt > 0 ? row.parkingAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.tollAmt > 0 ? row.tollAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.mealsAmt > 0 ? row.mealsAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.entertainmentAmt > 0 ? row.entertainmentAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-right">${row.othersAmt > 0 ? row.othersAmt.toFixed(2) : '-'}</td>
+                        <td class="border border-slate-300 py-1.5 px-2 text-right font-bold text-slate-900 bg-slate-100/60">${row.totalAmt.toFixed(2)}</td>
                         <td class="border border-slate-300 py-1.5 px-1.5 text-center whitespace-nowrap no-print">
                             ${canManage ? `
-                                <button type="button" onclick="editEntry('${item.id}')" title="Edit Entry" class="px-1.5 py-1 text-indigo-600 hover:bg-indigo-50 rounded">
+                                <button type="button" onclick="editEntry('${row.entryId}')" title="Edit Entry" class="px-1.5 py-1 text-indigo-600 hover:bg-indigo-50 rounded">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
-                                <button type="button" onclick="deleteEntry('${item.id}')" title="Remove Entry" class="px-1.5 py-1 text-rose-600 hover:bg-rose-50 rounded">
+                                <button type="button" onclick="deleteEntry('${row.entryId}')" title="Remove Entry" class="px-1.5 py-1 text-rose-600 hover:bg-rose-50 rounded">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             ` : `<span class="text-[10px] text-slate-400">Locked</span>`}
@@ -3277,7 +3352,6 @@
                     </tr>`;
             }).join('');
 
-            document.getElementById('sheet-total-actual-km').textContent = totalActualKm.toFixed(2);
             document.getElementById('sheet-total-rounded-km').textContent = totalRoundedKm;
             document.getElementById('sheet-col-mileage').textContent = sumMileage.toFixed(2);
             document.getElementById('sheet-col-transport').textContent = sumTransport.toFixed(2);
@@ -3359,59 +3433,45 @@
                 ['Mobile Telephone Number:', matchedProfile ? matchedProfile.mobile : '-', '', 'Employed Under Company:', employedCompany ? employedCompany.fullName : '-'],
                 [],
                 [
-                    'Number', 'Date', 'Description', 'Multi-Stop Route Details',
-                    'Actual Kilometers', 'Claim Kilometers', 'Mileage (RM)', 'Public Transport / Grab / Petrol (RM)',
+                    'No.', 'Date', 'Description', 'Route Details',
+                    'Claim Kilometers', 'Mileage (RM)', 'Public Transport / Grab / Petrol (RM)',
                     'Parking (RM)', 'Toll (RM)', 'Meals (RM)', 'Entertainment (RM)', 'Others (RM)', 'Total (RM)'
                 ]
             ];
 
-            let sumActualKm = 0, sumRoundedKm = 0, sumMileage = 0, sumTrans = 0, sumPark = 0, sumToll = 0, sumMeals = 0, sumEnt = 0, sumOthers = 0, sumTotal = 0;
+            const expandedRows = expandEntriesIntoSheetRows(items);
+            let sumRoundedKm = 0, sumMileage = 0, sumTrans = 0, sumPark = 0, sumToll = 0, sumMeals = 0, sumEnt = 0, sumOthers = 0, sumTotal = 0;
 
-            items.forEach((item, idx) => {
-                const c = getEntryComponents(item);
-                const actKm = parseFloat(item.actualKm) || 0;
-                const rndKm = parseInt(item.roundedKm) || 0;
-                const amt = parseFloat(item.amount) || 0;
-
-                sumActualKm += actKm;
-                sumRoundedKm += rndKm;
-                sumMileage += c.mileageAmt;
-                sumTrans += c.transportAmt;
-                sumPark += c.parkingAmt;
-                sumToll += c.tollAmt;
-                sumMeals += c.mealsAmt;
-                sumEnt += c.entertainmentAmt;
-                sumOthers += c.othersAmt;
-                sumTotal += amt;
-
-                let routeStr = '';
-                if (Array.isArray(item.stops) && item.stops.length > 0) {
-                    routeStr = `Start: ${item.from || '-'} | ` + item.stops.map((s, i) => `Stop ${i + 1}: ${s.to}${s.time ? ` (${s.time})` : ''} (${s.distance} kilometers - ${s.purpose}${formatStopExpenseInline(s)})`).join(' -> ');
-                } else if (item.from || item.to) {
-                    routeStr = `${item.from || ''} -> ${item.to || ''}`;
-                }
+            expandedRows.forEach((row, idx) => {
+                sumRoundedKm += row.roundedKm;
+                sumMileage += row.mileageAmt;
+                sumTrans += row.transportAmt;
+                sumPark += row.parkingAmt;
+                sumToll += row.tollAmt;
+                sumMeals += row.mealsAmt;
+                sumEnt += row.entertainmentAmt;
+                sumOthers += row.othersAmt;
+                sumTotal += row.totalAmt;
 
                 rows.push([
                     idx + 1,
-                    formatAuditDate(item.date),
-                    item.description,
-                    routeStr,
-                    actKm > 0 ? actKm : '',
-                    rndKm > 0 ? rndKm : '',
-                    c.mileageAmt > 0 ? c.mileageAmt : '',
-                    c.transportAmt > 0 ? c.transportAmt : '',
-                    c.parkingAmt > 0 ? c.parkingAmt : '',
-                    c.tollAmt > 0 ? c.tollAmt : '',
-                    c.mealsAmt > 0 ? c.mealsAmt : '',
-                    c.entertainmentAmt > 0 ? c.entertainmentAmt : '',
-                    c.othersAmt > 0 ? c.othersAmt : '',
-                    amt
+                    formatAuditDate(row.date),
+                    row.purpose,
+                    row.routeText,
+                    row.roundedKm > 0 ? row.roundedKm : '',
+                    row.mileageAmt > 0 ? row.mileageAmt : '',
+                    row.transportAmt > 0 ? row.transportAmt : '',
+                    row.parkingAmt > 0 ? row.parkingAmt : '',
+                    row.tollAmt > 0 ? row.tollAmt : '',
+                    row.mealsAmt > 0 ? row.mealsAmt : '',
+                    row.entertainmentAmt > 0 ? row.entertainmentAmt : '',
+                    row.othersAmt > 0 ? row.othersAmt : '',
+                    row.totalAmt
                 ]);
             });
 
             rows.push([
                 '', '', '', 'TOTAL',
-                parseFloat(sumActualKm.toFixed(2)),
                 sumRoundedKm,
                 parseFloat(sumMileage.toFixed(2)),
                 parseFloat(sumTrans.toFixed(2)),
