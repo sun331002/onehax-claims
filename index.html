@@ -665,10 +665,10 @@
                 <div id="staff-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
-            <!-- Backup, Restore & Go-Live Data Controls (Admin / Finance Only) -->
+            <!-- Backup, Restore & Go-Live Data Controls (SuperAdmin Only) -->
             <div id="setup-data-tools-card" class="hidden bg-slate-900 text-white rounded-2xl p-5 space-y-4 shadow-md">
                 <div>
-                    <h3 class="text-base font-extrabold">🛡️ Backup, Restore & Go-Live Launch Tools</h3>
+                    <h3 class="text-base font-extrabold">🛡️ Backup, Restore & Go-Live Launch Tools (SuperAdmin Only)</h3>
                     <p class="text-xs text-slate-400">Export a full JSON backup (including uploaded company logos, staff profiles, and entries) or clear test claims when ready to launch.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
@@ -2178,6 +2178,7 @@
         // ==========================================
         function renderSetupTab() {
             const admin = isAdminOrFinance();
+            const superAdminOnly = isSuperAdmin();
             const noticeCard = document.getElementById('setup-notice-card');
             const addCompBtn = document.getElementById('btn-add-company');
             const addStaffBtn = document.getElementById('btn-add-staff');
@@ -2187,13 +2188,17 @@
                 noticeCard?.classList.remove('hidden');
                 addCompBtn?.classList.remove('hidden');
                 addStaffBtn?.classList.remove('hidden');
-                dataToolsCard?.classList.remove('hidden');
                 const noticeInput = document.getElementById('setup-notice-input');
                 if (noticeInput) noticeInput.value = appState.noticeBoard?.text || '';
             } else {
                 noticeCard?.classList.add('hidden');
                 addCompBtn?.classList.add('hidden');
                 addStaffBtn?.classList.add('hidden');
+            }
+
+            if (superAdminOnly) {
+                dataToolsCard?.classList.remove('hidden');
+            } else {
                 dataToolsCard?.classList.add('hidden');
             }
 
@@ -2548,20 +2553,26 @@
             await persistState();
             closeStaffModal();
             refreshAllUI();
-            showToast('User profile saved!', 'success');
+            showToast('User profile saved successfully!', 'success');
         };
 
         window.deleteStaffProfile = function (staffId) {
-            askConfirm('Delete User Profile', 'Are you sure you want to delete this user profile?', async () => {
+            const st = appState.staffProfiles.find(s => s.id === staffId);
+            if (!st) return;
+            askConfirm('Delete User Profile', `Remove "${st.name}" from registered users?`, async () => {
                 appState.staffProfiles = appState.staffProfiles.filter(s => s.id !== staffId);
                 await persistState();
                 refreshAllUI();
-                showToast('User profile deleted.', 'info');
+                showToast(`Removed user ${st.name}.`, 'info');
             });
         };
 
-        // Backup, Restore & Go-Live Reset
+        // Backup, Restore & Go-Live Reset (SuperAdmin Only)
         window.exportBackupJson = function () {
+            if (!isSuperAdmin()) {
+                showToast('Only SuperAdmin can export system backups.', 'warning');
+                return;
+            }
             const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -2573,6 +2584,11 @@
         };
 
         window.importBackupJson = function (event) {
+            if (!isSuperAdmin()) {
+                showToast('Only SuperAdmin can restore system backups.', 'warning');
+                event.target.value = '';
+                return;
+            }
             const file = event.target.files?.[0];
             if (!file) return;
             const reader = new FileReader();
@@ -2601,6 +2617,10 @@
         };
 
         window.confirmResetTestClaims = function () {
+            if (!isSuperAdmin()) {
+                showToast('Only SuperAdmin can reset test claims.', 'warning');
+                return;
+            }
             askConfirm(
                 'Reset All Test Claims for Go-Live',
                 'This will permanently clear all logged claim entries and form approvals while keeping your Company Logos, Notice Board, and Staff Profiles intact. Continue?',
