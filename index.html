@@ -250,7 +250,7 @@
                     2. Saved Entries <span id="badge-entries-count" class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-indigo-600 text-white">0</span>
                 </button>
                 <button type="button" onclick="switchMainTab('sheet')" id="main-tab-sheet" class="px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl text-slate-300 hover:text-white hover:bg-slate-800/60 whitespace-nowrap transition">
-                    3. Official Claim Sheet & PDF
+                    3. Official Claim Sheet &amp; PDF <span id="badge-pending-approvals" class="hidden ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-amber-500 text-slate-950 font-extrabold">0</span>
                 </button>
                 <button type="button" onclick="switchMainTab('setup')" id="main-tab-setup" class="px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl text-slate-300 hover:text-white hover:bg-slate-800/60 whitespace-nowrap transition">
                     4. Staff & Setup
@@ -299,31 +299,6 @@
                         </div>
                     </div>
 
-                    <!-- Step 2: Claim Type Selector -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">4. Claim Activity Type *</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <button type="button" id="btn-type-driving" onclick="setTripType('driving')" class="flex items-center gap-3 p-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-50/70 text-left transition">
-                                <span class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-base shrink-0">
-                                    <i class="fa-solid fa-car-side"></i>
-                                </span>
-                                <div>
-                                    <div class="font-extrabold text-sm text-indigo-950">Driving / Client Visit Trip</div>
-                                    <div class="text-xs text-indigo-700">Multi-stop route with mileage + per-stop toll/parking/meals</div>
-                                </div>
-                            </button>
-                            <button type="button" id="btn-type-nondriving" onclick="setTripType('nondriving')" class="flex items-center gap-3 p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-left transition">
-                                <span class="w-10 h-10 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center text-base shrink-0">
-                                    <i class="fa-solid fa-receipt"></i>
-                                </span>
-                                <div>
-                                    <div class="font-extrabold text-sm text-slate-800">Non-Driving Expense Only</div>
-                                    <div class="text-xs text-slate-500">Grab, Flight/Train, Meals, Entertainment, Parking, Others</div>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- Shared Datalist for Per-Staff Saved Locations -->
                     <datalist id="staff-location-memory"></datalist>
 
@@ -354,51 +329,6 @@
                         <button type="button" onclick="addRouteStop()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-300 font-extrabold text-xs shadow-sm transition">
                             <span>+ Add Next Stop / Return Trip</span>
                         </button>
-                    </div>
-
-                    <!-- Non-Driving Expense Details & Amounts -->
-                    <div id="non-driving-section" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Expense Title / Purpose *</label>
-                                <input type="text" id="nondrive-purpose" placeholder="e.g. Client Lunch Meeting / Grab to Airport" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Location / Vendor Details (Optional)</label>
-                                <input type="text" id="nondrive-details" list="staff-location-memory" autocomplete="off" oninput="this.value = this.value.toUpperCase()" placeholder="e.g. KLIA / RESTAURANT NAME" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm uppercase focus:border-indigo-500 outline-none">
-                            </div>
-                        </div>
-
-                        <!-- Non-Driving Expense Amounts Grid -->
-                        <div class="pt-2 border-t border-slate-200">
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">5. Expense Amounts (RM)</label>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Public / Grab / Petrol</label>
-                                    <input type="number" step="0.01" min="0" id="amt-public" oninput="updateBadgesAndLivePreview()" placeholder="0.00" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-right focus:border-indigo-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Parking (RM)</label>
-                                    <input type="number" step="0.01" min="0" id="amt-parking" oninput="updateBadgesAndLivePreview()" placeholder="0.00" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-right focus:border-indigo-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Toll (RM)</label>
-                                    <input type="number" step="0.01" min="0" id="amt-toll" oninput="updateBadgesAndLivePreview()" placeholder="0.00" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-right focus:border-indigo-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Meals (RM)</label>
-                                    <input type="number" step="0.01" min="0" id="amt-meals" oninput="updateBadgesAndLivePreview()" placeholder="0.00" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-right focus:border-indigo-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Entertainment (RM)</label>
-                                    <input type="number" step="0.01" min="0" id="amt-entertainment" oninput="updateBadgesAndLivePreview()" placeholder="0.00" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-right focus:border-indigo-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Others (RM)</label>
-                                    <input type="number" step="0.01" min="0" id="amt-others" oninput="updateBadgesAndLivePreview()" placeholder="0.00" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-right focus:border-indigo-500 outline-none">
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Live Calculation Footer & Submit -->
@@ -453,6 +383,20 @@
 
         <!-- TAB 3: OFFICIAL CLAIM SHEET & PDF -->
         <main id="tab-panel-sheet" class="hidden max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
+            <!-- Monthly Submission & Approval Status Tracker (Managers, Finance & SuperAdmin) -->
+            <div id="approval-tracker-card" class="no-print hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-check text-indigo-600"></i> Monthly Claim Submission &amp; Approval Overview
+                        </h3>
+                        <p class="text-xs text-slate-500">Click any row below to load that staff member's claim sheet and verify or approve.</p>
+                    </div>
+                    <span id="tracker-period-pill" class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 text-xs font-extrabold uppercase">PERIOD</span>
+                </div>
+                <div id="approval-tracker-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+            </div>
+
             <!-- Filter & Action Toolbar (Hidden in Print) -->
             <div class="no-print bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
                 <div class="flex flex-wrap items-end justify-between gap-4">
@@ -517,17 +461,17 @@
                 <table class="pdf-table mb-4">
                     <thead>
                         <tr>
-                            <th style="width: 3.5%;" class="text-center">No.</th>
-                            <th style="width: 8.5%;" class="text-center">Date</th>
-                            <th style="width: 32%;" class="text-left">Description &amp; Route Details</th>
-                            <th style="width: 6.5%;" class="text-right">Claim Kilometers</th>
-                            <th style="width: 6.5%;" class="text-right">Mileage</th>
-                            <th style="width: 8.5%;" class="text-right">Public Transport/ Grab/Petrol</th>
-                            <th style="width: 6.2%;" class="text-right">Parking</th>
-                            <th style="width: 6.2%;" class="text-right">Toll</th>
-                            <th style="width: 6.2%;" class="text-right">Meals</th>
-                            <th style="width: 7.2%;" class="text-right">Entertain-ment</th>
-                            <th style="width: 6.2%;" class="text-right">Others</th>
+                            <th style="width: 3.4%;" class="text-center">No.</th>
+                            <th style="width: 8.4%;" class="text-center">Date</th>
+                            <th style="width: 30.8%;" class="text-left">Description &amp; Route Details</th>
+                            <th style="width: 7.8%;" class="text-right">Claim<br>Kilometers</th>
+                            <th style="width: 6.4%;" class="text-right">Mileage</th>
+                            <th style="width: 8.6%;" class="text-right">Public Transport/<br>Grab/Petrol</th>
+                            <th style="width: 6.1%;" class="text-right">Parking</th>
+                            <th style="width: 6.1%;" class="text-right">Toll</th>
+                            <th style="width: 6.1%;" class="text-right">Meals</th>
+                            <th style="width: 7.2%;" class="text-right">Entertain-<br>ment</th>
+                            <th style="width: 6.1%;" class="text-right">Others</th>
                             <th style="width: 8.5%;" class="text-right">Total (RM)</th>
                         </tr>
                     </thead>
@@ -537,41 +481,41 @@
                 <!-- 3-Tier Electronic Sign-Off Footer -->
                 <div class="signature-grid grid grid-cols-3 gap-4 pt-2">
                     <!-- Tier 1: Claimed By -->
-                    <div class="border border-slate-300 rounded-xl p-3 flex flex-col justify-between min-h-[108px]">
+                    <div class="border border-slate-400 rounded-lg p-3 flex flex-col justify-between min-h-[104px]">
                         <div class="flex items-center justify-between">
-                            <span class="text-[7.5pt] font-extrabold uppercase tracking-wider text-slate-700">Claimed By</span>
-                            <span id="sig-badge-claimed" class="text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Pending</span>
+                            <span class="text-[7.5pt] font-extrabold uppercase tracking-wider text-slate-800">Claimed By</span>
+                            <span id="sig-badge-claimed" class="no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Pending</span>
                         </div>
                         <div id="sig-action-claimed" class="no-print my-2"></div>
-                        <div class="text-[7.5pt] space-y-0.5 border-t border-slate-200 pt-1.5 mt-2">
-                            <div><span class="text-slate-500">Full Name:</span> <strong id="sig-name-claimed" class="uppercase">-</strong></div>
-                            <div><span class="text-slate-500">Date:</span> <strong id="sig-date-claimed">-</strong></div>
+                        <div class="text-[7.5pt] space-y-0.5 border-t border-slate-300 pt-1.5 mt-4">
+                            <div><span class="text-slate-600">Full Name:</span> <strong id="sig-name-claimed" class="uppercase">-</strong></div>
+                            <div><span class="text-slate-600">Date:</span> <strong id="sig-date-claimed">-</strong></div>
                         </div>
                     </div>
 
                     <!-- Tier 2: Verified By (Manager) -->
-                    <div class="border border-slate-300 rounded-xl p-3 flex flex-col justify-between min-h-[108px]">
+                    <div class="border border-slate-400 rounded-lg p-3 flex flex-col justify-between min-h-[104px]">
                         <div class="flex items-center justify-between">
-                            <span class="text-[7.5pt] font-extrabold uppercase tracking-wider text-slate-700">Verified By (Manager)</span>
-                            <span id="sig-badge-verified" class="text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Pending</span>
+                            <span class="text-[7.5pt] font-extrabold uppercase tracking-wider text-slate-800">Verified By (Manager)</span>
+                            <span id="sig-badge-verified" class="no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Pending</span>
                         </div>
                         <div id="sig-action-verified" class="no-print my-2"></div>
-                        <div class="text-[7.5pt] space-y-0.5 border-t border-slate-200 pt-1.5 mt-2">
-                            <div><span class="text-slate-500">Full Name:</span> <strong id="sig-name-verified" class="uppercase">-</strong></div>
-                            <div><span class="text-slate-500">Date:</span> <strong id="sig-date-verified">-</strong></div>
+                        <div class="text-[7.5pt] space-y-0.5 border-t border-slate-300 pt-1.5 mt-4">
+                            <div><span class="text-slate-600">Full Name:</span> <strong id="sig-name-verified" class="uppercase">-</strong></div>
+                            <div><span class="text-slate-600">Date:</span> <strong id="sig-date-verified">-</strong></div>
                         </div>
                     </div>
 
                     <!-- Tier 3: Approved By (Finance Department) -->
-                    <div class="border border-slate-300 rounded-xl p-3 flex flex-col justify-between min-h-[108px]">
+                    <div class="border border-slate-400 rounded-lg p-3 flex flex-col justify-between min-h-[104px]">
                         <div class="flex items-center justify-between">
-                            <span class="text-[7.5pt] font-extrabold uppercase tracking-wider text-slate-700">Approved By (Finance Department)</span>
-                            <span id="sig-badge-approved" class="text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Pending</span>
+                            <span class="text-[7.5pt] font-extrabold uppercase tracking-wider text-slate-800">Approved By (Finance Department)</span>
+                            <span id="sig-badge-approved" class="no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Pending</span>
                         </div>
                         <div id="sig-action-approved" class="no-print my-2"></div>
-                        <div class="text-[7.5pt] space-y-0.5 border-t border-slate-200 pt-1.5 mt-2">
-                            <div><span class="text-slate-500">Full Name:</span> <strong id="sig-name-approved" class="uppercase">-</strong></div>
-                            <div><span class="text-slate-500">Date:</span> <strong id="sig-date-approved">-</strong></div>
+                        <div class="text-[7.5pt] space-y-0.5 border-t border-slate-300 pt-1.5 mt-4">
+                            <div><span class="text-slate-600">Full Name:</span> <strong id="sig-name-approved" class="uppercase">-</strong></div>
+                            <div><span class="text-slate-600">Date:</span> <strong id="sig-date-approved">-</strong></div>
                         </div>
                     </div>
                 </div>
@@ -1312,8 +1256,10 @@
             entryStaffSel.innerHTML = accessibleStaff.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
             if (prevEntryStaff && accessibleStaff.some(s => s.name === prevEntryStaff)) {
                 entryStaffSel.value = prevEntryStaff;
-            } else if (loggedInStaff) {
+            } else if (loggedInStaff && accessibleStaff.some(s => s.name === loggedInStaff.name)) {
                 entryStaffSel.value = loggedInStaff.name;
+            } else if (accessibleStaff.length > 0) {
+                entryStaffSel.value = accessibleStaff[0].name;
             }
 
             // 2. Entry Form Company Dropdown (filtered to selected staff's permitted companies)
@@ -1326,12 +1272,15 @@
 
             ['filter-entries-company', 'sheet-filter-company'].forEach(id => {
                 const el = document.getElementById(id);
+                if (!el) return;
                 const prev = el.value;
                 el.innerHTML = filterCompanies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.fullName)}</option>`).join('');
                 if (prev && filterCompanies.some(c => c.code === prev)) {
                     el.value = prev;
                 } else if (loggedInStaff && filterCompanies.some(c => c.code === loggedInStaff.companyCode)) {
                     el.value = loggedInStaff.companyCode;
+                } else if (filterCompanies.length > 0) {
+                    el.value = filterCompanies[0].code;
                 }
             });
 
@@ -1352,6 +1301,8 @@
                 entryCompSel.value = prevComp;
             } else if (staffObj && allowedComps.some(c => c.code === staffObj.companyCode)) {
                 entryCompSel.value = staffObj.companyCode;
+            } else if (allowedComps.length > 0) {
+                entryCompSel.value = allowedComps[0].code;
             }
         }
 
@@ -1374,15 +1325,18 @@
         function syncFilterStaffOptions(target) {
             const compSel = document.getElementById(target === 'entries' ? 'filter-entries-company' : 'sheet-filter-company');
             const staffSel = document.getElementById(target === 'entries' ? 'filter-entries-staff' : 'sheet-filter-staff');
+            if (!compSel || !staffSel) return;
             const selectedCompCode = compSel.value;
             const prevStaff = staffSel.value;
 
-            let candidates = getAccessibleStaffProfiles();
+            const allAccessible = getAccessibleStaffProfiles();
+            let candidates = allAccessible;
             if (isAdminOrFinance() && selectedCompCode) {
-                candidates = candidates.filter(s => {
+                const byComp = allAccessible.filter(s => {
                     const codes = new Set([s.companyCode, ...(s.allowedCompanies || [])]);
                     return codes.has(selectedCompCode);
                 });
+                candidates = byComp.length > 0 ? byComp : allAccessible;
             }
 
             staffSel.innerHTML = candidates.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
@@ -1392,6 +1346,8 @@
                 const me = getLoggedInStaff();
                 if (me && candidates.some(s => s.name === me.name)) {
                     staffSel.value = me.name;
+                } else if (candidates.length > 0) {
+                    staffSel.value = candidates[0].name;
                 }
             }
         }
@@ -1420,24 +1376,7 @@
         }
 
         window.setTripType = function (type) {
-            currentTripType = type;
-            const btnDrive = document.getElementById('btn-type-driving');
-            const btnNon = document.getElementById('btn-type-nondriving');
-            const secDrive = document.getElementById('driving-route-section');
-            const secNon = document.getElementById('non-driving-section');
-
-            if (type === 'driving') {
-                btnDrive.className = 'flex items-center gap-3 p-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-50/70 text-left transition';
-                btnNon.className = 'flex items-center gap-3 p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-left transition';
-                secDrive.classList.remove('hidden');
-                secNon.classList.add('hidden');
-            } else {
-                btnNon.className = 'flex items-center gap-3 p-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-50/70 text-left transition';
-                btnDrive.className = 'flex items-center gap-3 p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-left transition';
-                secNon.classList.remove('hidden');
-                secDrive.classList.add('hidden');
-            }
-            updateBadgesAndLivePreview();
+            currentTripType = 'driving';
         };
 
         window.addRouteStop = function (prefill = null) {
@@ -1590,20 +1529,8 @@
             const ratePill = document.getElementById('active-rate-pill');
             if (ratePill) ratePill.textContent = `Rate: RM ${rate.toFixed(2)} / KM`;
 
-            let totalKm = 0;
-            let expRm = 0;
-            if (currentTripType === 'driving') {
-                totalKm = draftStops.reduce((sum, s) => sum + (parseFloat(s.distanceKm) || 0), 0);
-                expRm = draftStops.reduce((sum, s) => sum + getStopExpenseSum(s), 0);
-            } else {
-                const publicRm = parseFloat(document.getElementById('amt-public')?.value) || 0;
-                const parkingRm = parseFloat(document.getElementById('amt-parking')?.value) || 0;
-                const tollRm = parseFloat(document.getElementById('amt-toll')?.value) || 0;
-                const mealsRm = parseFloat(document.getElementById('amt-meals')?.value) || 0;
-                const entRm = parseFloat(document.getElementById('amt-entertainment')?.value) || 0;
-                const othersRm = parseFloat(document.getElementById('amt-others')?.value) || 0;
-                expRm = publicRm + parkingRm + tollRm + mealsRm + entRm + othersRm;
-            }
+            const totalKm = draftStops.reduce((sum, s) => sum + (parseFloat(s.distanceKm) || 0), 0);
+            const expRm = draftStops.reduce((sum, s) => sum + getStopExpenseSum(s), 0);
             const mileageRm = totalKm * rate;
 
             const liveKmEl = document.getElementById('live-total-km');
@@ -1617,7 +1544,47 @@
             const count = appState.entries.filter(e => accessibleNames.has(e.staffName)).length;
             const badge = document.getElementById('badge-entries-count');
             if (badge) badge.textContent = count;
+
+            updatePendingApprovalsBadge();
         };
+
+        function updatePendingApprovalsBadge() {
+            const badgeEl = document.getElementById('badge-pending-approvals');
+            if (!badgeEl) return;
+            const loggedIn = getLoggedInStaff();
+            const isMgr = loggedIn && loggedIn.role === 'manager';
+            const isFinOrAdm = isAdminOrFinance();
+            if (!isMgr && !isFinOrAdm) {
+                badgeEl.classList.add('hidden');
+                return;
+            }
+
+            const monthVal = document.getElementById('sheet-filter-month')?.value || new Date().toISOString().slice(0, 7);
+            const accessible = getAccessibleStaffProfiles();
+            let pendingCount = 0;
+
+            accessible.forEach(st => {
+                const comps = new Set([st.companyCode, ...(st.allowedCompanies || [])]);
+                comps.forEach(cCode => {
+                    const hasEntries = appState.entries.some(e => e.companyCode === cCode && e.staffName === st.name && (e.date || '').startsWith(monthVal));
+                    if (!hasEntries) return;
+                    const key = getApprovalKey(cCode, st.name, monthVal);
+                    const rec = (appState.approvals && appState.approvals[key]) || {};
+                    if (isMgr && (loggedIn.managedStaffIds || []).includes(st.id) && !rec.verifiedBy) {
+                        pendingCount++;
+                    } else if (isFinOrAdm && !rec.approvedBy) {
+                        pendingCount++;
+                    }
+                });
+            });
+
+            if (pendingCount > 0) {
+                badgeEl.textContent = `${pendingCount} Pending`;
+                badgeEl.classList.remove('hidden');
+            } else {
+                badgeEl.classList.add('hidden');
+            }
+        }
 
         // =========================================================================
         // 7. SAVE, EDIT & DELETE CLAIM ENTRIES
@@ -1629,15 +1596,15 @@
             const date = document.getElementById('entry-date').value;
 
             if (!companyCode || !staffName || !date) {
-                showToast('Please select Company, Staff Claimant, and Date.', 'error');
+                showToast('Please select Company, Staff Claimant, and Claim Date.', 'warning');
                 return;
             }
 
             let origin = '';
             let departTime = '';
             let stops = [];
-            let nonDrivePurpose = '';
-            let nonDriveDetails = '';
+            const nonDrivePurpose = '';
+            const nonDriveDetails = '';
 
             let publicTransport = 0;
             let parking = 0;
@@ -1646,80 +1613,62 @@
             let entertainment = 0;
             let others = 0;
 
-            if (currentTripType === 'driving') {
-                origin = document.getElementById('route-origin').value.trim().toUpperCase();
-                departTime = document.getElementById('route-depart-time').value.trim();
-                if (!origin) {
-                    showToast('Please enter the Starting Point (Origin).', 'warning');
-                    return;
-                }
-                if (draftStops.length === 0) {
-                    showToast('Please add at least one destination stop.', 'warning');
-                    return;
-                }
-                for (let i = 0; i < draftStops.length; i++) {
-                    const s = draftStops[i];
-                    if (!s.destination.trim() || !s.purpose.trim()) {
-                        showToast(`Please complete Destination and Purpose for Stop ${i + 1}.`, 'warning');
-                        return;
-                    }
-                    const sPub = parseFloat(s.publicTransport) || 0;
-                    const sPark = parseFloat(s.parking) || 0;
-                    const sToll = parseFloat(s.toll) || 0;
-                    const sMeal = parseFloat(s.meals) || 0;
-                    const sEnt = parseFloat(s.entertainment) || 0;
-                    const sOth = parseFloat(s.others) || 0;
-
-                    publicTransport += sPub;
-                    parking += sPark;
-                    toll += sToll;
-                    meals += sMeal;
-                    entertainment += sEnt;
-                    others += sOth;
-
-                    stops.push({
-                        destination: s.destination.trim().toUpperCase(),
-                        distanceKm: parseFloat(s.distanceKm) || 0,
-                        arrivalTime: (s.arrivalTime || '').trim(),
-                        purpose: s.purpose.trim(),
-                        publicTransport: sPub,
-                        parking: sPark,
-                        toll: sToll,
-                        meals: sMeal,
-                        entertainment: sEnt,
-                        others: sOth,
-                        expenseNote: (s.expenseNote || '').trim()
-                    });
-                }
-                recordStaffLocations(staffName, [origin, ...stops.map(st => st.destination)]);
-            } else {
-                nonDrivePurpose = document.getElementById('nondrive-purpose').value.trim();
-                nonDriveDetails = document.getElementById('nondrive-details').value.trim().toUpperCase();
-                if (!nonDrivePurpose) {
-                    showToast('Please enter the Expense Title / Purpose.', 'warning');
-                    return;
-                }
-                if (nonDriveDetails) {
-                    recordStaffLocations(staffName, [nonDriveDetails]);
-                }
-                publicTransport = parseFloat(document.getElementById('amt-public').value) || 0;
-                parking = parseFloat(document.getElementById('amt-parking').value) || 0;
-                toll = parseFloat(document.getElementById('amt-toll').value) || 0;
-                meals = parseFloat(document.getElementById('amt-meals').value) || 0;
-                entertainment = parseFloat(document.getElementById('amt-entertainment').value) || 0;
-                others = parseFloat(document.getElementById('amt-others').value) || 0;
+            origin = document.getElementById('route-origin').value.trim().toUpperCase();
+            departTime = document.getElementById('route-depart-time').value.trim();
+            if (!origin) {
+                showToast('Please enter the Starting Point (Origin).', 'warning');
+                return;
             }
+            if (draftStops.length === 0) {
+                showToast('Please add at least one destination stop.', 'warning');
+                return;
+            }
+            for (let i = 0; i < draftStops.length; i++) {
+                const s = draftStops[i];
+                if (!s.destination.trim() || !s.purpose.trim()) {
+                    showToast(`Please complete Destination and Purpose for Stop ${i + 1}.`, 'warning');
+                    return;
+                }
+                const sPub = parseFloat(s.publicTransport) || 0;
+                const sPark = parseFloat(s.parking) || 0;
+                const sToll = parseFloat(s.toll) || 0;
+                const sMeal = parseFloat(s.meals) || 0;
+                const sEnt = parseFloat(s.entertainment) || 0;
+                const sOth = parseFloat(s.others) || 0;
+
+                publicTransport += sPub;
+                parking += sPark;
+                toll += sToll;
+                meals += sMeal;
+                entertainment += sEnt;
+                others += sOth;
+
+                stops.push({
+                    destination: s.destination.trim().toUpperCase(),
+                    distanceKm: parseFloat(s.distanceKm) || 0,
+                    arrivalTime: (s.arrivalTime || '').trim(),
+                    purpose: s.purpose.trim(),
+                    publicTransport: sPub,
+                    parking: sPark,
+                    toll: sToll,
+                    meals: sMeal,
+                    entertainment: sEnt,
+                    others: sOth,
+                    expenseNote: (s.expenseNote || '').trim()
+                });
+            }
+            recordStaffLocations(staffName, [origin, ...stops.map(st => st.destination)]);
 
             const entryObj = {
                 id: editingEntryId || `entry-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
                 companyCode,
                 staffName,
                 date,
-                tripType: currentTripType,
+                tripType: 'driving',
                 origin,
                 departTime,
                 stops,
-                hasPerStopExpenses: currentTripType === 'driving',
+                hasPerStopExpenses: true,
                 nonDrivePurpose,
                 nonDriveDetails,
                 publicTransport,
@@ -1739,10 +1688,24 @@
                 showToast('Claim entry added to monthly sheet!');
             }
 
-            saveStateToLocalAndCloud();
+            const yyyyMm = date.slice(0, 7);
+            document.getElementById('filter-entries-company').value = companyCode;
+            syncFilterStaffOptions('entries');
+            document.getElementById('filter-entries-staff').value = staffName;
+            document.getElementById('filter-entries-month').value = yyyyMm;
+
+            document.getElementById('sheet-filter-company').value = companyCode;
+            syncFilterStaffOptions('sheet');
+            document.getElementById('sheet-filter-staff').value = staffName;
+            document.getElementById('sheet-filter-month').value = yyyyMm;
+
             resetClaimEntryForm();
-            renderSavedEntriesList();
-            renderOfficialClaimSheet();
+            saveStateToLocalAndCloud();
+            updateBadgesAndLivePreview();
+        };
+
+        window.cancelEditEntry = function () {
+            resetClaimEntryForm();
         };
 
         function resetClaimEntryForm() {
@@ -1753,11 +1716,6 @@
 
             document.getElementById('route-origin').value = '';
             document.getElementById('route-depart-time').value = '';
-            document.getElementById('nondrive-purpose').value = '';
-            document.getElementById('nondrive-details').value = '';
-            ['amt-public', 'amt-parking', 'amt-toll', 'amt-meals', 'amt-entertainment', 'amt-others'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
             draftStops = [{
                 destination: '',
                 distanceKm: '',
@@ -1777,8 +1735,77 @@
             updateBadgesAndLivePreview();
         }
 
-        window.cancelEditEntry = function () {
-            resetClaimEntryForm();
+        window.renderSavedEntriesList = function () {
+            const container = document.getElementById('saved-entries-list');
+            if (!container) return;
+
+            const compCode = document.getElementById('filter-entries-company')?.value;
+            const staffName = document.getElementById('filter-entries-staff')?.value;
+            const monthVal = document.getElementById('filter-entries-month')?.value;
+
+            const comp = appState.companies.find(c => c.code === compCode) || appState.companies[0];
+            const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
+
+            const filtered = appState.entries
+                .filter(e => (!compCode || e.companyCode === compCode) && (!staffName || e.staffName === staffName) && (!monthVal || (e.date || '').startsWith(monthVal)))
+                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-2">
+                        <div class="text-3xl">📭</div>
+                        <h3 class="text-sm font-extrabold text-slate-800">No entries logged for this selection</h3>
+                        <p class="text-xs text-slate-500">Use Tab 1 (Log New Claim) to record daily travel or expenses.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map((entry, idx) => {
+                const km = entry.tripType === 'driving'
+                    ? (entry.stops || []).reduce((sum, s) => sum + (parseFloat(s.distanceKm) || 0), 0)
+                    : 0;
+                const expTotal = (parseFloat(entry.publicTransport) || 0)
+                    + (parseFloat(entry.parking) || 0)
+                    + (parseFloat(entry.toll) || 0)
+                    + (parseFloat(entry.meals) || 0)
+                    + (parseFloat(entry.entertainment) || 0)
+                    + (parseFloat(entry.others) || 0);
+                const grand = (km * rate) + expTotal;
+
+                const routeSummary = entry.tripType === 'driving'
+                    ? `${escapeHtml(entry.origin)} → ${(entry.stops || []).map(s => escapeHtml(s.destination)).join(' → ')}`
+                    : `${escapeHtml(entry.nonDrivePurpose)} ${entry.nonDriveDetails ? `(${escapeHtml(entry.nonDriveDetails)})` : ''}`;
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+                        <div class="space-y-1 flex-1 min-w-[240px]">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[11px] font-extrabold">#${idx + 1}</span>
+                                <span class="text-xs font-extrabold text-indigo-700">${formatDateDDMMMYYYY(entry.date)}</span>
+                                <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">${escapeHtml(entry.companyCode)}</span>
+                            </div>
+                            <div class="text-sm font-bold text-slate-900">${routeSummary}</div>
+                            <div class="text-xs text-slate-500">
+                                ${km > 0 ? `Distance: <strong>${km.toFixed(1)} KM</strong> • ` : ''}
+                                Other Expenses: <strong>RM ${expTotal.toFixed(2)}</strong>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <div class="text-[10px] font-bold uppercase text-slate-400">Entry Total</div>
+                                <div class="text-base font-extrabold text-emerald-700">RM ${grand.toFixed(2)}</div>
+                            </div>
+                            <button type="button" onclick="editClaimEntry('${entry.id}')" class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition">
+                                Edit
+                            </button>
+                            <button type="button" onclick="deleteClaimEntry('${entry.id}')" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         };
 
         window.editClaimEntry = function (entryId) {
@@ -1796,11 +1823,10 @@
             document.getElementById('entry-company').value = entry.companyCode;
             document.getElementById('entry-date').value = entry.date;
 
-            setTripType(entry.tripType || 'driving');
-            if (entry.tripType === 'driving') {
+            if (entry.tripType === 'driving' && Array.isArray(entry.stops) && entry.stops.length > 0) {
                 document.getElementById('route-origin').value = (entry.origin || '').toUpperCase();
                 document.getElementById('route-depart-time').value = entry.departTime || '';
-                draftStops = (entry.stops || []).map((s, idx) => {
+                draftStops = entry.stops.map((s, idx) => {
                     const useLegacyOnFirst = !entry.hasPerStopExpenses && idx === 0;
                     const pub = useLegacyOnFirst ? (entry.publicTransport || 0) : (s.publicTransport || 0);
                     const park = useLegacyOnFirst ? (entry.parking || 0) : (s.parking || 0);
@@ -1832,348 +1858,43 @@
                         expenseNote: s.expenseNote || ''
                     };
                 });
-                if (!draftStops.length) {
-                    draftStops = [{
-                        destination: '',
-                        distanceKm: '',
-                        arrivalTime: '',
-                        purpose: '',
-                        enabledExpenses: [],
-                        publicTransport: '',
-                        parking: '',
-                        toll: '',
-                        meals: '',
-                        entertainment: '',
-                        others: '',
-                        expenseNote: ''
-                    }];
-                }
-                renderDraftStops();
             } else {
-                document.getElementById('nondrive-purpose').value = entry.nonDrivePurpose || '';
-                document.getElementById('nondrive-details').value = (entry.nonDriveDetails || '').toUpperCase();
-                document.getElementById('amt-public').value = entry.publicTransport || '';
-                document.getElementById('amt-parking').value = entry.parking || '';
-                document.getElementById('amt-toll').value = entry.toll || '';
-                document.getElementById('amt-meals').value = entry.meals || '';
-                document.getElementById('amt-entertainment').value = entry.entertainment || '';
-                document.getElementById('amt-others').value = entry.others || '';
+                // Convert legacy non-driving entry into a single stop so it can still be edited cleanly
+                document.getElementById('route-origin').value = (entry.nonDriveDetails || 'OFFICE').toUpperCase();
+                document.getElementById('route-depart-time').value = '';
+                const enabled = [];
+                if ((entry.toll || 0) > 0) enabled.push('toll');
+                if ((entry.parking || 0) > 0) enabled.push('parking');
+                if ((entry.meals || 0) > 0) enabled.push('meals');
+                if ((entry.entertainment || 0) > 0) enabled.push('entertainment');
+                if ((entry.publicTransport || 0) > 0) enabled.push('publicTransport');
+                if ((entry.others || 0) > 0) enabled.push('others');
+
+                draftStops = [{
+                    destination: (entry.nonDriveDetails || 'CLIENT / VENDOR').toUpperCase(),
+                    distanceKm: '',
+                    arrivalTime: '',
+                    purpose: entry.nonDrivePurpose || 'Expense Claim',
+                    enabledExpenses: enabled,
+                    publicTransport: entry.publicTransport || '',
+                    parking: entry.parking || '',
+                    toll: entry.toll || '',
+                    meals: entry.meals || '',
+                    entertainment: entry.entertainment || '',
+                    others: entry.others || '',
+                    expenseNote: ''
+                }];
             }
+            renderDraftStops();
             updateBadgesAndLivePreview();
         };
 
         window.deleteClaimEntry = function (entryId) {
             appState.entries = appState.entries.filter(e => e.id !== entryId);
             saveStateToLocalAndCloud();
-            updateBadgesAndLivePreview();
             renderSavedEntriesList();
-            renderOfficialClaimSheet();
-            showToast('Claim entry deleted.', 'warning');
-        };
-
-        window.renderSavedEntriesList = function () {
-            const container = document.getElementById('saved-entries-list');
-            if (!container) return;
-            const compCode = document.getElementById('filter-entries-company')?.value;
-            const staffName = document.getElementById('filter-entries-staff')?.value;
-            const monthVal = document.getElementById('filter-entries-month')?.value;
-
-            const comp = appState.companies.find(c => c.code === compCode) || appState.companies[0];
-            const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
-
-            const filtered = appState.entries
-                .filter(e => (!compCode || e.companyCode === compCode) && (!staffName || e.staffName === staffName) && (!monthVal || (e.date || '').startsWith(monthVal)))
-                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-2">
-                        <div class="text-2xl text-slate-300"><i class="fa-solid fa-folder-open"></i></div>
-                        <div class="text-sm font-bold text-slate-700">No claim entries found for this filter</div>
-                        <p class="text-xs text-slate-500">Log a trip in Tab 1 or switch Company / Staff / Month above.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = filtered.map(entry => {
-                const km = entry.tripType === 'driving'
-                    ? (entry.stops || []).reduce((s, x) => s + (parseFloat(x.distanceKm) || 0), 0)
-                    : 0;
-                const mil = km * rate;
-                const exp = (parseFloat(entry.publicTransport) || 0) + (parseFloat(entry.parking) || 0) + (parseFloat(entry.toll) || 0) + (parseFloat(entry.meals) || 0) + (parseFloat(entry.entertainment) || 0) + (parseFloat(entry.others) || 0);
-                const total = mil + exp;
-
-                const routeSummary = entry.tripType === 'driving'
-                    ? `${escapeHtml(entry.origin)} → ${(entry.stops || []).map(s => escapeHtml(s.destination)).join(' → ')}`
-                    : `${escapeHtml(entry.nonDrivePurpose)}${entry.nonDriveDetails ? ` (${escapeHtml(entry.nonDriveDetails)})` : ''}`;
-
-                return `
-                    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-0.5 rounded-lg bg-slate-900 text-white text-[11px] font-bold">${formatDateDDMMMYYYY(entry.date)}</span>
-                                <span class="px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-bold uppercase">${escapeHtml(entry.companyCode)}</span>
-                                <span class="text-xs font-extrabold text-slate-800">${escapeHtml(entry.staffName)}</span>
-                            </div>
-                            <div class="text-sm font-bold text-slate-900">${routeSummary}</div>
-                            <div class="text-xs text-slate-500">
-                                ${entry.tripType === 'driving' ? `Distance: <strong>${km.toFixed(1)} KM</strong> (RM ${mil.toFixed(2)}) • ` : ''}
-                                Other Expenses: <strong>RM ${exp.toFixed(2)}</strong>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="text-right">
-                                <div class="text-[10px] uppercase font-bold text-slate-400">Entry Total</div>
-                                <div class="text-base font-extrabold text-emerald-700">RM ${total.toFixed(2)}</div>
-                            </div>
-                            <button type="button" onclick="editClaimEntry('${escapeHtml(entry.id)}')" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-indigo-50 text-indigo-700 text-xs font-bold transition">Edit</button>
-                            <button type="button" onclick="deleteClaimEntry('${escapeHtml(entry.id)}')" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">Delete</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        };
-
-        // =========================================================================
-        // 8. OFFICIAL A4 LANDSCAPE CLAIM SHEET & 3-TIER ELECTRONIC SIGNATURES
-        // =========================================================================
-        window.renderOfficialClaimSheet = function () {
-            const compCode = document.getElementById('sheet-filter-company')?.value;
-            const staffName = document.getElementById('sheet-filter-staff')?.value;
-            const monthVal = document.getElementById('sheet-filter-month')?.value;
-
-            const comp = appState.companies.find(c => c.code === compCode) || appState.companies[0];
-            const staff = appState.staffProfiles.find(s => s.name === staffName) || getAccessibleStaffProfiles()[0];
-            const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
-
-            const logoImg = document.getElementById('pdf-logo-img');
-            const titleEl = document.getElementById('pdf-company-legal-name');
-            if (comp && comp.logoDataUrl) {
-                logoImg.src = comp.logoDataUrl;
-                logoImg.classList.remove('hidden');
-            } else {
-                logoImg.classList.add('hidden');
-            }
-            titleEl.textContent = comp ? comp.fullName : 'COMPANY SDN BHD';
-
-            const now = new Date();
-            const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-            document.getElementById('pdf-generated-date').textContent = formatDateDDMMMYYYY(todayIso);
-
-            document.getElementById('pdf-staff-name').textContent = staff ? staff.name : (staffName || '-');
-            document.getElementById('pdf-staff-nric').textContent = staff ? formatNricString(staff.nric) : '-';
-            document.getElementById('pdf-staff-mobile').textContent = staff ? formatMobileString(staff.mobile) : '-';
-            document.getElementById('pdf-claim-period').textContent = formatMonthTitle(monthVal);
-
-            const entries = appState.entries
-                .filter(e => (!compCode || e.companyCode === compCode) && (!staffName || e.staffName === staffName) && (!monthVal || (e.date || '').startsWith(monthVal)))
-                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-
-            const rows = [];
-            entries.forEach(entry => {
-                if (entry.tripType === 'driving' && Array.isArray(entry.stops) && entry.stops.length > 0) {
-                    entry.stops.forEach((stop, sIdx) => {
-                        const fromLoc = sIdx === 0 ? entry.origin : entry.stops[sIdx - 1].destination;
-                        const fromTime = sIdx === 0 && entry.departTime ? ` (${entry.departTime})` : '';
-                        const toTime = stop.arrivalTime ? ` (${stop.arrivalTime})` : '';
-                        const km = parseFloat(stop.distanceKm) || 0;
-                        const mileage = km * rate;
-
-                        let pub = 0, park = 0, toll = 0, meal = 0, ent = 0, oth = 0;
-                        if (entry.hasPerStopExpenses) {
-                            pub = parseFloat(stop.publicTransport) || 0;
-                            park = parseFloat(stop.parking) || 0;
-                            toll = parseFloat(stop.toll) || 0;
-                            meal = parseFloat(stop.meals) || 0;
-                            ent = parseFloat(stop.entertainment) || 0;
-                            oth = parseFloat(stop.others) || 0;
-                        } else if (sIdx === 0) {
-                            pub = parseFloat(entry.publicTransport) || 0;
-                            park = parseFloat(entry.parking) || 0;
-                            toll = parseFloat(entry.toll) || 0;
-                            meal = parseFloat(entry.meals) || 0;
-                            ent = parseFloat(entry.entertainment) || 0;
-                            oth = parseFloat(entry.others) || 0;
-                        }
-                        const rowTotal = mileage + pub + park + toll + meal + ent + oth;
-                        const routeLine = `${fromLoc}${fromTime} → ${stop.destination}${toTime}`;
-                        const subLine = stop.expenseNote ? `${routeLine} • ${stop.expenseNote}` : routeLine;
-
-                        rows.push({
-                            date: formatDateDDMMMYYYY(entry.date),
-                            title: stop.purpose,
-                            sub: subLine,
-                            km,
-                            mileage,
-                            pub,
-                            park,
-                            toll,
-                            meal,
-                            ent,
-                            oth,
-                            rowTotal
-                        });
-                    });
-                } else {
-                    const pub = parseFloat(entry.publicTransport) || 0;
-                    const park = parseFloat(entry.parking) || 0;
-                    const toll = parseFloat(entry.toll) || 0;
-                    const meal = parseFloat(entry.meals) || 0;
-                    const ent = parseFloat(entry.entertainment) || 0;
-                    const oth = parseFloat(entry.others) || 0;
-                    const rowTotal = pub + park + toll + meal + ent + oth;
-
-                    rows.push({
-                        date: formatDateDDMMMYYYY(entry.date),
-                        title: entry.nonDrivePurpose || 'Expense Claim',
-                        sub: entry.nonDriveDetails || '',
-                        km: 0,
-                        mileage: 0,
-                        pub,
-                        park,
-                        toll,
-                        meal,
-                        ent,
-                        oth,
-                        rowTotal
-                    });
-                }
-            });
-
-            const tbody = document.getElementById('pdf-table-body');
-            if (rows.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="12" class="text-center py-6 text-slate-400 italic">No claim records logged for ${escapeHtml(staffName || 'selected staff')} in ${formatMonthTitle(monthVal)}.</td>
-                    </tr>
-                `;
-            } else {
-                let sumKm = 0, sumMil = 0, sumPub = 0, sumPark = 0, sumToll = 0, sumMeal = 0, sumEnt = 0, sumOth = 0, sumGrand = 0;
-
-                const dataHtml = rows.map((r, idx) => {
-                    sumKm += r.km;
-                    sumMil += r.mileage;
-                    sumPub += r.pub;
-                    sumPark += r.park;
-                    sumToll += r.toll;
-                    sumMeal += r.meal;
-                    sumEnt += r.ent;
-                    sumOth += r.oth;
-                    sumGrand += r.rowTotal;
-
-                    return `
-                        <tr>
-                            <td class="text-center font-bold">${idx + 1}</td>
-                            <td class="text-center whitespace-nowrap">${r.date}</td>
-                            <td>
-                                <div class="font-bold text-slate-900">${escapeHtml(r.title)}</div>
-                                ${r.sub ? `<div class="text-[6.8pt] text-slate-600 mt-0.5">${escapeHtml(r.sub)}</div>` : ''}
-                            </td>
-                            <td class="text-right">${r.km > 0 ? r.km.toFixed(1) : ''}</td>
-                            <td class="text-right">${formatCurrencyBlankZero(r.mileage)}</td>
-                            <td class="text-right">${formatCurrencyBlankZero(r.pub)}</td>
-                            <td class="text-right">${formatCurrencyBlankZero(r.park)}</td>
-                            <td class="text-right">${formatCurrencyBlankZero(r.toll)}</td>
-                            <td class="text-right">${formatCurrencyBlankZero(r.meal)}</td>
-                            <td class="text-right">${formatCurrencyBlankZero(r.ent)}</td>
-                            <td class="text-right">${formatCurrencyBlankZero(r.oth)}</td>
-                            <td class="text-right font-bold text-slate-900">${formatCurrency(r.rowTotal)}</td>
-                        </tr>
-                    `;
-                }).join('');
-
-                const totalsHtml = `
-                    <tr class="totals-row">
-                        <td colspan="3" class="text-right uppercase tracking-wider">Column Totals</td>
-                        <td class="text-right">${sumKm.toFixed(1)}</td>
-                        <td class="text-right">${formatCurrency(sumMil)}</td>
-                        <td class="text-right">${formatCurrency(sumPub)}</td>
-                        <td class="text-right">${formatCurrency(sumPark)}</td>
-                        <td class="text-right">${formatCurrency(sumToll)}</td>
-                        <td class="text-right">${formatCurrency(sumMeal)}</td>
-                        <td class="text-right">${formatCurrency(sumEnt)}</td>
-                        <td class="text-right">${formatCurrency(sumOth)}</td>
-                        <td class="text-right text-indigo-950">RM ${formatCurrency(sumGrand)}</td>
-                    </tr>
-                `;
-                tbody.innerHTML = dataHtml + totalsHtml;
-            }
-
-            renderSignatureBoxes(compCode, staff, monthVal);
-        };
-
-        function getApprovalKey(compCode, staffName, monthVal) {
-            return `${compCode || 'COMP'}__${staffName || 'STAFF'}__${monthVal || 'MONTH'}`;
-        }
-
-        function renderSignatureBoxes(compCode, targetStaff, monthVal) {
-            const key = getApprovalKey(compCode, targetStaff ? targetStaff.name : '', monthVal);
-            const record = (appState.approvals && appState.approvals[key]) || {};
-            const loggedInStaff = getLoggedInStaff();
-
-            const canClaimSign = isSuperAdmin() || (loggedInStaff && targetStaff && loggedInStaff.id === targetStaff.id);
-            const canManagerVerify = isSuperAdmin() || (loggedInStaff && loggedInStaff.role === 'manager' && targetStaff && (loggedInStaff.managedStaffIds || []).includes(targetStaff.id));
-            const canFinanceApprove = isAdminOrFinance();
-
-            updateSingleSignatureCard('claimed', record.claimedBy, canClaimSign, 'Sign & Submit Claim', key);
-            updateSingleSignatureCard('verified', record.verifiedBy, canManagerVerify, 'Verify as Manager', key);
-            updateSingleSignatureCard('approved', record.approvedBy, canFinanceApprove, 'Approve as Finance', key);
-        }
-
-        function updateSingleSignatureCard(tier, sigData, canSign, btnLabel, approvalKey) {
-            const badgeEl = document.getElementById(`sig-badge-${tier}`);
-            const actionEl = document.getElementById(`sig-action-${tier}`);
-            const nameEl = document.getElementById(`sig-name-${tier}`);
-            const dateEl = document.getElementById(`sig-date-${tier}`);
-
-            if (sigData && sigData.name) {
-                badgeEl.textContent = 'Signed ✓';
-                badgeEl.className = 'text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
-                nameEl.textContent = sigData.name;
-                dateEl.textContent = sigData.date;
-                actionEl.innerHTML = canSign
-                    ? `<button type="button" onclick="clearTierSignature('${escapeHtml(approvalKey)}', '${tier}')" class="text-[11px] font-bold text-rose-600 hover:underline">Clear Signature</button>`
-                    : '';
-            } else {
-                badgeEl.textContent = 'Pending';
-                badgeEl.className = 'text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
-                nameEl.textContent = '-';
-                dateEl.textContent = '-';
-                actionEl.innerHTML = canSign
-                    ? `<button type="button" onclick="signTierApproval('${escapeHtml(approvalKey)}', '${tier}')" class="w-full py-1.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition">${btnLabel}</button>`
-                    : `<span class="text-[11px] text-slate-400 italic">Awaiting authorized sign-off</span>`;
-            }
-        }
-
-        window.signTierApproval = function (approvalKey, tier) {
-            if (!appState.approvals) appState.approvals = {};
-            if (!appState.approvals[approvalKey]) appState.approvals[approvalKey] = {};
-
-            const staff = getLoggedInStaff();
-            const signerName = isSuperAdmin() ? 'SUPERADMIN' : (staff ? staff.name : 'AUTHORIZED USER');
-            const now = new Date();
-            const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-            const fieldMap = { claimed: 'claimedBy', verified: 'verifiedBy', approved: 'approvedBy' };
-            appState.approvals[approvalKey][fieldMap[tier]] = {
-                name: signerName,
-                date: formatDateDDMMMYYYY(todayIso)
-            };
-
-            saveStateToLocalAndCloud();
-            renderOfficialClaimSheet();
-            showToast('Electronic signature recorded!');
-        };
-
-        window.clearTierSignature = function (approvalKey, tier) {
-            const fieldMap = { claimed: 'claimedBy', verified: 'verifiedBy', approved: 'approvedBy' };
-            if (appState.approvals && appState.approvals[approvalKey]) {
-                delete appState.approvals[approvalKey][fieldMap[tier]];
-                saveStateToLocalAndCloud();
-                renderOfficialClaimSheet();
-                showToast('Signature cleared.', 'warning');
-            }
+            updateBadgesAndLivePreview();
+            showToast('Entry deleted.', 'warning');
         };
 
         window.printOfficialClaimSheet = function () {
@@ -2189,104 +1910,493 @@
         };
 
         // =========================================================================
-        // 9. STAFF, COMPANIES, NOTICE BOARD & BACKUP MANAGEMENT (TAB 4)
+        // 8. OFFICIAL A4 LANDSCAPE CLAIM SHEET & 3-TIER ELECTRONIC SIGNATURES
         // =========================================================================
-        window.renderSetupDirectory = function () {
-            const admin = isAdminOrFinance();
-            const superAdminOnly = isSuperAdmin();
+        function renderApprovalStatusTracker(monthVal) {
+            const trackerCard = document.getElementById('approval-tracker-card');
+            const trackerList = document.getElementById('approval-tracker-list');
+            const periodPill = document.getElementById('tracker-period-pill');
+            if (!trackerCard || !trackerList) return;
 
-            const noticeEditor = document.getElementById('notice-board-editor-card');
-            const btnAddComp = document.getElementById('btn-add-company');
-            const btnAddStaff = document.getElementById('btn-add-staff');
-            const backupCard = document.getElementById('superadmin-backup-card');
-
-            if (admin) {
-                noticeEditor.classList.remove('hidden');
-                btnAddComp.classList.remove('hidden');
-                btnAddStaff.classList.remove('hidden');
-                document.getElementById('notice-board-input').value = appState.noticeBoard || '';
-            } else {
-                noticeEditor.classList.add('hidden');
-                btnAddComp.classList.add('hidden');
-                btnAddStaff.classList.add('hidden');
+            const loggedIn = getLoggedInStaff();
+            const showTracker = isAdminOrFinance() || (loggedIn && loggedIn.role === 'manager');
+            if (!showTracker) {
+                trackerCard.classList.add('hidden');
+                return;
             }
 
+            trackerCard.classList.remove('hidden');
+            if (periodPill) periodPill.textContent = formatMonthTitle(monthVal);
+
+            const accessibleStaff = getAccessibleStaffProfiles();
+            const currentComp = document.getElementById('sheet-filter-company')?.value;
+            const currentStaff = document.getElementById('sheet-filter-staff')?.value;
+            const cardsHtml = [];
+
+            accessibleStaff.forEach(st => {
+                const compCodes = Array.from(new Set([st.companyCode, ...(st.allowedCompanies || [])]));
+                compCodes.forEach(cCode => {
+                    const matchingEntries = appState.entries.filter(e =>
+                        e.companyCode === cCode &&
+                        e.staffName === st.name &&
+                        (!monthVal || (e.date || '').startsWith(monthVal))
+                    );
+                    if (matchingEntries.length === 0) return;
+
+                    const compObj = appState.companies.find(c => c.code === cCode);
+                    const rate = compObj ? (parseFloat(compObj.mileageRate) || 0.60) : 0.60;
+                    let totalRm = 0;
+                    matchingEntries.forEach(ent => {
+                        const km = ent.tripType === 'driving'
+                            ? (ent.stops || []).reduce((s, x) => s + (parseFloat(x.distanceKm) || 0), 0)
+                            : 0;
+                        const exp = (parseFloat(ent.publicTransport) || 0) + (parseFloat(ent.parking) || 0) + (parseFloat(ent.toll) || 0) + (parseFloat(ent.meals) || 0) + (parseFloat(ent.entertainment) || 0) + (parseFloat(ent.others) || 0);
+                        totalRm += (km * rate) + exp;
+                    });
+
+                    const key = getApprovalKey(cCode, st.name, monthVal);
+                    const rec = (appState.approvals && appState.approvals[key]) || {};
+                    const isSelected = currentComp === cCode && currentStaff === st.name;
+
+                    const claimedBadge = rec.claimedBy
+                        ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Staff Signed</span>`
+                        : `<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold">⏳ Draft</span>`;
+                    const verifiedBadge = rec.verifiedBy
+                        ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Mgr Verified</span>`
+                        : `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold">● Pending Mgr</span>`;
+                    const approvedBadge = rec.approvedBy
+                        ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Fin Approved</span>`
+                        : `<span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold">● Pending Fin</span>`;
+
+                    cardsHtml.push(`
+                        <button type="button" onclick="selectClaimSheetFromTracker('${escapeHtml(cCode)}', '${escapeHtml(st.name)}')" class="text-left p-3.5 rounded-xl border transition ${isSelected ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-200' : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-indigo-300'}">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="font-extrabold text-xs text-slate-900 truncate">${escapeHtml(st.name)}</span>
+                                <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] font-bold shrink-0">${escapeHtml(cCode)}</span>
+                            </div>
+                            <div class="text-xs font-bold text-indigo-700 mb-2">${matchingEntries.length} entry(s) • RM ${totalRm.toFixed(2)}</div>
+                            <div class="flex flex-wrap gap-1">
+                                ${claimedBadge}
+                                ${verifiedBadge}
+                                ${approvedBadge}
+                            </div>
+                        </button>
+                    `);
+                });
+            });
+
+            if (cardsHtml.length === 0) {
+                trackerList.innerHTML = `<div class="col-span-full text-xs text-slate-500 italic py-2">No claims submitted yet for ${formatMonthTitle(monthVal)}.</div>`;
+            } else {
+                trackerList.innerHTML = cardsHtml.join('');
+            }
+        }
+
+        window.selectClaimSheetFromTracker = function (compCode, staffName) {
+            const compSel = document.getElementById('sheet-filter-company');
+            const staffSel = document.getElementById('sheet-filter-staff');
+            if (compSel) compSel.value = compCode;
+            syncFilterStaffOptions('sheet');
+            if (staffSel) staffSel.value = staffName;
+            renderOfficialClaimSheet();
+        };
+
+        function getApprovalKey(compCode, staffName, monthVal) {
+            return `${compCode}__${staffName}__${monthVal}`;
+        }
+
+        window.signClaimSheetTier = function (tier) {
+            const compCode = document.getElementById('sheet-filter-company').value;
+            const staffName = document.getElementById('sheet-filter-staff').value;
+            const monthVal = document.getElementById('sheet-filter-month').value;
+            if (!compCode || !staffName || !monthVal) return;
+
+            const key = getApprovalKey(compCode, staffName, monthVal);
+            if (!appState.approvals) appState.approvals = {};
+            if (!appState.approvals[key]) appState.approvals[key] = {};
+
+            const signerName = isSuperAdmin()
+                ? 'SUPERADMIN'
+                : (getLoggedInStaff()?.name || staffName);
+
+            const todayIso = new Date().toISOString().slice(0, 10);
+            const formattedDate = formatDateDDMMMYYYY(todayIso);
+
+            if (tier === 'claimed') {
+                appState.approvals[key].claimedBy = staffName;
+                appState.approvals[key].claimedDate = formattedDate;
+            } else if (tier === 'verified') {
+                appState.approvals[key].verifiedBy = signerName;
+                appState.approvals[key].verifiedDate = formattedDate;
+            } else if (tier === 'approved') {
+                appState.approvals[key].approvedBy = signerName;
+                appState.approvals[key].approvedDate = formattedDate;
+            }
+
+            saveStateToLocalAndCloud();
+            renderOfficialClaimSheet();
+            showToast('Electronic signature recorded!');
+        };
+
+        window.clearClaimSheetTier = function (tier) {
+            const compCode = document.getElementById('sheet-filter-company').value;
+            const staffName = document.getElementById('sheet-filter-staff').value;
+            const monthVal = document.getElementById('sheet-filter-month').value;
+            const key = getApprovalKey(compCode, staffName, monthVal);
+            if (!appState.approvals || !appState.approvals[key]) return;
+
+            if (tier === 'claimed') {
+                delete appState.approvals[key].claimedBy;
+                delete appState.approvals[key].claimedDate;
+            } else if (tier === 'verified') {
+                delete appState.approvals[key].verifiedBy;
+                delete appState.approvals[key].verifiedDate;
+            } else if (tier === 'approved') {
+                delete appState.approvals[key].approvedBy;
+                delete appState.approvals[key].approvedDate;
+            }
+
+            saveStateToLocalAndCloud();
+            renderOfficialClaimSheet();
+            showToast('Signature cleared.', 'warning');
+        };
+
+        window.renderOfficialClaimSheet = function () {
+            const compCode = document.getElementById('sheet-filter-company')?.value;
+            const staffName = document.getElementById('sheet-filter-staff')?.value;
+            const monthVal = document.getElementById('sheet-filter-month')?.value;
+
+            renderApprovalStatusTracker(monthVal);
+            updatePendingApprovalsBadge();
+
+            const comp = appState.companies.find(c => c.code === compCode) || appState.companies[0];
+            const staff = appState.staffProfiles.find(s => s.name === staffName) || getAccessibleStaffProfiles()[0];
+            const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
+
+            // Header Logo & Legal Name
+            const logoImg = document.getElementById('pdf-logo-img');
+            const legalNameEl = document.getElementById('pdf-company-legal-name');
+            if (comp && comp.logoDataUrl) {
+                logoImg.src = comp.logoDataUrl;
+                logoImg.classList.remove('hidden');
+            } else {
+                logoImg.src = '';
+                logoImg.classList.add('hidden');
+            }
+            legalNameEl.textContent = comp ? comp.fullName : 'COMPANY SDN BHD';
+
+            const todayIso = new Date().toISOString().slice(0, 10);
+            document.getElementById('pdf-generated-date').textContent = formatDateDDMMMYYYY(todayIso);
+
+            // Metadata Strip
+            document.getElementById('pdf-staff-name').textContent = staff ? staff.name : '-';
+            document.getElementById('pdf-staff-nric').textContent = staff ? formatNricString(staff.nric) : '-';
+            document.getElementById('pdf-staff-mobile').textContent = staff ? formatMobileString(staff.mobile) : '-';
+            document.getElementById('pdf-claim-period').textContent = formatMonthTitle(monthVal);
+
+            // Filter & Expand Entries into Sequential Rows
+            const entries = appState.entries
+                .filter(e => (!comp || e.companyCode === comp.code) && (!staff || e.staffName === staff.name) && (!monthVal || (e.date || '').startsWith(monthVal)))
+                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+            const tbody = document.getElementById('pdf-table-body');
+            let rowCounter = 0;
+            let sumKm = 0;
+            let sumMileage = 0;
+            let sumPub = 0;
+            let sumPark = 0;
+            let sumToll = 0;
+            let sumMeals = 0;
+            let sumEnt = 0;
+            let sumOthers = 0;
+            let sumGrand = 0;
+
+            const rowsHtml = [];
+
+            entries.forEach(entry => {
+                if (entry.tripType === 'driving' && Array.isArray(entry.stops) && entry.stops.length > 0) {
+                    entry.stops.forEach((stop, stopIdx) => {
+                        rowCounter++;
+                        const legFrom = stopIdx === 0
+                            ? `${entry.origin}${entry.departTime ? ` (${entry.departTime})` : ''}`
+                            : `${entry.stops[stopIdx - 1].destination}`;
+                        const legTo = `${stop.destination}${stop.arrivalTime ? ` (${stop.arrivalTime})` : ''}`;
+
+                        const km = parseFloat(stop.distanceKm) || 0;
+                        const mileage = km * rate;
+
+                        const useLegacyOnFirst = !entry.hasPerStopExpenses && stopIdx === 0;
+                        const pub = useLegacyOnFirst ? (parseFloat(entry.publicTransport) || 0) : (parseFloat(stop.publicTransport) || 0);
+                        const park = useLegacyOnFirst ? (parseFloat(entry.parking) || 0) : (parseFloat(stop.parking) || 0);
+                        const toll = useLegacyOnFirst ? (parseFloat(entry.toll) || 0) : (parseFloat(stop.toll) || 0);
+                        const meals = useLegacyOnFirst ? (parseFloat(entry.meals) || 0) : (parseFloat(stop.meals) || 0);
+                        const ent = useLegacyOnFirst ? (parseFloat(entry.entertainment) || 0) : (parseFloat(stop.entertainment) || 0);
+                        const oth = useLegacyOnFirst ? (parseFloat(entry.others) || 0) : (parseFloat(stop.others) || 0);
+                        const rowTotal = mileage + pub + park + toll + meals + ent + oth;
+
+                        sumKm += km;
+                        sumMileage += mileage;
+                        sumPub += pub;
+                        sumPark += park;
+                        sumToll += toll;
+                        sumMeals += meals;
+                        sumEnt += ent;
+                        sumOthers += oth;
+                        sumGrand += rowTotal;
+
+                        const noteLine = stop.expenseNote
+                            ? `<div class="text-[6.6pt] text-indigo-800 italic mt-0.5">${escapeHtml(stop.expenseNote)}</div>`
+                            : '';
+
+                        rowsHtml.push(`
+                            <tr>
+                                <td class="text-center font-bold">${rowCounter}</td>
+                                <td class="text-center whitespace-nowrap">${formatDateDDMMMYYYY(entry.date)}</td>
+                                <td>
+                                    <div class="font-bold text-slate-900">${escapeHtml(stop.purpose)}</div>
+                                    <div class="text-[6.8pt] text-slate-600">${escapeHtml(legFrom)} &rarr; ${escapeHtml(legTo)}</div>
+                                    ${noteLine}
+                                </td>
+                                <td class="text-right">${km > 0 ? km.toFixed(1) : ''}</td>
+                                <td class="text-right">${mileage > 0 ? mileage.toFixed(2) : ''}</td>
+                                <td class="text-right">${formatCurrencyBlankZero(pub)}</td>
+                                <td class="text-right">${formatCurrencyBlankZero(park)}</td>
+                                <td class="text-right">${formatCurrencyBlankZero(toll)}</td>
+                                <td class="text-right">${formatCurrencyBlankZero(meals)}</td>
+                                <td class="text-right">${formatCurrencyBlankZero(ent)}</td>
+                                <td class="text-right">${formatCurrencyBlankZero(oth)}</td>
+                                <td class="text-right font-bold">${rowTotal.toFixed(2)}</td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    rowCounter++;
+                    const pub = parseFloat(entry.publicTransport) || 0;
+                    const park = parseFloat(entry.parking) || 0;
+                    const toll = parseFloat(entry.toll) || 0;
+                    const meals = parseFloat(entry.meals) || 0;
+                    const ent = parseFloat(entry.entertainment) || 0;
+                    const oth = parseFloat(entry.others) || 0;
+                    const rowTotal = pub + park + toll + meals + ent + oth;
+
+                    sumPub += pub;
+                    sumPark += park;
+                    sumToll += toll;
+                    sumMeals += meals;
+                    sumEnt += ent;
+                    sumOthers += oth;
+                    sumGrand += rowTotal;
+
+                    rowsHtml.push(`
+                        <tr>
+                            <td class="text-center font-bold">${rowCounter}</td>
+                            <td class="text-center whitespace-nowrap">${formatDateDDMMMYYYY(entry.date)}</td>
+                            <td>
+                                <div class="font-bold text-slate-900">${escapeHtml(entry.nonDrivePurpose)}</div>
+                                ${entry.nonDriveDetails ? `<div class="text-[6.8pt] text-slate-600">${escapeHtml(entry.nonDriveDetails)}</div>` : ''}
+                            </td>
+                            <td class="text-right"></td>
+                            <td class="text-right"></td>
+                            <td class="text-right">${formatCurrencyBlankZero(pub)}</td>
+                            <td class="text-right">${formatCurrencyBlankZero(park)}</td>
+                            <td class="text-right">${formatCurrencyBlankZero(toll)}</td>
+                            <td class="text-right">${formatCurrencyBlankZero(meals)}</td>
+                            <td class="text-right">${formatCurrencyBlankZero(ent)}</td>
+                            <td class="text-right">${formatCurrencyBlankZero(oth)}</td>
+                            <td class="text-right font-bold">${rowTotal.toFixed(2)}</td>
+                        </tr>
+                    `);
+                }
+            });
+
+            if (rowsHtml.length === 0) {
+                rowsHtml.push(`
+                    <tr>
+                        <td colspan="12" class="text-center py-6 text-slate-400 italic">No claim entries recorded for ${staff ? escapeHtml(staff.name) : 'this user'} in ${formatMonthTitle(monthVal)}.</td>
+                    </tr>
+                `);
+            }
+
+            rowsHtml.push(`
+                <tr class="totals-row">
+                    <td colspan="3" class="text-right uppercase tracking-wider">Column Totals</td>
+                    <td class="text-right">${sumKm.toFixed(1)}</td>
+                    <td class="text-right">${formatCurrency(sumMileage)}</td>
+                    <td class="text-right">${formatCurrency(sumPub)}</td>
+                    <td class="text-right">${formatCurrency(sumPark)}</td>
+                    <td class="text-right">${formatCurrency(sumToll)}</td>
+                    <td class="text-right">${formatCurrency(sumMeals)}</td>
+                    <td class="text-right">${formatCurrency(sumEnt)}</td>
+                    <td class="text-right">${formatCurrency(sumOthers)}</td>
+                    <td class="text-right text-[8.2pt]">RM ${formatCurrency(sumGrand)}</td>
+                </tr>
+            `);
+
+            tbody.innerHTML = rowsHtml.join('');
+
+            // Render 3-Tier Signature States & Role Action Buttons
+            const approvalKey = getApprovalKey(comp?.code || '', staff?.name || '', monthVal || '');
+            const approvalRec = (appState.approvals && appState.approvals[approvalKey]) || {};
+            const loggedInStaff = getLoggedInStaff();
+
+            const canClaimantSign = isAdminOrFinance() || (loggedInStaff && staff && loggedInStaff.id === staff.id);
+            const canManagerVerify = isAdminOrFinance() || (loggedInStaff && loggedInStaff.role === 'manager' && staff && (loggedInStaff.managedStaffIds || []).includes(staff.id));
+            const canFinanceApprove = isAdminOrFinance();
+
+            // Tier 1: Claimed By
+            document.getElementById('sig-name-claimed').textContent = approvalRec.claimedBy || '-';
+            document.getElementById('sig-date-claimed').textContent = approvalRec.claimedDate || '-';
+            const badgeClaimed = document.getElementById('sig-badge-claimed');
+            const actionClaimed = document.getElementById('sig-action-claimed');
+            if (approvalRec.claimedBy) {
+                badgeClaimed.textContent = 'Signed ✓';
+                badgeClaimed.className = 'no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
+                actionClaimed.innerHTML = canClaimantSign
+                    ? `<button type="button" onclick="clearClaimSheetTier('claimed')" class="text-[11px] font-bold text-rose-600 hover:underline">Clear Signature</button>`
+                    : '';
+            } else {
+                badgeClaimed.textContent = 'Pending';
+                badgeClaimed.className = 'no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+                actionClaimed.innerHTML = canClaimantSign
+                    ? `<button type="button" onclick="signClaimSheetTier('claimed')" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs">Sign as Claimant</button>`
+                    : `<span class="text-[11px] text-slate-400 italic">Awaiting claimant sign-off</span>`;
+            }
+
+            // Tier 2: Verified By (Manager)
+            document.getElementById('sig-name-verified').textContent = approvalRec.verifiedBy || '-';
+            document.getElementById('sig-date-verified').textContent = approvalRec.verifiedDate || '-';
+            const badgeVerified = document.getElementById('sig-badge-verified');
+            const actionVerified = document.getElementById('sig-action-verified');
+            if (approvalRec.verifiedBy) {
+                badgeVerified.textContent = 'Verified ✓';
+                badgeVerified.className = 'no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
+                actionVerified.innerHTML = canManagerVerify
+                    ? `<button type="button" onclick="clearClaimSheetTier('verified')" class="text-[11px] font-bold text-rose-600 hover:underline">Clear Verification</button>`
+                    : '';
+            } else {
+                badgeVerified.textContent = 'Pending';
+                badgeVerified.className = 'no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+                actionVerified.innerHTML = canManagerVerify
+                    ? `<button type="button" onclick="signClaimSheetTier('verified')" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold shadow-xs">Verify as Manager</button>`
+                    : `<span class="text-[11px] text-slate-400 italic">Awaiting manager verification</span>`;
+            }
+
+            // Tier 3: Approved By (Finance Department)
+            document.getElementById('sig-name-approved').textContent = approvalRec.approvedBy || '-';
+            document.getElementById('sig-date-approved').textContent = approvalRec.approvedDate || '-';
+            const badgeApproved = document.getElementById('sig-badge-approved');
+            const actionApproved = document.getElementById('sig-action-approved');
+            if (approvalRec.approvedBy) {
+                badgeApproved.textContent = 'Approved ✓';
+                badgeApproved.className = 'no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
+                actionApproved.innerHTML = canFinanceApprove
+                    ? `<button type="button" onclick="clearClaimSheetTier('approved')" class="text-[11px] font-bold text-rose-600 hover:underline">Clear Approval</button>`
+                    : '';
+            } else {
+                badgeApproved.textContent = 'Pending';
+                badgeApproved.className = 'no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+                actionApproved.innerHTML = canFinanceApprove
+                    ? `<button type="button" onclick="signClaimSheetTier('approved')" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs">Approve as Finance</button>`
+                    : `<span class="text-[11px] text-slate-400 italic">Awaiting Finance approval</span>`;
+            }
+        };
+
+        // =========================================================================
+        // 9. TAB 4: COMPANIES, STAFF PROFILES, NOTICE BOARD & BACKUP MANAGEMENT
+        // =========================================================================
+        window.renderSetupDirectory = function () {
+            const canManage = isAdminOrFinance();
+            const loggedInStaff = getLoggedInStaff();
+
+            // Notice board editor visibility
+            const nbCard = document.getElementById('notice-board-editor-card');
+            if (canManage) {
+                nbCard.classList.remove('hidden');
+                document.getElementById('notice-board-input').value = appState.noticeBoard || '';
+            } else {
+                nbCard.classList.add('hidden');
+            }
+
+            // SuperAdmin Backup / Go-Live Launch Tools visibility (SuperAdmin ONLY)
+            const backupCard = document.getElementById('superadmin-backup-card');
             if (backupCard) {
-                if (superAdminOnly) {
+                if (isSuperAdmin()) {
                     backupCard.classList.remove('hidden');
                 } else {
                     backupCard.classList.add('hidden');
                 }
             }
 
+            document.getElementById('btn-add-company').classList.toggle('hidden', !canManage);
+            document.getElementById('btn-add-staff').classList.toggle('hidden', !canManage);
+
             // Render Companies
             const compContainer = document.getElementById('companies-list-container');
-            if (compContainer) {
-                compContainer.innerHTML = appState.companies.map(c => `
-                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/70 flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-3 min-w-0">
-                            ${c.logoDataUrl
-                                ? `<img src="${c.logoDataUrl}" alt="${escapeHtml(c.code)}" class="h-9 w-auto max-w-[90px] object-contain bg-white p-1 rounded-lg border border-slate-200">`
-                                : `<div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 font-extrabold text-xs flex items-center justify-center shrink-0">${escapeHtml(c.code.slice(0, 4))}</div>`
-                            }
-                            <div class="min-w-0">
-                                <div class="font-extrabold text-sm text-slate-900 truncate">${escapeHtml(c.fullName)}</div>
-                                <div class="text-xs text-slate-500">Code: <strong>${escapeHtml(c.code)}</strong> • Mileage: <strong>RM ${(parseFloat(c.mileageRate) || 0.60).toFixed(2)}/KM</strong></div>
-                            </div>
+            compContainer.innerHTML = appState.companies.map(comp => `
+                <div class="rounded-2xl border border-slate-200 p-4 flex items-center justify-between gap-4 bg-slate-50/50">
+                    <div class="flex items-center gap-3.5 min-w-0">
+                        ${comp.logoDataUrl
+                            ? `<img src="${comp.logoDataUrl}" alt="${escapeHtml(comp.code)}" class="h-10 w-16 object-contain bg-white rounded-lg border border-slate-200 p-1 shrink-0">`
+                            : `<div class="h-10 w-14 rounded-lg bg-indigo-100 text-indigo-800 font-extrabold text-xs flex items-center justify-center shrink-0">${escapeHtml(comp.code)}</div>`
+                        }
+                        <div class="min-w-0">
+                            <div class="font-extrabold text-sm text-slate-900 truncate">${escapeHtml(comp.fullName)}</div>
+                            <div class="text-xs text-slate-500">Code: <strong>${escapeHtml(comp.code)}</strong> • Mileage: <strong>RM ${(parseFloat(comp.mileageRate) || 0.60).toFixed(2)}/KM</strong></div>
                         </div>
-                        ${admin ? `
-                            <div class="flex items-center gap-1.5 shrink-0">
-                                <button type="button" onclick="openCompanyModal('${escapeHtml(c.code)}')" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100">Edit</button>
-                                ${appState.companies.length > 1 ? `<button type="button" onclick="deleteCompany('${escapeHtml(c.code)}')" class="px-3 py-1.5 rounded-xl bg-rose-50 text-xs font-bold text-rose-700 hover:bg-rose-100">Delete</button>` : ''}
-                            </div>
-                        ` : ''}
                     </div>
-                `).join('');
-            }
+                    ${canManage ? `
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" onclick="openCompanyModal('${escapeHtml(comp.code)}')" class="px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-50 border border-slate-200 text-indigo-700 text-xs font-bold">Edit</button>
+                            ${appState.companies.length > 1 ? `<button type="button" onclick="deleteCompany('${escapeHtml(comp.code)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-rose-50 border border-slate-200 text-rose-600 text-xs font-bold"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
 
-            // Render Staff Profiles (Strict Privacy: Staff see ONLY own profile; NRIC & ID visible ONLY to owner, Finance, and SuperAdmin)
+            // Render Staff Profiles (Staff see ONLY their own info; NRIC & ID visible ONLY to owner, Finance & SuperAdmin)
             const staffContainer = document.getElementById('staff-list-container');
-            if (staffContainer) {
-                const loggedInStaff = getLoggedInStaff();
-                const canViewAllSensitive = isAdminOrFinance();
-                const visibleStaff = getAccessibleStaffProfiles();
+            const visibleProfiles = getAccessibleStaffProfiles();
 
-                staffContainer.innerHTML = visibleStaff.map(st => {
-                    const isOwnCard = loggedInStaff && loggedInStaff.id === st.id;
-                    const canSeeSensitive = canViewAllSensitive || isOwnCard;
+            if (visibleProfiles.length === 0) {
+                staffContainer.innerHTML = `<div class="col-span-full text-xs text-slate-500 italic">No user profiles available.</div>`;
+            } else {
+                staffContainer.innerHTML = visibleProfiles.map(st => {
+                    const digits = (st.nric || '').replace(/\D/g, '');
+                    const nric6 = digits.slice(-6);
+                    const homeComp = appState.companies.find(c => c.code === st.companyCode);
+                    const sisterList = (st.allowedCompanies || []).filter(c => c !== st.companyCode);
+                    const isOwnProfile = Boolean(loggedInStaff && loggedInStaff.id === st.id);
+                    const canSeeSensitiveIdAndNric = isAdminOrFinance() || isOwnProfile;
 
-                    const nricDigits = (st.nric || '').replace(/\D/g, '');
-                    const loginId = nricDigits.slice(-6);
-                    const employedComp = appState.companies.find(c => c.code === st.companyCode);
-                    const sisterCodes = (Array.isArray(st.allowedCompanies) ? st.allowedCompanies : []).filter(c => c !== st.companyCode);
-                    const roleColors = {
-                        staff: 'bg-slate-200 text-slate-800',
-                        manager: 'bg-amber-100 text-amber-800',
-                        finance: 'bg-emerald-100 text-emerald-800'
-                    };
-                    const subNames = (st.managedStaffIds || [])
-                        .map(id => appState.staffProfiles.find(x => x.id === id)?.name)
-                        .filter(Boolean);
+                    const roleBadge = st.role === 'finance'
+                        ? '<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase">Finance</span>'
+                        : st.role === 'manager'
+                            ? '<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase">Manager</span>'
+                            : '<span class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 text-[10px] font-extrabold uppercase">Staff</span>';
+
+                    const managedNames = st.role === 'manager' && Array.isArray(st.managedStaffIds) && st.managedStaffIds.length > 0
+                        ? st.managedStaffIds.map(id => appState.staffProfiles.find(x => x.id === id)?.name).filter(Boolean).join(', ')
+                        : '';
 
                     return `
-                        <div class="p-4 rounded-2xl border border-slate-200 bg-white shadow-sm flex items-start justify-between gap-3">
-                            <div class="space-y-1">
+                        <div class="rounded-2xl border border-slate-200 p-4 flex items-start justify-between gap-3 bg-white shadow-2xs">
+                            <div class="space-y-1 min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="font-extrabold text-sm text-slate-900">${escapeHtml(st.name)}</span>
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${roleColors[st.role] || roleColors.staff}">${escapeHtml(st.role || 'staff')}</span>
-                                    ${canSeeSensitive ? `<span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-extrabold">ID: ${escapeHtml(loginId)}</span>` : ''}
+                                    ${roleBadge}
+                                    ${canSeeSensitiveIdAndNric ? `<span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-extrabold">ID: ${escapeHtml(nric6)}</span>` : ''}
                                 </div>
                                 <div class="text-xs text-slate-600">
-                                    ${canSeeSensitive ? `NRIC: ${escapeHtml(st.nric)} • ` : ''}Mobile: ${escapeHtml(formatMobileString(st.mobile))}
+                                    ${canSeeSensitiveIdAndNric ? `NRIC: <strong>${escapeHtml(formatNricString(st.nric))}</strong> • ` : ''}Mobile: <strong>${escapeHtml(formatMobileString(st.mobile))}</strong>
                                 </div>
-                                <div class="text-xs text-slate-600">Employed Under: <strong class="text-slate-900">${escapeHtml(employedComp ? employedComp.fullName : st.companyCode)}</strong></div>
-                                ${sisterCodes.length > 0 ? `<div class="text-xs font-bold text-indigo-700">Claim Access: ${escapeHtml(sisterCodes.join(', '))}</div>` : ''}
-                                ${st.role === 'manager' && subNames.length > 0 ? `<div class="text-xs font-semibold text-amber-800">Approves: ${escapeHtml(subNames.join(', '))}</div>` : ''}
+                                <div class="text-xs text-slate-600">Employed Under: <strong>${escapeHtml(homeComp ? homeComp.fullName : st.companyCode)}</strong></div>
+                                ${sisterList.length > 0 ? `<div class="text-[11px] text-indigo-700 font-semibold">Claim Access: ${escapeHtml(sisterList.join(', '))}</div>` : ''}
+                                ${managedNames ? `<div class="text-[11px] text-amber-800 font-semibold">Approves: ${escapeHtml(managedNames)}</div>` : ''}
                             </div>
-                            ${admin ? `
+                            ${canManage ? `
                                 <div class="flex items-center gap-1.5 shrink-0">
-                                    <button type="button" onclick="openStaffModal('${escapeHtml(st.id)}')" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100">Edit</button>
-                                    <button type="button" onclick="deleteStaffProfile('${escapeHtml(st.id)}')" class="px-3 py-1.5 rounded-xl bg-rose-50 text-xs font-bold text-rose-700 hover:bg-rose-100">Delete</button>
+                                    <button type="button" onclick="openStaffModal('${escapeHtml(st.id)}')" class="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 text-indigo-700 text-xs font-bold">Edit</button>
+                                    <button type="button" onclick="deleteStaffProfile('${escapeHtml(st.id)}')" class="px-2.5 py-1.5 rounded-xl bg-slate-50 hover:bg-rose-50 border border-slate-200 text-rose-600 text-xs font-bold"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             ` : ''}
                         </div>
