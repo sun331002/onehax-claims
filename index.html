@@ -878,12 +878,21 @@
             const syncBadge = document.getElementById('cloud-sync-badge');
             const authSync = document.getElementById('auth-sync-status');
             try {
-                if (typeof __firebase_config === 'undefined' || !__firebase_config) {
-                    if (syncBadge) syncBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Local Mode';
-                    return;
-                }
-                const firebaseConfig = JSON.parse(__firebase_config);
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const defaultFirebaseConfig = {
+                    apiKey: "AIzaSyBkoqynJLUy6HOpwAab5QALMq83PW8iamk",
+                    authDomain: "onehax-claims.firebaseapp.com",
+                    projectId: "onehax-claims",
+                    storageBucket: "onehax-claims.firebasestorage.app",
+                    messagingSenderId: "354358457542",
+                    appId: "1:354358457542:web:aaf19ad13e5b05248a53c7",
+                    measurementId: "G-SKSGXM9T68"
+                };
+                const firebaseConfig = (typeof __firebase_config !== 'undefined' && __firebase_config)
+                    ? JSON.parse(__firebase_config)
+                    : defaultFirebaseConfig;
+                const appId = (typeof __app_id !== 'undefined' && __app_id)
+                    ? __app_id
+                    : 'onehax-claims-live';
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
