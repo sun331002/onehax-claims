@@ -155,7 +155,7 @@
                     <i class="fa-solid fa-truck-fast"></i>
                 </div>
                 <h1 class="text-2xl font-extrabold tracking-tight">ClaimFlow <span class="text-indigo-400">Pro</span></h1>
-                <p class="text-xs text-slate-300 mt-1">Sign in with your NRIC ID (Staff / Manager / Finance) or SuperAdmin</p>
+                <p class="text-xs text-slate-300 mt-1">Sign in with your NRIC ID (Staff / Supervisor / Manager / Finance) or SuperAdmin</p>
             </div>
 
             <!-- Login Mode Tabs -->
@@ -174,7 +174,7 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">NRIC Login ID (Last 6 Digits) *</label>
                         <input type="text" id="login-nric-id" inputmode="numeric" maxlength="6" placeholder="e.g. 142288" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-base font-semibold tracking-wider focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition">
-                        <p class="text-[11px] text-slate-500 mt-1">Accounts are created by Finance / Admin. Works for Staff, Managers, and Finance.</p>
+                        <p class="text-[11px] text-slate-500 mt-1">Accounts are created by Finance / Admin. Works for Staff, Supervisors, Managers, and Finance.</p>
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
@@ -317,7 +317,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-indigo-100 shadow-xs">
                             <div class="sm:col-span-2">
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Starting Point (Origin) *</label>
-                                <input type="text" id="route-origin" list="staff-location-memory" autocomplete="off" oninput="this.value = this.value.toUpperCase()" placeholder="e.g. OFFICE (SERDANG) / HOME" class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium uppercase focus:border-indigo-500 outline-none">
+                                <input type="text" id="route-origin" list="staff-location-memory" autocomplete="off" oninput="applyUppercasePreserveCursor(this)" placeholder="e.g. OFFICE (SERDANG) / HOME" class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-medium uppercase focus:border-indigo-500 outline-none">
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Depart Time (Optional)</label>
@@ -385,7 +385,7 @@
 
         <!-- TAB 3: OFFICIAL CLAIM SHEET & PDF -->
         <main id="tab-panel-sheet" class="hidden max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
-            <!-- Monthly Submission & Approval Status Tracker (Managers, Finance & SuperAdmin) -->
+            <!-- Monthly Submission & Approval Status Tracker (Supervisors, Managers, Finance & SuperAdmin) -->
             <div id="approval-tracker-card" class="no-print hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
@@ -418,15 +418,24 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" onclick="printOfficialClaimSheet()" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold shadow-md transition flex items-center gap-2">
+                        <button type="button" id="btn-print-official-pdf" onclick="printOfficialClaimSheet()" class="hidden px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold shadow-md transition flex items-center gap-2">
                             <i class="fa-solid fa-print"></i> Print / Save Official PDF
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Printable A4 Landscape Claim Form -->
-            <div id="printable-claim-sheet" class="bg-white rounded-2xl border border-slate-300 shadow-sm p-5 sm:p-7">
+            <!-- Empty Selection Prompt (Shown until both Company Entity and Staff Claimant are selected) -->
+            <div id="sheet-empty-prompt" class="no-print bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-file-invoice"></i>
+                </div>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Select Company Entity &amp; Staff Claimant</h3>
+                <p class="text-xs text-slate-500 max-w-md mx-auto">Please choose both a <strong>Company Entity</strong> and <strong>Staff Claimant</strong> from the dropdowns above (or click any staff card in the Monthly Overview) to view, sign, approve, or print the Official Claim Sheet.</p>
+            </div>
+
+            <!-- Printable A4 Landscape Claim Form (Hidden until selected) -->
+            <div id="printable-claim-sheet" class="hidden bg-white rounded-2xl border border-slate-300 shadow-sm p-5 sm:p-7">
                 <!-- Header Row: Compact Logo Left of Bold Legal Name + Generated Date Right -->
                 <div class="flex items-center justify-between border-b-2 border-slate-800 pb-3 mb-3 gap-4">
                     <div class="flex items-center gap-3">
@@ -495,7 +504,7 @@
                         </div>
                     </div>
 
-                    <!-- Tier 2: Verified By (Manager) -->
+                    <!-- Tier 2: Verified By (Manager / Supervisor) -->
                     <div class="flex flex-col justify-end">
                         <div id="sig-action-verified" class="no-print mb-2 flex items-center justify-between gap-2"></div>
                         <div class="border-t border-slate-500 pt-1.5 text-[7.6pt] space-y-0.5">
@@ -556,11 +565,11 @@
                 <div id="companies-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
-            <!-- Staff, Manager & Finance Profiles -->
+            <!-- Staff, Supervisor, Manager & Finance Profiles -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h3 class="text-base font-extrabold text-slate-900">👥 Registered Staff, Managers & Finance Users</h3>
+                        <h3 class="text-base font-extrabold text-slate-900">👥 Registered Staff, Supervisors, Managers & Finance Users</h3>
                     </div>
                     <button type="button" id="btn-add-staff" onclick="openStaffModal()" class="hidden px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition">
                         + Add User Profile
@@ -605,7 +614,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Short Code *</label>
-                        <input type="text" id="company-modal-code" required oninput="this.value = this.value.toUpperCase()" placeholder="e.g. ATLAS" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold uppercase focus:border-indigo-500 outline-none">
+                        <input type="text" id="company-modal-code" required oninput="applyUppercasePreserveCursor(this)" placeholder="e.g. ATLAS" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold uppercase focus:border-indigo-500 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mileage Rate (RM/KM) *</label>
@@ -614,7 +623,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Full Legal Company Name *</label>
-                    <input type="text" id="company-modal-name" required oninput="this.value = this.value.toUpperCase()" placeholder="e.g. ATLAS MARKING SDN BHD" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold uppercase focus:border-indigo-500 outline-none">
+                    <input type="text" id="company-modal-name" required oninput="applyUppercasePreserveCursor(this)" placeholder="e.g. ATLAS MARKING SDN BHD" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold uppercase focus:border-indigo-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Company Logo (PNG / JPG / SVG)</label>
@@ -644,14 +653,16 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name (As Per NRIC) *</label>
-                        <input type="text" id="staff-modal-name" required oninput="this.value = this.value.toUpperCase()" placeholder="e.g. AHMAD BIN ALI" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold uppercase focus:border-indigo-500 outline-none">
+                        <input type="text" id="staff-modal-name" required oninput="applyUppercasePreserveCursor(this)" placeholder="e.g. AHMAD BIN ALI" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold uppercase focus:border-indigo-500 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">User Role *</label>
-                        <select id="staff-modal-role" onchange="toggleManagerSubordinatesBox()" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold focus:border-indigo-500 outline-none">
-                            <option value="staff">Staff (Claimant)</option>
-                            <option value="manager">Manager (Approves Assigned Staff)</option>
-                            <option value="finance">Finance (Final Approval & Full Setup)</option>
+                        <select id="staff-modal-role" required onchange="toggleManagerSubordinatesBox()" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold focus:border-indigo-500 outline-none">
+                            <option value="">--- Please Select ---</option>
+                            <option value="staff">Executive / Staff (Claimant)</option>
+                            <option value="supervisor">Supervisor (Approves Assigned Staff)</option>
+                            <option value="manager">Manager (Approves Assigned Staff / Supervisors)</option>
+                            <option value="finance">Finance (Final Approval &amp; Full Setup)</option>
                         </select>
                     </div>
                 </div>
@@ -671,7 +682,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Employed Under (Home Company) *</label>
-                        <select id="staff-modal-company" onchange="renderSisterCompanyCheckboxes()" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold focus:border-indigo-500 outline-none"></select>
+                        <select id="staff-modal-company" required onchange="renderSisterCompanyCheckboxes()" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold focus:border-indigo-500 outline-none"></select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Login Password *</label>
@@ -686,10 +697,10 @@
                     <div id="staff-modal-sister-companies" class="flex flex-wrap gap-3 pt-1"></div>
                 </div>
 
-                <!-- Manager Assigned Subordinates Selector -->
+                <!-- Assigned Subordinates Selector (Optional for Supervisor, Manager & Finance) -->
                 <div id="manager-subordinates-box" class="hidden bg-amber-50/70 border border-amber-200 rounded-2xl p-3.5 space-y-2">
-                    <label class="block text-xs font-extrabold text-amber-900 uppercase">Subordinates Reporting To This Manager</label>
-                    <p class="text-[11px] text-amber-800">Select which staff members this Manager can view and verify claims for:</p>
+                    <label class="block text-xs font-extrabold text-amber-900 uppercase">Subordinates Reporting To This User (Optional)</label>
+                    <p class="text-[11px] text-amber-800">Tick any Staff, Executives, or Supervisors who report directly under this person (leave unticked if none):</p>
                     <div id="manager-subordinates-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pt-1"></div>
                 </div>
 
@@ -771,6 +782,7 @@
         // 1. DEFAULT STATE & DATA STRUCTURES
         // =========================================================================
         const LOCAL_STORAGE_KEY = 'claimflow_pro_state_v3';
+        const PLEASE_SELECT_OPTION = '<option value="">--- Please Select ---</option>';
 
         const DEFAULT_STATE = {
             noticeBoard: 'Welcome to ClaimFlow Pro! Please submit all monthly travel & expense claims by the 25th of each month.',
@@ -831,7 +843,6 @@
         let appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
         let currentSession = null; // { type: 'admin' } or { type: 'user', staffId: string }
         let loginMode = 'user';
-        let currentTripType = 'driving';
         let draftStops = [];
         let editingEntryId = null;
         let modalTempLogoDataUrl = '';
@@ -952,10 +963,29 @@
         }
 
         // =========================================================================
-        // 3. MALAYSIA NRIC & MOBILE AUTO-FORMATTERS + HELPERS
+        // 3. CURSOR-SAFE UPPERCASE, NRIC & MOBILE AUTO-FORMATTERS + HELPERS
         // =========================================================================
+        window.applyUppercasePreserveCursor = function (inputEl) {
+            if (!inputEl) return;
+            const start = inputEl.selectionStart;
+            const end = inputEl.selectionEnd;
+            const upper = inputEl.value.toUpperCase();
+            if (inputEl.value !== upper) {
+                inputEl.value = upper;
+                if (typeof start === 'number' && typeof end === 'number') {
+                    try {
+                        inputEl.setSelectionRange(start, end);
+                    } catch (e) { /* ignore non-text inputs */ }
+                }
+            }
+        };
+
         window.formatNricInputLive = function (inputEl) {
-            const digits = inputEl.value.replace(/\D/g, '').slice(0, 12);
+            const rawVal = inputEl.value;
+            const caretPos = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : rawVal.length;
+            const digitsBeforeCaret = rawVal.slice(0, caretPos).replace(/\D/g, '').length;
+
+            const digits = rawVal.replace(/\D/g, '').slice(0, 12);
             let formatted = digits;
             if (digits.length > 6 && digits.length <= 8) {
                 formatted = `${digits.slice(0, 6)}-${digits.slice(6)}`;
@@ -963,6 +993,21 @@
                 formatted = `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
             }
             inputEl.value = formatted;
+
+            // Restore cursor position right after the same digit count
+            let newCaret = formatted.length;
+            if (digitsBeforeCaret <= digits.length) {
+                let counted = 0;
+                newCaret = 0;
+                for (let i = 0; i < formatted.length; i++) {
+                    if (counted >= digitsBeforeCaret) break;
+                    if (/\d/.test(formatted[i])) counted++;
+                    newCaret = i + 1;
+                }
+            }
+            try {
+                inputEl.setSelectionRange(newCaret, newCaret);
+            } catch (e) { /* ignore */ }
 
             const pwInput = document.getElementById('staff-modal-password');
             if (pwInput && digits.length >= 4 && !pwInput.dataset.userEdited) {
@@ -977,7 +1022,11 @@
         }
 
         window.formatMobileInputLive = function (inputEl) {
-            const digits = inputEl.value.replace(/\D/g, '').slice(0, 11);
+            const rawVal = inputEl.value;
+            const caretPos = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : rawVal.length;
+            const digitsBeforeCaret = rawVal.slice(0, caretPos).replace(/\D/g, '').length;
+
+            const digits = rawVal.replace(/\D/g, '').slice(0, 11);
             let formatted = digits;
             if (digits.startsWith('011') || digits.startsWith('015')) {
                 if (digits.length > 3 && digits.length <= 7) {
@@ -993,6 +1042,20 @@
                 }
             }
             inputEl.value = formatted;
+
+            let newCaret = formatted.length;
+            if (digitsBeforeCaret <= digits.length) {
+                let counted = 0;
+                newCaret = 0;
+                for (let i = 0; i < formatted.length; i++) {
+                    if (counted >= digitsBeforeCaret) break;
+                    if (/\d/.test(formatted[i])) counted++;
+                    newCaret = i + 1;
+                }
+            }
+            try {
+                inputEl.setSelectionRange(newCaret, newCaret);
+            } catch (e) { /* ignore */ }
         };
 
         function formatMobileString(raw) {
@@ -1065,7 +1128,7 @@
         }
 
         // =========================================================================
-        // 4. AUTHENTICATION & ROLE-BASED ACCESS CONTROL (RBAC)
+        // 4. AUTHENTICATION & MULTI-TIER HIERARCHY (MANAGER > SUPERVISOR > STAFF)
         // =========================================================================
         function getLoggedInStaff() {
             if (!currentSession || currentSession.type !== 'user') return null;
@@ -1082,15 +1145,40 @@
             return staff && staff.role === 'finance';
         }
 
+        function isSupervisorOrManagerRole(role) {
+            return role === 'manager' || role === 'supervisor';
+        }
+
+        // Recursively collect all direct & indirect subordinates (e.g., Manager -> Supervisor -> Executive/Staff)
+        function getTransitiveManagedStaffIds(rootUserObj) {
+            const collected = new Set();
+            if (!rootUserObj || !Array.isArray(rootUserObj.managedStaffIds)) return collected;
+
+            const queue = [...rootUserObj.managedStaffIds];
+            while (queue.length > 0) {
+                const subId = queue.shift();
+                if (!subId || subId === rootUserObj.id || collected.has(subId)) continue;
+                collected.add(subId);
+                const subObj = appState.staffProfiles.find(s => s.id === subId);
+                if (subObj && Array.isArray(subObj.managedStaffIds)) {
+                    subObj.managedStaffIds.forEach(nestedId => {
+                        if (!collected.has(nestedId)) queue.push(nestedId);
+                    });
+                }
+            }
+            return collected;
+        }
+
         function getAccessibleStaffProfiles() {
             if (isAdminOrFinance()) {
                 return appState.staffProfiles;
             }
             const staff = getLoggedInStaff();
             if (!staff) return [];
-            if (staff.role === 'manager') {
-                const allowedIds = new Set([staff.id, ...(staff.managedStaffIds || [])]);
-                return appState.staffProfiles.filter(s => allowedIds.has(s.id));
+            if (isSupervisorOrManagerRole(staff.role)) {
+                const managedSet = getTransitiveManagedStaffIds(staff);
+                managedSet.add(staff.id);
+                return appState.staffProfiles.filter(s => managedSet.has(s.id));
             }
             return [staff];
         }
@@ -1188,6 +1276,12 @@
             document.getElementById('filter-entries-month').value = yyyyMm;
             document.getElementById('sheet-filter-month').value = yyyyMm;
 
+            // Reset all dropdowns to "--- Please Select ---" on fresh login
+            ['entry-company', 'entry-staff', 'filter-entries-company', 'filter-entries-staff', 'sheet-filter-company', 'sheet-filter-staff'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+
             if (draftStops.length === 0) {
                 addRouteStop();
             }
@@ -1240,7 +1334,13 @@
                     handleLogout();
                     return;
                 }
-                const roleLabel = staff.role === 'finance' ? 'Finance' : (staff.role === 'manager' ? 'Manager' : 'Staff');
+                const roleLabel = staff.role === 'finance'
+                    ? 'Finance'
+                    : staff.role === 'manager'
+                        ? 'Manager'
+                        : staff.role === 'supervisor'
+                            ? 'Supervisor'
+                            : 'Executive / Staff';
                 subtitleEl.textContent = `${staff.name} • ${roleLabel}`;
                 changePwBtn.classList.remove('hidden');
             }
@@ -1268,22 +1368,20 @@
             const accessibleStaff = getAccessibleStaffProfiles();
             const loggedInStaff = getLoggedInStaff();
 
-            // 1. Entry Form Staff Dropdown
+            // 1. Entry Form Staff Dropdown (Defaults to "--- Please Select ---")
             const entryStaffSel = document.getElementById('entry-staff');
             const prevEntryStaff = entryStaffSel.value;
-            entryStaffSel.innerHTML = accessibleStaff.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+            entryStaffSel.innerHTML = PLEASE_SELECT_OPTION + accessibleStaff.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
             if (prevEntryStaff && accessibleStaff.some(s => s.name === prevEntryStaff)) {
                 entryStaffSel.value = prevEntryStaff;
-            } else if (loggedInStaff && accessibleStaff.some(s => s.name === loggedInStaff.name)) {
-                entryStaffSel.value = loggedInStaff.name;
-            } else if (accessibleStaff.length > 0) {
-                entryStaffSel.value = accessibleStaff[0].name;
+            } else {
+                entryStaffSel.value = '';
             }
 
-            // 2. Entry Form Company Dropdown (filtered to selected staff's permitted companies)
+            // 2. Entry Form Company Dropdown (Defaults to "--- Please Select ---")
             syncEntryCompanyOptionsForSelectedStaff();
 
-            // 3. Filter Dropdowns for Tab 2 (Entries) & Tab 3 (Sheet)
+            // 3. Filter Dropdowns for Tab 2 (Entries) & Tab 3 (Sheet) (Defaults to "--- Please Select ---")
             const filterCompanies = isAdminOrFinance()
                 ? appState.companies
                 : getAccessibleCompaniesForStaff(loggedInStaff);
@@ -1292,13 +1390,11 @@
                 const el = document.getElementById(id);
                 if (!el) return;
                 const prev = el.value;
-                el.innerHTML = filterCompanies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
+                el.innerHTML = PLEASE_SELECT_OPTION + filterCompanies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
                 if (prev && filterCompanies.some(c => c.code === prev)) {
                     el.value = prev;
-                } else if (loggedInStaff && filterCompanies.some(c => c.code === loggedInStaff.companyCode)) {
-                    el.value = loggedInStaff.companyCode;
-                } else if (filterCompanies.length > 0) {
-                    el.value = filterCompanies[0].code;
+                } else {
+                    el.value = '';
                 }
             });
 
@@ -1308,19 +1404,21 @@
 
         function syncEntryCompanyOptionsForSelectedStaff() {
             const entryStaffName = document.getElementById('entry-staff').value;
-            const staffObj = appState.staffProfiles.find(s => s.name === entryStaffName) || getLoggedInStaff();
-            const allowedComps = isAdminOrFinance() ? appState.companies : getAccessibleCompaniesForStaff(staffObj);
+            const staffObj = entryStaffName
+                ? appState.staffProfiles.find(s => s.name === entryStaffName)
+                : getLoggedInStaff();
+            const allowedComps = isAdminOrFinance()
+                ? appState.companies
+                : (staffObj ? getAccessibleCompaniesForStaff(staffObj) : appState.companies);
 
             const entryCompSel = document.getElementById('entry-company');
             const prevComp = entryCompSel.value;
-            entryCompSel.innerHTML = allowedComps.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
+            entryCompSel.innerHTML = PLEASE_SELECT_OPTION + allowedComps.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
 
             if (prevComp && allowedComps.some(c => c.code === prevComp)) {
                 entryCompSel.value = prevComp;
-            } else if (staffObj && allowedComps.some(c => c.code === staffObj.companyCode)) {
-                entryCompSel.value = staffObj.companyCode;
-            } else if (allowedComps.length > 0) {
-                entryCompSel.value = allowedComps[0].code;
+            } else {
+                entryCompSel.value = '';
             }
         }
 
@@ -1357,16 +1455,11 @@
                 candidates = byComp.length > 0 ? byComp : allAccessible;
             }
 
-            staffSel.innerHTML = candidates.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+            staffSel.innerHTML = PLEASE_SELECT_OPTION + candidates.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
             if (prevStaff && candidates.some(s => s.name === prevStaff)) {
                 staffSel.value = prevStaff;
             } else {
-                const me = getLoggedInStaff();
-                if (me && candidates.some(s => s.name === me.name)) {
-                    staffSel.value = me.name;
-                } else if (candidates.length > 0) {
-                    staffSel.value = candidates[0].name;
-                }
+                staffSel.value = '';
             }
         }
 
@@ -1392,10 +1485,6 @@
             appState.staffLocations[staffName] = Array.from(existing).slice(0, 60);
             renderLocationMemoryForSelectedStaff();
         }
-
-        window.setTripType = function (type) {
-            currentTripType = 'driving';
-        };
 
         window.addRouteStop = function (prefill = null) {
             draftStops.push(prefill || {
@@ -1512,7 +1601,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
                             <div class="sm:col-span-5">
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Destination / Client *</label>
-                                <input type="text" list="staff-location-memory" autocomplete="off" value="${escapeHtml(stop.destination)}" oninput="this.value = this.value.toUpperCase(); updateDraftStopField(${idx}, 'destination', this.value)" placeholder="e.g. FOREVER PRODUCTS" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 outline-none">
+                                <input type="text" list="staff-location-memory" autocomplete="off" value="${escapeHtml(stop.destination)}" oninput="applyUppercasePreserveCursor(this); updateDraftStopField(${idx}, 'destination', this.value)" placeholder="e.g. FOREVER PRODUCTS" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 outline-none">
                             </div>
                             <div class="sm:col-span-3">
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Distance (KM) *</label>
@@ -1541,11 +1630,15 @@
 
         window.updateBadgesAndLivePreview = function () {
             const compCode = document.getElementById('entry-company')?.value;
-            const comp = appState.companies.find(c => c.code === compCode) || appState.companies[0];
+            const comp = compCode ? appState.companies.find(c => c.code === compCode) : null;
             const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
 
             const ratePill = document.getElementById('active-rate-pill');
-            if (ratePill) ratePill.textContent = `Rate: RM ${rate.toFixed(2)} / KM`;
+            if (ratePill) {
+                ratePill.textContent = comp
+                    ? `${comp.code}: RM ${rate.toFixed(2)} / KM`
+                    : `Rate: RM ${rate.toFixed(2)} / KM`;
+            }
 
             const totalKm = draftStops.reduce((sum, s) => sum + (parseFloat(s.distanceKm) || 0), 0);
             const expRm = draftStops.reduce((sum, s) => sum + getStopExpenseSum(s), 0);
@@ -1570,15 +1663,16 @@
             const badgeEl = document.getElementById('badge-pending-approvals');
             if (!badgeEl) return;
             const loggedIn = getLoggedInStaff();
-            const isMgr = loggedIn && loggedIn.role === 'manager';
+            const isSupOrMgr = loggedIn && isSupervisorOrManagerRole(loggedIn.role);
             const isFinOrAdm = isAdminOrFinance();
-            if (!isMgr && !isFinOrAdm) {
+            if (!isSupOrMgr && !isFinOrAdm) {
                 badgeEl.classList.add('hidden');
                 return;
             }
 
             const monthVal = document.getElementById('sheet-filter-month')?.value || new Date().toISOString().slice(0, 7);
             const accessible = getAccessibleStaffProfiles();
+            const managedSet = isSupOrMgr ? getTransitiveManagedStaffIds(loggedIn) : new Set();
             let pendingCount = 0;
 
             accessible.forEach(st => {
@@ -1588,7 +1682,7 @@
                     if (!hasEntries) return;
                     const key = getApprovalKey(cCode, st.name, monthVal);
                     const rec = (appState.approvals && appState.approvals[key]) || {};
-                    if (isMgr && (loggedIn.managedStaffIds || []).includes(st.id) && !rec.verifiedBy) {
+                    if (isSupOrMgr && managedSet.has(st.id) && !rec.verifiedBy) {
                         pendingCount++;
                     } else if (isFinOrAdm && !rec.approvedBy) {
                         pendingCount++;
@@ -1614,7 +1708,7 @@
             const date = document.getElementById('entry-date').value;
 
             if (!companyCode || !staffName || !date) {
-                showToast('Please select Company, Staff Claimant, and Claim Date.', 'warning');
+                showToast('Please select Claiming Under Company, Staff Claimant, and Claim Date.', 'warning');
                 return;
             }
 
@@ -1707,14 +1801,7 @@
             }
 
             const yyyyMm = date.slice(0, 7);
-            document.getElementById('filter-entries-company').value = companyCode;
-            syncFilterStaffOptions('entries');
-            document.getElementById('filter-entries-staff').value = staffName;
             document.getElementById('filter-entries-month').value = yyyyMm;
-
-            document.getElementById('sheet-filter-company').value = companyCode;
-            syncFilterStaffOptions('sheet');
-            document.getElementById('sheet-filter-staff').value = staffName;
             document.getElementById('sheet-filter-month').value = yyyyMm;
 
             resetClaimEntryForm();
@@ -1761,11 +1848,22 @@
             const staffName = document.getElementById('filter-entries-staff')?.value;
             const monthVal = document.getElementById('filter-entries-month')?.value;
 
+            if (!compCode || !staffName) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center space-y-2">
+                        <div class="text-2xl text-indigo-600"><i class="fa-solid fa-filter"></i></div>
+                        <h3 class="text-sm font-extrabold text-slate-800">Select Company &amp; Staff Above</h3>
+                        <p class="text-xs text-slate-500">Please select both a <strong>Filter Company</strong> and <strong>Filter Staff</strong> from the dropdowns above to view saved entries.</p>
+                    </div>
+                `;
+                return;
+            }
+
             const comp = appState.companies.find(c => c.code === compCode) || appState.companies[0];
             const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
 
             const filtered = appState.entries
-                .filter(e => (!compCode || e.companyCode === compCode) && (!staffName || e.staffName === staffName) && (!monthVal || (e.date || '').startsWith(monthVal)))
+                .filter(e => e.companyCode === compCode && e.staffName === staffName && (!monthVal || (e.date || '').startsWith(monthVal)))
                 .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
             if (filtered.length === 0) {
@@ -1877,7 +1975,6 @@
                     };
                 });
             } else {
-                // Convert legacy non-driving entry into a single stop so it can still be edited cleanly
                 document.getElementById('route-origin').value = (entry.nonDriveDetails || 'OFFICE').toUpperCase();
                 document.getElementById('route-depart-time').value = '';
                 const enabled = [];
@@ -1916,8 +2013,12 @@
         };
 
         window.printOfficialClaimSheet = function () {
-            const compCode = document.getElementById('sheet-filter-company')?.value || 'CLAIM';
-            const staffName = document.getElementById('sheet-filter-staff')?.value || 'STAFF';
+            const compCode = document.getElementById('sheet-filter-company')?.value;
+            const staffName = document.getElementById('sheet-filter-staff')?.value;
+            if (!compCode || !staffName) {
+                showToast('Please select Company Entity and Staff Claimant first.', 'warning');
+                return;
+            }
             const monthVal = document.getElementById('sheet-filter-month')?.value || 'PERIOD';
             const originalTitle = document.title;
             document.title = `${monthVal}_${staffName}_${compCode}`;
@@ -1937,7 +2038,7 @@
             if (!trackerCard || !trackerList) return;
 
             const loggedIn = getLoggedInStaff();
-            const showTracker = isAdminOrFinance() || (loggedIn && loggedIn.role === 'manager');
+            const showTracker = isAdminOrFinance() || (loggedIn && isSupervisorOrManagerRole(loggedIn.role));
             if (!showTracker) {
                 trackerCard.classList.add('hidden');
                 return;
@@ -2087,8 +2188,24 @@
             renderApprovalStatusTracker(monthVal);
             updatePendingApprovalsBadge();
 
-            const comp = appState.companies.find(c => c.code === compCode) || appState.companies[0];
-            const staff = appState.staffProfiles.find(s => s.name === staffName) || getAccessibleStaffProfiles()[0];
+            const sheetEl = document.getElementById('printable-claim-sheet');
+            const promptEl = document.getElementById('sheet-empty-prompt');
+            const printBtn = document.getElementById('btn-print-official-pdf');
+
+            // View only when both Company Entity and Staff Claimant are selected
+            if (!compCode || !staffName) {
+                if (sheetEl) sheetEl.classList.add('hidden');
+                if (printBtn) printBtn.classList.add('hidden');
+                if (promptEl) promptEl.classList.remove('hidden');
+                return;
+            }
+
+            if (promptEl) promptEl.classList.add('hidden');
+            if (sheetEl) sheetEl.classList.remove('hidden');
+            if (printBtn) printBtn.classList.remove('hidden');
+
+            const comp = appState.companies.find(c => c.code === compCode);
+            const staff = appState.staffProfiles.find(s => s.name === staffName);
             const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
 
             // Header Logo & Legal Name
@@ -2107,14 +2224,14 @@
             document.getElementById('pdf-generated-date').textContent = formatDateDDMMMYYYY(todayIso);
 
             // Metadata Strip
-            document.getElementById('pdf-staff-name').textContent = staff ? staff.name : '-';
+            document.getElementById('pdf-staff-name').textContent = staff ? staff.name : staffName;
             document.getElementById('pdf-staff-nric').textContent = staff ? formatNricString(staff.nric) : '-';
             document.getElementById('pdf-staff-mobile').textContent = staff ? formatMobileString(staff.mobile) : '-';
             document.getElementById('pdf-claim-period').textContent = formatMonthTitle(monthVal);
 
             // Filter & Expand Entries into Sequential Rows
             const entries = appState.entries
-                .filter(e => (!comp || e.companyCode === comp.code) && (!staff || e.staffName === staff.name) && (!monthVal || (e.date || '').startsWith(monthVal)))
+                .filter(e => e.companyCode === compCode && e.staffName === staffName && (!monthVal || (e.date || '').startsWith(monthVal)))
                 .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
             const tbody = document.getElementById('pdf-table-body');
@@ -2230,7 +2347,7 @@
             if (rowsHtml.length === 0) {
                 rowsHtml.push(`
                     <tr>
-                        <td colspan="12" class="text-center py-6 text-slate-400 italic">No claim entries recorded for ${staff ? escapeHtml(staff.name) : 'this user'} in ${formatMonthTitle(monthVal)}.</td>
+                        <td colspan="12" class="text-center py-6 text-slate-400 italic">No claim entries recorded for ${escapeHtml(staffName)} in ${formatMonthTitle(monthVal)}.</td>
                     </tr>
                 `);
             }
@@ -2253,12 +2370,15 @@
             tbody.innerHTML = rowsHtml.join('');
 
             // Render 3-Tier Signature States & Role Action Buttons
-            const approvalKey = getApprovalKey(comp?.code || '', staff?.name || '', monthVal || '');
+            const approvalKey = getApprovalKey(compCode, staffName, monthVal || '');
             const approvalRec = (appState.approvals && appState.approvals[approvalKey]) || {};
             const loggedInStaff = getLoggedInStaff();
+            const managedSet = (loggedInStaff && isSupervisorOrManagerRole(loggedInStaff.role))
+                ? getTransitiveManagedStaffIds(loggedInStaff)
+                : new Set();
 
             const canClaimantSign = isAdminOrFinance() || (loggedInStaff && staff && loggedInStaff.id === staff.id);
-            const canManagerVerify = isAdminOrFinance() || (loggedInStaff && loggedInStaff.role === 'manager' && staff && (loggedInStaff.managedStaffIds || []).includes(staff.id));
+            const canManagerVerify = isAdminOrFinance() || (loggedInStaff && isSupervisorOrManagerRole(loggedInStaff.role) && staff && managedSet.has(staff.id));
             const canFinanceApprove = isAdminOrFinance();
 
             // Tier 1: Claimed By
@@ -2280,11 +2400,12 @@
                     : `<span class="text-[11px] text-slate-400 italic">Awaiting claimant sign-off</span>`;
             }
 
-            // Tier 2: Verified By (Manager)
+            // Tier 2: Verified By (Manager / Supervisor)
             document.getElementById('sig-name-verified').textContent = approvalRec.verifiedBy || '-';
             document.getElementById('sig-date-verified').textContent = approvalRec.verifiedDate || '-';
             const badgeVerified = document.getElementById('sig-badge-verified');
             const actionVerified = document.getElementById('sig-action-verified');
+            const verifyBtnLabel = loggedInStaff && loggedInStaff.role === 'supervisor' ? 'Verify as Supervisor' : 'Verify as Manager';
             if (approvalRec.verifiedBy) {
                 badgeVerified.textContent = 'Verified ✓';
                 badgeVerified.className = 'no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
@@ -2295,7 +2416,7 @@
                 badgeVerified.textContent = 'Pending';
                 badgeVerified.className = 'no-print text-[6.5pt] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
                 actionVerified.innerHTML = canManagerVerify
-                    ? `<button type="button" onclick="signClaimSheetTier('verified')" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold shadow-xs">Verify as Manager</button>`
+                    ? `<button type="button" onclick="signClaimSheetTier('verified')" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold shadow-xs">${verifyBtnLabel}</button>`
                     : `<span class="text-[11px] text-slate-400 italic">Awaiting manager verification</span>`;
             }
 
@@ -2390,9 +2511,11 @@
                         ? '<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase">Finance</span>'
                         : st.role === 'manager'
                             ? '<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase">Manager</span>'
-                            : '<span class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 text-[10px] font-extrabold uppercase">Staff</span>';
+                            : st.role === 'supervisor'
+                                ? '<span class="px-2 py-0.5 rounded-md bg-sky-100 text-sky-800 text-[10px] font-extrabold uppercase">Supervisor</span>'
+                                : '<span class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 text-[10px] font-extrabold uppercase">Staff / Exec</span>';
 
-                    const managedNames = st.role === 'manager' && Array.isArray(st.managedStaffIds) && st.managedStaffIds.length > 0
+                    const managedNames = Array.isArray(st.managedStaffIds) && st.managedStaffIds.length > 0
                         ? st.managedStaffIds.map(id => appState.staffProfiles.find(x => x.id === id)?.name).filter(Boolean).join(', ')
                         : '';
 
@@ -2543,13 +2666,13 @@
             document.getElementById('staff-modal-title').textContent = staff ? `Edit ${staff.name}` : 'Add New User Profile';
             document.getElementById('staff-modal-id').value = staff ? staff.id : '';
             document.getElementById('staff-modal-name').value = staff ? staff.name : '';
-            document.getElementById('staff-modal-role').value = staff ? (staff.role || 'staff') : 'staff';
+            document.getElementById('staff-modal-role').value = staff ? (staff.role || 'staff') : '';
             document.getElementById('staff-modal-nric').value = staff ? formatNricString(staff.nric) : '';
             document.getElementById('staff-modal-mobile').value = staff ? formatMobileString(staff.mobile) : '';
 
             const compSel = document.getElementById('staff-modal-company');
-            compSel.innerHTML = appState.companies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
-            compSel.value = staff ? staff.companyCode : (appState.companies[0]?.code || '');
+            compSel.innerHTML = PLEASE_SELECT_OPTION + appState.companies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
+            compSel.value = staff ? staff.companyCode : '';
 
             const digits = staff ? (staff.nric || '').replace(/\D/g, '') : '';
             const pwInput = document.getElementById('staff-modal-password');
@@ -2587,7 +2710,8 @@
             const listEl = document.getElementById('manager-subordinates-checkboxes');
             const currentEditingId = selfId || document.getElementById('staff-modal-id').value;
 
-            if (role !== 'manager') {
+            // Supervisor, Manager, and Finance can all optionally have subordinates assigned
+            if (!['supervisor', 'manager', 'finance'].includes(role)) {
                 box.classList.add('hidden');
                 return;
             }
@@ -2600,12 +2724,15 @@
                 return;
             }
 
-            listEl.innerHTML = candidates.map(s => `
-                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 bg-white px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer">
-                    <input type="checkbox" name="managed-staff-chk" value="${escapeHtml(s.id)}" ${selectedSet.has(s.id) ? 'checked' : ''} class="rounded text-indigo-600">
-                    <span class="truncate">${escapeHtml(s.name)}</span>
-                </label>
-            `).join('');
+            listEl.innerHTML = candidates.map(s => {
+                const subRoleLabel = s.role === 'supervisor' ? ' (Sup)' : (s.role === 'manager' ? ' (Mgr)' : '');
+                return `
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-800 bg-white px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer">
+                        <input type="checkbox" name="managed-staff-chk" value="${escapeHtml(s.id)}" ${selectedSet.has(s.id) ? 'checked' : ''} class="rounded text-indigo-600">
+                        <span class="truncate">${escapeHtml(s.name)}${subRoleLabel}</span>
+                    </label>
+                `;
+            }).join('');
         };
 
         window.saveStaffFromModal = function (e) {
@@ -2621,6 +2748,14 @@
             const companyCode = document.getElementById('staff-modal-company').value;
             const password = document.getElementById('staff-modal-password').value.trim() || nricDigits.slice(-4);
 
+            if (!role) {
+                showToast('Please select a User Role.', 'warning');
+                return;
+            }
+            if (!companyCode) {
+                showToast('Please select Employed Under (Home Company).', 'warning');
+                return;
+            }
             if (nricDigits.length < 6) {
                 showToast('Please enter a valid 12-digit Malaysia NRIC.', 'error');
                 return;
@@ -2629,7 +2764,7 @@
             const formattedNric = formatNricString(nricDigits);
             const sisterChecked = Array.from(document.querySelectorAll('input[name="sister-company-chk"]:checked')).map(el => el.value);
             const allowedCompanies = Array.from(new Set([companyCode, ...sisterChecked]));
-            const managedStaffIds = role === 'manager'
+            const managedStaffIds = ['supervisor', 'manager', 'finance'].includes(role)
                 ? Array.from(document.querySelectorAll('input[name="managed-staff-chk"]:checked')).map(el => el.value)
                 : [];
 
