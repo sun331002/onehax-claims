@@ -28,6 +28,15 @@
             appearance: textfield;
         }
 
+        /* Center-Screen Pop-Up Animation */
+        @keyframes centerPopIn {
+            0% { opacity: 0; transform: scale(0.9) translateY(8px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-center-pop {
+            animation: centerPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
         /* Official Claim Sheet & A4 Landscape Print Styling */
         #printable-claim-sheet {
             width: 100%;
@@ -144,8 +153,8 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Toast Notification Banner -->
-    <div id="toast-container" class="no-print fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+    <!-- Center-Screen Pop-Up Notification Overlay -->
+    <div id="center-popup-container" class="no-print fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"></div>
 
     <!-- LOGIN GATEWAY SCREEN -->
     <div id="login-screen" class="no-print min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
@@ -254,8 +263,11 @@
                 <button type="button" onclick="switchMainTab('sheet')" id="main-tab-sheet" class="px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl text-slate-300 hover:text-white hover:bg-slate-800/60 whitespace-nowrap transition">
                     3. Official Claim Sheet &amp; PDF <span id="badge-pending-approvals" class="hidden ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-amber-500 text-slate-950 font-extrabold">0</span>
                 </button>
+                <button type="button" onclick="switchMainTab('paid')" id="main-tab-paid" class="px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl text-slate-300 hover:text-white hover:bg-slate-800/60 whitespace-nowrap transition">
+                    4. Approved &amp; Paid <span id="badge-unpaid-approved" class="hidden ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-emerald-500 text-slate-950 font-extrabold">0</span>
+                </button>
                 <button type="button" onclick="switchMainTab('setup')" id="main-tab-setup" class="px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl text-slate-300 hover:text-white hover:bg-slate-800/60 whitespace-nowrap transition">
-                    4. Staff & Setup
+                    5. Staff &amp; Setup
                 </button>
             </div>
         </header>
@@ -273,10 +285,21 @@
 
         <!-- TAB 1: LOG NEW CLAIM -->
         <main id="tab-panel-log" class="no-print max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <!-- SuperAdmin Self-Claim Policy Notice -->
+            <div id="superadmin-no-claim-notice" class="hidden bg-white rounded-2xl border border-amber-200 p-8 text-center space-y-3 shadow-sm">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 mx-auto flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="text-base font-extrabold text-slate-900">SuperAdmin Accounts Cannot Submit Personal Claims</h3>
+                <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+                    For strict audit compliance, every claim must be logged directly under the claimant's own NRIC account (even if a PA logs in on behalf of Management). Please sign in with an employee NRIC ID to log claims.
+                </p>
+            </div>
+
+            <div id="claim-entry-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-5 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2">
                     <div>
-                        <h2 id="form-heading-title" class="text-base sm:text-lg font-extrabold">Log Daily Travel & Expense Claim</h2>
+                        <h2 id="form-heading-title" class="text-base sm:text-lg font-extrabold">Log Daily Travel &amp; Expense Claim</h2>
                         <p class="text-xs text-slate-300">Auto-numbered sequentially on your monthly A4 Landscape claim sheet</p>
                     </div>
                     <button type="button" id="btn-cancel-edit" onclick="cancelEditEntry()" class="hidden px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition">
@@ -292,8 +315,8 @@
                             <select id="entry-company" onchange="onEntryCompanyOrStaffChange()" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">2. Staff Claimant *</label>
-                            <select id="entry-staff" onchange="onEntryStaffChange()" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"></select>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">2. Staff Claimant (Self Only) *</label>
+                            <select id="entry-staff" onchange="onEntryStaffChange()" class="w-full rounded-xl border border-slate-300 bg-slate-100 text-slate-800 px-3.5 py-2.5 text-sm font-bold cursor-not-allowed outline-none"></select>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">3. Claim Date *</label>
@@ -308,7 +331,7 @@
                     <div id="driving-route-section" class="bg-indigo-50/40 border border-indigo-100 rounded-2xl p-4 sm:p-5 space-y-4">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <h3 class="text-sm font-extrabold text-indigo-950 flex items-center gap-2">
-                                <i class="fa-solid fa-route text-indigo-600"></i> Multi-Stop Route & Per-Stop Expenses
+                                <i class="fa-solid fa-route text-indigo-600"></i> Multi-Stop Route &amp; Per-Stop Expenses
                             </h3>
                             <span id="active-rate-pill" class="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold">Rate: RM 0.60 / KM</span>
                         </div>
@@ -385,16 +408,15 @@
 
         <!-- TAB 3: OFFICIAL CLAIM SHEET & PDF -->
         <main id="tab-panel-sheet" class="hidden max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
-            <!-- Monthly Submission & Approval Status Tracker (Supervisors, Managers, Finance & SuperAdmin) -->
+            <!-- Multi-Month Submission & Approval Status List (Supervisors, Managers, Finance & SuperAdmin) -->
             <div id="approval-tracker-card" class="no-print hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3.5">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-clipboard-check text-indigo-600"></i> Monthly Claim Submission &amp; Approval Overview
+                            <i class="fa-solid fa-clipboard-check text-indigo-600"></i> Claim Submission &amp; Approval Overview (All Months)
                         </h3>
-                        <p class="text-xs text-slate-500">Switch between Pending and Approved claims, filter by company, or click any staff card to open their PDF sheet.</p>
+                        <p class="text-xs text-slate-500">Click any row below to load that staff member's claim sheet for that month and verify or approve.</p>
                     </div>
-                    <span id="tracker-period-pill" class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 text-xs font-extrabold uppercase">PERIOD</span>
                 </div>
 
                 <!-- Pending vs Already Approved Sub-Tabs + Search -->
@@ -409,15 +431,15 @@
                     </div>
                     <div class="relative w-full sm:w-64">
                         <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3 top-1/2 -translate-y-1/2"></i>
-                        <input type="text" id="tracker-search-input" oninput="onTrackerSearchInput(this.value)" placeholder="Search staff name..." class="w-full rounded-xl border border-slate-300 pl-8 pr-3 py-1.5 text-xs font-medium focus:border-indigo-500 outline-none">
+                        <input type="text" id="tracker-search-input" oninput="onTrackerSearchInput(this.value)" placeholder="Search staff name or month..." class="w-full rounded-xl border border-slate-300 pl-8 pr-3 py-1.5 text-xs font-medium focus:border-indigo-500 outline-none">
                     </div>
                 </div>
 
                 <!-- Dynamic Company Quick-Filter Pills -->
                 <div id="tracker-company-pills" class="flex flex-wrap items-center gap-1.5"></div>
 
-                <!-- Scrollable Staff Claim Cards Grid -->
-                <div id="approval-tracker-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-80 overflow-y-auto pr-1"></div>
+                <!-- Compact Scrollable List -->
+                <div id="approval-tracker-list" class="divide-y divide-slate-200 border border-slate-200 rounded-xl overflow-hidden max-h-80 overflow-y-auto"></div>
             </div>
 
             <!-- Filter & Action Toolbar (Hidden in Print) -->
@@ -452,7 +474,7 @@
                     <i class="fa-solid fa-file-invoice"></i>
                 </div>
                 <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Select Company Entity &amp; Staff Claimant</h3>
-                <p class="text-xs text-slate-500 max-w-md mx-auto">Please choose both a <strong>Company Entity</strong> and <strong>Staff Claimant</strong> from the dropdowns above (or click any staff card in the Monthly Overview) to view, sign, approve, or print the Official Claim Sheet.</p>
+                <p class="text-xs text-slate-500 max-w-md mx-auto">Please choose both a <strong>Company Entity</strong> and <strong>Staff Claimant</strong> from the dropdowns above (or click any row in the Claim Overview list) to view, sign, approve, or print the Official Claim Sheet.</p>
             </div>
 
             <!-- Printable A4 Landscape Claim Form (Hidden until selected) -->
@@ -554,7 +576,56 @@
             </div>
         </main>
 
-        <!-- TAB 4: STAFF & SETUP -->
+        <!-- TAB 4: APPROVED CLAIMS & MONEY PAID -->
+        <main id="tab-panel-paid" class="no-print hidden max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
+            <!-- Summary Totals Strip -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Approved Claims</div>
+                    <div id="paid-summary-approved" class="text-2xl font-extrabold text-slate-900 mt-1">RM 0.00</div>
+                </div>
+                <div class="bg-white rounded-2xl border border-emerald-200 p-4 shadow-xs">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Total Money Paid Out</div>
+                    <div id="paid-summary-paid" class="text-2xl font-extrabold text-emerald-700 mt-1">RM 0.00</div>
+                </div>
+                <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-xs">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Approved — Awaiting Payout</div>
+                    <div id="paid-summary-unpaid" class="text-2xl font-extrabold text-amber-600 mt-1">RM 0.00</div>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3.5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">💰 Approved Claims &amp; Disbursement Tracker</h3>
+                        <p class="text-xs text-slate-500">Track Finance-approved claim sheets, record bank transfer dates/references, and open signed PDFs.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="paid-status-filter" onchange="renderApprovedAndPaidTab()" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold bg-white">
+                            <option value="ALL">All Statuses</option>
+                            <option value="UNPAID">🟠 Awaiting Payout Only</option>
+                            <option value="PAID">✅ Paid Out Only</option>
+                        </select>
+                        <input type="month" id="paid-month-filter" onchange="renderApprovedAndPaidTab()" title="Filter by Month (Clear to show all months)" class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold">
+                        <button type="button" onclick="clearPaidMonthFilter()" class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">All Months</button>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+                    <div id="paid-company-pills" class="flex flex-wrap items-center gap-1.5"></div>
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="paid-search-input" oninput="onPaidSearchInput(this.value)" placeholder="Search staff name..." class="w-full rounded-xl border border-slate-300 pl-8 pr-3 py-1.5 text-xs font-medium focus:border-indigo-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approved & Paid List -->
+            <div id="approved-paid-list" class="space-y-2.5"></div>
+        </main>
+
+        <!-- TAB 5: STAFF & SETUP -->
         <main id="tab-panel-setup" class="no-print hidden max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
             <!-- Notice Board Editor (SuperAdmin & Finance Only) -->
             <div id="notice-board-editor-card" class="hidden bg-white rounded-2xl border border-amber-200 shadow-sm p-5 space-y-3">
@@ -576,7 +647,7 @@
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h3 class="text-base font-extrabold text-slate-900">🏢 Registered Companies & Logos</h3>
+                        <h3 class="text-base font-extrabold text-slate-900">🏢 Registered Companies &amp; Logos</h3>
                         <p class="text-xs text-slate-500">Manage company entities, custom logos, and mileage rates.</p>
                     </div>
                     <button type="button" id="btn-add-company" onclick="openCompanyModal()" class="hidden px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition">
@@ -590,7 +661,7 @@
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h3 class="text-base font-extrabold text-slate-900">👥 Registered Staff, Supervisors, Managers & Finance Users</h3>
+                        <h3 class="text-base font-extrabold text-slate-900">👥 Registered Staff, Supervisors, Managers &amp; Finance Users</h3>
                     </div>
                     <button type="button" id="btn-add-staff" onclick="openStaffModal()" class="hidden px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition">
                         + Add User Profile
@@ -602,7 +673,7 @@
             <!-- Backup, Restore & Go-Live Data Controls (SuperAdmin Only) -->
             <div id="superadmin-backup-card" class="hidden bg-slate-900 text-white rounded-2xl p-5 space-y-4">
                 <div>
-                    <h3 class="text-base font-extrabold">🛡️ Backup, Restore & Go-Live Launch Tools</h3>
+                    <h3 class="text-base font-extrabold">🛡️ Backup, Restore &amp; Go-Live Launch Tools</h3>
                     <p class="text-xs text-slate-300">Export a full JSON backup (including uploaded company logos, staff profiles, and entries) or clear test claims when ready to launch.</p>
                 </div>
                 <div class="flex flex-wrap items-center justify-between gap-3">
@@ -616,11 +687,37 @@
                         </label>
                     </div>
                     <button type="button" onclick="openResetTestDataModal()" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-extrabold shadow transition">
-                        🧹 Reset All Test Claims (Keep Logos & Staff)
+                        🧹 Reset All Test Claims (Keep Logos &amp; Staff)
                     </button>
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- MODAL: MARK CLAIM SHEET AS PAID -->
+    <div id="mark-paid-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 bg-emerald-700 text-white flex items-center justify-between">
+                <h3 class="font-extrabold text-base"><i class="fa-solid fa-money-check-dollar mr-1.5"></i> Record Claim Payment</h3>
+                <button type="button" onclick="closeModal('mark-paid-modal')" class="text-emerald-200 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="confirmMarkAsPaid(event)" class="p-6 space-y-4">
+                <input type="hidden" id="paid-modal-key">
+                <div id="paid-modal-summary" class="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700 font-semibold"></div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Payment / Bank-In Date *</label>
+                    <input type="date" id="paid-modal-date" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold focus:border-emerald-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Payment Reference / Remarks (Optional)</label>
+                    <input type="text" id="paid-modal-ref" placeholder="e.g. Maybank IBG / DuitNow Ref #8821" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-500 outline-none">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('mark-paid-modal')" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow">Confirm Paid</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- MODAL: ADD / EDIT COMPANY -->
@@ -769,7 +866,7 @@
                 <h3 class="font-extrabold text-base text-slate-900">Password Recovery</h3>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">
-                Your default password is the <strong>last 4 digits of your NRIC</strong>. If you changed your password and forgot it, please contact your <strong>Finance Department</strong> or <strong>SuperAdmin</strong> to reset it under <em>4. Staff &amp; Setup</em>.
+                Your default password is the <strong>last 4 digits of your NRIC</strong>. If you changed your password and forgot it, please contact your <strong>Finance Department</strong> or <strong>SuperAdmin</strong> to reset it under <em>5. Staff &amp; Setup</em>.
             </p>
             <div class="flex justify-end">
                 <button type="button" onclick="closeModal('forgot-password-modal')" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-extrabold">Got It</button>
@@ -870,6 +967,8 @@
         let trackerSubTab = 'pending'; // 'pending' | 'approved'
         let trackerCompanyFilter = 'ALL';
         let trackerSearchQuery = '';
+        let paidCompanyFilter = 'ALL';
+        let paidSearchQuery = '';
 
         function sortCompaniesABC(list) {
             return [...(list || [])].sort((a, b) =>
@@ -908,7 +1007,7 @@
             const afterComp = (appState.companies || []).map(c => c.code).join(',');
             const afterStaff = (appState.staffProfiles || []).map(s => s.id).join(',');
             if ((beforeComp !== afterComp || beforeStaff !== afterStaff) && typeof populateAllSelectors === 'function') {
-                populateAllSelectors();
+                populateAllSelectors(false);
             }
         }
 
@@ -1009,7 +1108,7 @@
                                 };
                                 sortAppStateListsABC();
                                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
-                                refreshAllUI();
+                                refreshAllUI(false);
                             } catch (err) {
                                 console.error('Snapshot parse error:', err);
                             } finally {
@@ -1030,7 +1129,7 @@
         }
 
         // =========================================================================
-        // 3. CURSOR-PRESERVING FORMATTERS & HELPERS
+        // 3. CURSOR-PRESERVING FORMATTERS, CENTER POP-UP & HELPERS
         // =========================================================================
         window.applyUppercasePreserveCursor = function (inputEl) {
             const start = inputEl.selectionStart;
@@ -1058,7 +1157,6 @@
             }
             inputEl.value = formatted;
 
-            // Restore caret right after the same digit count
             let newCaret = 0;
             let seenDigits = 0;
             while (newCaret < formatted.length && seenDigits < digitsBeforeCaret) {
@@ -1137,6 +1235,13 @@
             return `${months[parseInt(m, 10) - 1] || m} ${y}`;
         }
 
+        function formatMonthShort(yyyyMm) {
+            if (!yyyyMm) return '-';
+            const [y, m] = yyyyMm.split('-');
+            const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            return `${months[parseInt(m, 10) - 1] || m} ${y}`;
+        }
+
         function formatCurrency(val) {
             const num = parseFloat(val) || 0;
             return num.toFixed(2);
@@ -1162,21 +1267,55 @@
             return String(nb);
         }
 
+        // Center-Screen Pop-Up Notification
+        let activePopupTimer = null;
         function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
+            const container = document.getElementById('center-popup-container');
             if (!container) return;
-            const colors = {
-                success: 'bg-emerald-600 text-white',
-                error: 'bg-rose-600 text-white',
-                warning: 'bg-amber-500 text-slate-950'
+            if (activePopupTimer) {
+                clearTimeout(activePopupTimer);
+                activePopupTimer = null;
+            }
+
+            const config = {
+                success: {
+                    ring: 'border-emerald-500 bg-white',
+                    iconBg: 'bg-emerald-100 text-emerald-600',
+                    icon: 'fa-circle-check',
+                    title: 'Success'
+                },
+                error: {
+                    ring: 'border-rose-500 bg-white',
+                    iconBg: 'bg-rose-100 text-rose-600',
+                    icon: 'fa-circle-xmark',
+                    title: 'Action Blocked'
+                },
+                warning: {
+                    ring: 'border-amber-500 bg-white',
+                    iconBg: 'bg-amber-100 text-amber-600',
+                    icon: 'fa-triangle-exclamation',
+                    title: 'Please Check'
+                }
+            }[type] || {
+                ring: 'border-emerald-500 bg-white',
+                iconBg: 'bg-emerald-100 text-emerald-600',
+                icon: 'fa-circle-check',
+                title: 'Notice'
             };
-            const el = document.createElement('div');
-            el.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-xs font-bold flex items-center gap-2 transition transform ${colors[type] || colors.success}`;
-            el.textContent = message;
-            container.appendChild(el);
-            setTimeout(() => {
-                el.remove();
-            }, 3400);
+
+            container.innerHTML = `
+                <div class="animate-center-pop pointer-events-auto max-w-sm w-full rounded-3xl border-2 ${config.ring} shadow-2xl px-6 py-5 text-center space-y-2.5">
+                    <div class="w-12 h-12 rounded-2xl ${config.iconBg} mx-auto flex items-center justify-center text-2xl">
+                        <i class="fa-solid ${config.icon}"></i>
+                    </div>
+                    <div class="text-sm font-extrabold text-slate-900">${config.title}</div>
+                    <div class="text-xs font-semibold text-slate-600 leading-relaxed">${escapeHtml(message)}</div>
+                </div>
+            `;
+
+            activePopupTimer = setTimeout(() => {
+                container.innerHTML = '';
+            }, 2400);
         }
 
         // =========================================================================
@@ -1219,6 +1358,13 @@
                 }
             }
             return result;
+        }
+
+        function hasAnySubordinates() {
+            if (isAdminOrFinance()) return true;
+            const staff = getLoggedInStaff();
+            if (!staff) return false;
+            return getTransitiveManagedStaffIds(staff).size > 0;
         }
 
         function getAccessibleStaffProfiles() {
@@ -1333,7 +1479,7 @@
             }
 
             refreshAllUI(true);
-            switchMainTab('log');
+            switchMainTab(isSuperAdmin() ? 'sheet' : 'log');
         }
 
         window.handleLogout = function () {
@@ -1345,12 +1491,13 @@
         };
 
         // =========================================================================
-        // 5. NAVIGATION & WORKSPACE UI REFRESH (ABC ORDER + "--- PLEASE SELECT ---")
+        // 5. NAVIGATION & SMART ROLE-BASED DROPDOWN DEFAULTS
         // =========================================================================
         window.switchMainTab = function (tabName) {
-            ['log', 'entries', 'sheet', 'setup'].forEach(t => {
+            ['log', 'entries', 'sheet', 'paid', 'setup'].forEach(t => {
                 const panel = document.getElementById(`tab-panel-${t}`);
                 const btn = document.getElementById(`main-tab-${t}`);
+                if (!panel || !btn) return;
                 if (t === tabName) {
                     panel.classList.remove('hidden');
                     btn.className = 'px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl bg-slate-50 text-indigo-700 border-t-2 border-indigo-500 whitespace-nowrap transition';
@@ -1362,6 +1509,7 @@
 
             if (tabName === 'entries') renderSavedEntriesList();
             if (tabName === 'sheet') renderOfficialClaimSheet();
+            if (tabName === 'paid') renderApprovedAndPaidTab();
             if (tabName === 'setup') renderSetupDirectory();
         };
 
@@ -1371,10 +1519,14 @@
 
             const subtitleEl = document.getElementById('header-user-subtitle');
             const changePwBtn = document.getElementById('btn-change-password');
+            const superadminNotice = document.getElementById('superadmin-no-claim-notice');
+            const claimEntryCard = document.getElementById('claim-entry-card');
 
             if (isSuperAdmin()) {
                 subtitleEl.textContent = 'SuperAdmin (Full System Access)';
                 changePwBtn.classList.add('hidden');
+                if (superadminNotice) superadminNotice.classList.remove('hidden');
+                if (claimEntryCard) claimEntryCard.classList.add('hidden');
             } else {
                 const staff = getLoggedInStaff();
                 if (!staff) {
@@ -1386,6 +1538,8 @@
                     : (staff.role === 'manager' ? 'Manager' : (staff.role === 'supervisor' ? 'Supervisor' : 'Staff / Executive'));
                 subtitleEl.textContent = `${staff.name} • ${roleLabel}`;
                 changePwBtn.classList.remove('hidden');
+                if (superadminNotice) superadminNotice.classList.add('hidden');
+                if (claimEntryCard) claimEntryCard.classList.remove('hidden');
             }
 
             // Notice Board
@@ -1404,27 +1558,29 @@
             updateBadgesAndLivePreview();
             renderSavedEntriesList();
             renderOfficialClaimSheet();
+            renderApprovedAndPaidTab();
             renderSetupDirectory();
         }
 
-        function populateAllSelectors(resetToPleaseSelect = false) {
-            const accessibleStaff = getAccessibleStaffProfiles();
+        function populateAllSelectors(resetToDefault = false) {
             const loggedInStaff = getLoggedInStaff();
+            const canSeeSubordinates = hasAnySubordinates();
 
-            // 1. Entry Form Staff Dropdown (ABC order, defaults to "--- Please Select ---")
+            // 1. Tab 1 ("1. Log New Claim") -> STRICT SELF-CLAIM ONLY
             const entryStaffSel = document.getElementById('entry-staff');
-            const prevEntryStaff = resetToPleaseSelect ? '' : entryStaffSel.value;
-            entryStaffSel.innerHTML = PLEASE_SELECT_OPTION + accessibleStaff.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
-            if (prevEntryStaff && accessibleStaff.some(s => s.name === prevEntryStaff)) {
-                entryStaffSel.value = prevEntryStaff;
+            if (loggedInStaff) {
+                entryStaffSel.innerHTML = `<option value="${escapeHtml(loggedInStaff.name)}">${escapeHtml(loggedInStaff.name)}</option>`;
+                entryStaffSel.value = loggedInStaff.name;
+                entryStaffSel.disabled = true;
             } else {
+                entryStaffSel.innerHTML = PLEASE_SELECT_OPTION;
                 entryStaffSel.value = '';
+                entryStaffSel.disabled = true;
             }
 
-            // 2. Entry Form Company Dropdown (ABC order, defaults to "--- Please Select ---")
-            syncEntryCompanyOptionsForSelectedStaff(resetToPleaseSelect);
+            syncEntryCompanyOptionsForSelectedStaff(resetToDefault);
 
-            // 3. Filter Dropdowns for Tab 2 (Entries) & Tab 3 (Sheet) — ABC order, default "--- Please Select ---"
+            // 2. Filter Dropdowns for Tab 2 (Entries) & Tab 3 (Sheet)
             const filterCompanies = isAdminOrFinance()
                 ? sortCompaniesABC(appState.companies)
                 : getAccessibleCompaniesForStaff(loggedInStaff);
@@ -1432,37 +1588,41 @@
             ['filter-entries-company', 'sheet-filter-company'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                const prev = resetToPleaseSelect ? '' : el.value;
-                el.innerHTML = PLEASE_SELECT_OPTION + filterCompanies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
-                if (prev && filterCompanies.some(c => c.code === prev)) {
-                    el.value = prev;
+                const prev = resetToDefault ? '' : el.value;
+                if (filterCompanies.length === 1) {
+                    el.innerHTML = `<option value="${escapeHtml(filterCompanies[0].code)}">${escapeHtml(getCompanyLegalName(filterCompanies[0]))}</option>`;
+                    el.value = filterCompanies[0].code;
                 } else {
-                    el.value = '';
+                    el.innerHTML = PLEASE_SELECT_OPTION + filterCompanies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
+                    if (prev && filterCompanies.some(c => c.code === prev)) {
+                        el.value = prev;
+                    } else {
+                        el.value = '';
+                    }
                 }
             });
 
-            syncFilterStaffOptions('entries', resetToPleaseSelect);
-            syncFilterStaffOptions('sheet', resetToPleaseSelect);
+            syncFilterStaffOptions('entries', resetToDefault);
+            syncFilterStaffOptions('sheet', resetToDefault);
         }
 
-        function syncEntryCompanyOptionsForSelectedStaff(resetToPleaseSelect = false) {
-            const entryStaffName = document.getElementById('entry-staff').value;
-            const staffObj = entryStaffName
-                ? appState.staffProfiles.find(s => s.name === entryStaffName)
-                : getLoggedInStaff();
-
-            const allowedComps = isAdminOrFinance()
-                ? sortCompaniesABC(appState.companies)
-                : (staffObj ? getAccessibleCompaniesForStaff(staffObj) : sortCompaniesABC(appState.companies));
+        function syncEntryCompanyOptionsForSelectedStaff(resetToDefault = false) {
+            const loggedInStaff = getLoggedInStaff();
+            const allowedComps = loggedInStaff ? getAccessibleCompaniesForStaff(loggedInStaff) : [];
 
             const entryCompSel = document.getElementById('entry-company');
-            const prevComp = resetToPleaseSelect ? '' : entryCompSel.value;
-            entryCompSel.innerHTML = PLEASE_SELECT_OPTION + allowedComps.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
+            const prevComp = resetToDefault ? '' : entryCompSel.value;
 
-            if (prevComp && allowedComps.some(c => c.code === prevComp)) {
-                entryCompSel.value = prevComp;
+            if (allowedComps.length === 1) {
+                entryCompSel.innerHTML = `<option value="${escapeHtml(allowedComps[0].code)}">${escapeHtml(getCompanyLegalName(allowedComps[0]))}</option>`;
+                entryCompSel.value = allowedComps[0].code;
             } else {
-                entryCompSel.value = '';
+                entryCompSel.innerHTML = PLEASE_SELECT_OPTION + allowedComps.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
+                if (prevComp && allowedComps.some(c => c.code === prevComp)) {
+                    entryCompSel.value = prevComp;
+                } else {
+                    entryCompSel.value = '';
+                }
             }
         }
 
@@ -1482,13 +1642,28 @@
             if (target === 'sheet') renderOfficialClaimSheet();
         };
 
-        function syncFilterStaffOptions(target, resetToPleaseSelect = false) {
+        function syncFilterStaffOptions(target, resetToDefault = false) {
             const compSel = document.getElementById(target === 'entries' ? 'filter-entries-company' : 'sheet-filter-company');
             const staffSel = document.getElementById(target === 'entries' ? 'filter-entries-staff' : 'sheet-filter-staff');
             if (!compSel || !staffSel) return;
-            const selectedCompCode = compSel.value;
-            const prevStaff = resetToPleaseSelect ? '' : staffSel.value;
 
+            const loggedInStaff = getLoggedInStaff();
+            const canSeeSubordinates = hasAnySubordinates();
+
+            // Staff / Exec (or Supervisor/Manager/Finance with 0 subordinates) -> auto-fill their own name automatically!
+            if (loggedInStaff && !canSeeSubordinates) {
+                staffSel.innerHTML = `<option value="${escapeHtml(loggedInStaff.name)}">${escapeHtml(loggedInStaff.name)}</option>`;
+                staffSel.value = loggedInStaff.name;
+                staffSel.disabled = true;
+                staffSel.classList.add('bg-slate-100', 'cursor-not-allowed');
+                return;
+            }
+
+            staffSel.disabled = false;
+            staffSel.classList.remove('bg-slate-100', 'cursor-not-allowed');
+
+            const selectedCompCode = compSel.value;
+            const prevStaff = resetToDefault ? '' : staffSel.value;
             const allAccessible = getAccessibleStaffProfiles();
             let candidates = allAccessible;
             if (selectedCompCode) {
@@ -1680,6 +1855,66 @@
             }).join('');
         }
 
+        // Helper: Collect all unique (companyCode, staffName, monthVal) claim sheets accessible to the current user
+        function getAllAccessibleClaimSheetSummaries() {
+            const accessibleStaff = sortStaffABC(getAccessibleStaffProfiles());
+            const accessibleMap = new Map(accessibleStaff.map(s => [s.name, s]));
+            const groups = new Map();
+
+            (appState.entries || []).forEach(ent => {
+                if (!ent || !ent.companyCode || !ent.staffName || !ent.date) return;
+                const staffObj = accessibleMap.get(ent.staffName);
+                if (!staffObj) return;
+
+                const monthVal = ent.date.slice(0, 7);
+                const key = getApprovalKey(ent.companyCode, ent.staffName, monthVal);
+                if (!groups.has(key)) {
+                    const compObj = appState.companies.find(c => c.code === ent.companyCode);
+                    const rate = compObj ? (parseFloat(compObj.mileageRate) || 0.60) : 0.60;
+                    groups.set(key, {
+                        key,
+                        companyCode: ent.companyCode,
+                        companyName: compObj ? getCompanyLegalName(compObj) : ent.companyCode,
+                        staffId: staffObj.id,
+                        staffName: ent.staffName,
+                        monthVal,
+                        rate,
+                        entryCount: 0,
+                        rowCount: 0,
+                        totalKm: 0,
+                        totalRm: 0
+                    });
+                }
+
+                const g = groups.get(key);
+                g.entryCount += 1;
+                const km = ent.tripType === 'driving'
+                    ? (ent.stops || []).reduce((s, x) => s + (parseFloat(x.distanceKm) || 0), 0)
+                    : 0;
+                const rows = ent.tripType === 'driving' && Array.isArray(ent.stops) && ent.stops.length > 0
+                    ? ent.stops.length
+                    : 1;
+                const exp = (parseFloat(ent.publicTransport) || 0)
+                    + (parseFloat(ent.parking) || 0)
+                    + (parseFloat(ent.toll) || 0)
+                    + (parseFloat(ent.meals) || 0)
+                    + (parseFloat(ent.entertainment) || 0)
+                    + (parseFloat(ent.others) || 0);
+
+                g.rowCount += rows;
+                g.totalKm += km;
+                g.totalRm += (km * g.rate) + exp;
+            });
+
+            return Array.from(groups.values()).sort((a, b) => {
+                const mCmp = b.monthVal.localeCompare(a.monthVal);
+                if (mCmp !== 0) return mCmp;
+                const nCmp = a.staffName.localeCompare(b.staffName, undefined, { sensitivity: 'base' });
+                if (nCmp !== 0) return nCmp;
+                return a.companyCode.localeCompare(b.companyCode);
+            });
+        }
+
         window.updateBadgesAndLivePreview = function () {
             const compCode = document.getElementById('entry-company')?.value;
             const comp = compCode ? appState.companies.find(c => c.code === compCode) : null;
@@ -1709,62 +1944,77 @@
 
         function updatePendingApprovalsBadge() {
             const badgeEl = document.getElementById('badge-pending-approvals');
-            if (!badgeEl) return;
+            const unpaidBadgeEl = document.getElementById('badge-unpaid-approved');
             const loggedIn = getLoggedInStaff();
             const isSupOrMgr = loggedIn && isSupervisorOrManagerRole(loggedIn.role);
             const isFinOrAdm = isAdminOrFinance();
-            if (!isSupOrMgr && !isFinOrAdm) {
-                badgeEl.classList.add('hidden');
-                return;
-            }
-
-            const monthVal = document.getElementById('sheet-filter-month')?.value || new Date().toISOString().slice(0, 7);
-            const accessible = getAccessibleStaffProfiles();
             const managedSet = isSupOrMgr ? getTransitiveManagedStaffIds(loggedIn) : new Set();
-            let pendingCount = 0;
 
-            accessible.forEach(st => {
-                const comps = new Set([st.companyCode, ...(st.allowedCompanies || [])]);
-                comps.forEach(cCode => {
-                    const hasEntries = appState.entries.some(e => e.companyCode === cCode && e.staffName === st.name && (e.date || '').startsWith(monthVal));
-                    if (!hasEntries) return;
-                    const key = getApprovalKey(cCode, st.name, monthVal);
-                    const rec = (appState.approvals && appState.approvals[key]) || {};
-                    if (isSupOrMgr && managedSet.has(st.id) && !rec.verifiedBy) {
-                        pendingCount++;
-                    } else if (isFinOrAdm && !rec.approvedBy) {
-                        pendingCount++;
-                    }
-                });
+            const summaries = getAllAccessibleClaimSheetSummaries();
+            let pendingCount = 0;
+            let unpaidApprovedCount = 0;
+
+            summaries.forEach(s => {
+                const rec = (appState.approvals && appState.approvals[s.key]) || {};
+                if (isSupOrMgr && managedSet.has(s.staffId) && !rec.verifiedBy) {
+                    pendingCount++;
+                } else if (isFinOrAdm && !rec.approvedBy) {
+                    pendingCount++;
+                }
+                if (rec.approvedBy && !rec.paidDate) {
+                    unpaidApprovedCount++;
+                }
             });
 
-            if (pendingCount > 0) {
-                badgeEl.textContent = `${pendingCount} Pending`;
-                badgeEl.classList.remove('hidden');
-            } else {
-                badgeEl.classList.add('hidden');
+            if (badgeEl) {
+                if ((isSupOrMgr || isFinOrAdm) && pendingCount > 0) {
+                    badgeEl.textContent = `${pendingCount} Pending`;
+                    badgeEl.classList.remove('hidden');
+                } else {
+                    badgeEl.classList.add('hidden');
+                }
+            }
+
+            if (unpaidBadgeEl) {
+                if (isFinOrAdm && unpaidApprovedCount > 0) {
+                    unpaidBadgeEl.textContent = `${unpaidApprovedCount} To Pay`;
+                    unpaidBadgeEl.classList.remove('hidden');
+                } else {
+                    unpaidBadgeEl.classList.add('hidden');
+                }
             }
         }
 
         // =========================================================================
-        // 7. SAVE, EDIT & DELETE CLAIM ENTRIES
+        // 7. SAVE, EDIT & DELETE CLAIM ENTRIES (WITH SELF-CLAIM & APPROVAL LOCKS)
         // =========================================================================
         window.handleSaveClaimEntry = function (e) {
             e.preventDefault();
+            const loggedInStaff = getLoggedInStaff();
+            if (!loggedInStaff) {
+                showToast('Please sign in with an employee NRIC account to log claims.', 'error');
+                return;
+            }
+
             const companyCode = document.getElementById('entry-company').value;
-            const staffName = document.getElementById('entry-staff').value;
+            const staffName = loggedInStaff.name; // Strictly enforced self-claim only
             const date = document.getElementById('entry-date').value;
 
             if (!companyCode) {
                 showToast('Please select "1. Claiming Under Company" first.', 'warning');
                 return;
             }
-            if (!staffName) {
-                showToast('Please select "2. Staff Claimant" first.', 'warning');
-                return;
-            }
             if (!date) {
                 showToast('Please select "3. Claim Date".', 'warning');
+                return;
+            }
+
+            // Block adding/editing into an already Finance-approved month sheet
+            const targetMonth = date.slice(0, 7);
+            const targetApprovalKey = getApprovalKey(companyCode, staffName, targetMonth);
+            const targetApprovalRec = (appState.approvals && appState.approvals[targetApprovalKey]) || {};
+            if (targetApprovalRec.approvedBy) {
+                showToast(`The ${formatMonthShort(targetMonth)} claim sheet for ${companyCode} is already approved by Finance and locked.`, 'error');
                 return;
             }
 
@@ -1906,6 +2156,7 @@
             const compCode = document.getElementById('filter-entries-company')?.value;
             const staffName = document.getElementById('filter-entries-staff')?.value;
             const monthVal = document.getElementById('filter-entries-month')?.value;
+            const loggedInStaff = getLoggedInStaff();
 
             const accessibleNames = new Set(getAccessibleStaffProfiles().map(s => s.name));
             const comp = compCode ? appState.companies.find(c => c.code === compCode) : null;
@@ -1944,6 +2195,28 @@
                     ? `${escapeHtml(entry.origin)} → ${(entry.stops || []).map(s => escapeHtml(s.destination)).join(' → ')}`
                     : `${escapeHtml(entry.nonDrivePurpose)} ${entry.nonDriveDetails ? `(${escapeHtml(entry.nonDriveDetails)})` : ''}`;
 
+                const entryMonth = (entry.date || '').slice(0, 7);
+                const appKey = getApprovalKey(entry.companyCode, entry.staffName, entryMonth);
+                const appRec = (appState.approvals && appState.approvals[appKey]) || {};
+                const isLockedApproved = Boolean(appRec.approvedBy);
+                const isOwner = Boolean(loggedInStaff && loggedInStaff.name === entry.staffName);
+
+                let actionControlsHtml = '';
+                if (isLockedApproved) {
+                    actionControlsHtml = `<span class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold"><i class="fa-solid fa-lock mr-1"></i> Approved</span>`;
+                } else if (isOwner) {
+                    actionControlsHtml = `
+                        <button type="button" onclick="editClaimEntry('${entry.id}')" class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition">
+                            Edit
+                        </button>
+                        <button type="button" onclick="deleteClaimEntry('${entry.id}')" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">
+                            Delete
+                        </button>
+                    `;
+                } else {
+                    actionControlsHtml = `<span class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold">View Only</span>`;
+                }
+
                 return `
                     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
                         <div class="space-y-1 flex-1 min-w-[240px]">
@@ -1964,12 +2237,7 @@
                                 <div class="text-[10px] font-bold uppercase text-slate-400">Entry Total</div>
                                 <div class="text-base font-extrabold text-emerald-700">RM ${grand.toFixed(2)}</div>
                             </div>
-                            <button type="button" onclick="editClaimEntry('${entry.id}')" class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition">
-                                Edit
-                            </button>
-                            <button type="button" onclick="deleteClaimEntry('${entry.id}')" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">
-                                Delete
-                            </button>
+                            ${actionControlsHtml}
                         </div>
                     </div>
                 `;
@@ -1979,6 +2247,11 @@
         window.editClaimEntry = function (entryId) {
             const entry = appState.entries.find(e => e.id === entryId);
             if (!entry) return;
+            const loggedInStaff = getLoggedInStaff();
+            if (!loggedInStaff || loggedInStaff.name !== entry.staffName) {
+                showToast('Only the claim owner can edit their own claim entries.', 'error');
+                return;
+            }
 
             editingEntryId = entry.id;
             switchMainTab('log');
@@ -1986,7 +2259,6 @@
             document.getElementById('btn-submit-entry').innerHTML = '<i class="fa-solid fa-check mr-1.5"></i> Save Updated Entry';
             document.getElementById('btn-cancel-edit').classList.remove('hidden');
 
-            document.getElementById('entry-staff').value = entry.staffName;
             syncEntryCompanyOptionsForSelectedStaff(false);
             document.getElementById('entry-company').value = entry.companyCode;
             document.getElementById('entry-date').value = entry.date;
@@ -2057,6 +2329,13 @@
         };
 
         window.deleteClaimEntry = function (entryId) {
+            const entry = appState.entries.find(e => e.id === entryId);
+            if (!entry) return;
+            const loggedInStaff = getLoggedInStaff();
+            if (!loggedInStaff || loggedInStaff.name !== entry.staffName) {
+                showToast('Only the claim owner can delete their own claim entries.', 'error');
+                return;
+            }
             appState.entries = appState.entries.filter(e => e.id !== entryId);
             saveStateToLocalAndCloud();
             renderSavedEntriesList();
@@ -2081,42 +2360,37 @@
         };
 
         // =========================================================================
-        // 8. OFFICIAL A4 LANDSCAPE CLAIM SHEET & 3-TIER ELECTRONIC SIGNATURES
+        // 8. OFFICIAL A4 LANDSCAPE CLAIM SHEET & MULTI-MONTH COMPACT OVERVIEW LIST
         // =========================================================================
         window.setTrackerSubTab = function (tab) {
             trackerSubTab = tab === 'approved' ? 'approved' : 'pending';
-            const monthVal = document.getElementById('sheet-filter-month')?.value;
-            renderApprovalStatusTracker(monthVal);
+            renderApprovalStatusTracker();
         };
 
         window.setTrackerCompanyFilter = function (compCode) {
             trackerCompanyFilter = compCode || 'ALL';
-            const monthVal = document.getElementById('sheet-filter-month')?.value;
-            renderApprovalStatusTracker(monthVal);
+            renderApprovalStatusTracker();
         };
 
         window.onTrackerSearchInput = function (val) {
             trackerSearchQuery = (val || '').trim().toLowerCase();
-            const monthVal = document.getElementById('sheet-filter-month')?.value;
-            renderApprovalStatusTracker(monthVal);
+            renderApprovalStatusTracker();
         };
 
-        function renderApprovalStatusTracker(monthVal) {
+        function renderApprovalStatusTracker() {
             const trackerCard = document.getElementById('approval-tracker-card');
             const trackerList = document.getElementById('approval-tracker-list');
-            const periodPill = document.getElementById('tracker-period-pill');
             const pillsContainer = document.getElementById('tracker-company-pills');
             if (!trackerCard || !trackerList) return;
 
             const loggedIn = getLoggedInStaff();
-            const showTracker = isAdminOrFinance() || (loggedIn && isSupervisorOrManagerRole(loggedIn.role));
+            const showTracker = hasAnySubordinates();
             if (!showTracker) {
                 trackerCard.classList.add('hidden');
                 return;
             }
 
             trackerCard.classList.remove('hidden');
-            if (periodPill) periodPill.textContent = formatMonthTitle(monthVal);
 
             // Style Pending vs Approved Sub-Tabs
             const tabPendingBtn = document.getElementById('tracker-tab-pending');
@@ -2155,77 +2429,67 @@
                 `;
             }
 
-            const accessibleStaff = sortStaffABC(getAccessibleStaffProfiles());
             const currentComp = document.getElementById('sheet-filter-company')?.value;
             const currentStaff = document.getElementById('sheet-filter-staff')?.value;
+            const currentMonth = document.getElementById('sheet-filter-month')?.value;
 
+            const allSummaries = getAllAccessibleClaimSheetSummaries();
             let totalPendingCount = 0;
             let totalApprovedCount = 0;
-            const cardsHtml = [];
+            const rowsHtml = [];
 
-            accessibleStaff.forEach(st => {
-                const compCodes = Array.from(new Set([st.companyCode, ...(st.allowedCompanies || [])]));
-                compCodes.forEach(cCode => {
-                    const matchingEntries = appState.entries.filter(e =>
-                        e.companyCode === cCode &&
-                        e.staffName === st.name &&
-                        (!monthVal || (e.date || '').startsWith(monthVal))
-                    );
-                    if (matchingEntries.length === 0) return;
+            allSummaries.forEach(s => {
+                const rec = (appState.approvals && appState.approvals[s.key]) || {};
+                const isFullyApproved = Boolean(rec.approvedBy);
 
-                    const key = getApprovalKey(cCode, st.name, monthVal);
-                    const rec = (appState.approvals && appState.approvals[key]) || {};
-                    const isFullyApproved = Boolean(rec.approvedBy);
+                if (isFullyApproved) {
+                    totalApprovedCount++;
+                } else {
+                    totalPendingCount++;
+                }
 
-                    if (isFullyApproved) {
-                        totalApprovedCount++;
-                    } else {
-                        totalPendingCount++;
-                    }
+                if (trackerSubTab === 'pending' && isFullyApproved) return;
+                if (trackerSubTab === 'approved' && !isFullyApproved) return;
+                if (trackerCompanyFilter !== 'ALL' && s.companyCode !== trackerCompanyFilter) return;
 
-                    if (trackerSubTab === 'pending' && isFullyApproved) return;
-                    if (trackerSubTab === 'approved' && !isFullyApproved) return;
-                    if (trackerCompanyFilter !== 'ALL' && cCode !== trackerCompanyFilter) return;
-                    if (trackerSearchQuery && !st.name.toLowerCase().includes(trackerSearchQuery)) return;
+                const monthShort = formatMonthShort(s.monthVal);
+                if (trackerSearchQuery) {
+                    const haystack = `${s.staffName} ${s.companyCode} ${monthShort} ${s.monthVal}`.toLowerCase();
+                    if (!haystack.includes(trackerSearchQuery)) return;
+                }
 
-                    const compObj = appState.companies.find(c => c.code === cCode);
-                    const rate = compObj ? (parseFloat(compObj.mileageRate) || 0.60) : 0.60;
-                    let totalRm = 0;
-                    matchingEntries.forEach(ent => {
-                        const km = ent.tripType === 'driving'
-                            ? (ent.stops || []).reduce((s, x) => s + (parseFloat(x.distanceKm) || 0), 0)
-                            : 0;
-                        const exp = (parseFloat(ent.publicTransport) || 0) + (parseFloat(ent.parking) || 0) + (parseFloat(ent.toll) || 0) + (parseFloat(ent.meals) || 0) + (parseFloat(ent.entertainment) || 0) + (parseFloat(ent.others) || 0);
-                        totalRm += (km * rate) + exp;
-                    });
+                const isSelected = currentComp === s.companyCode && currentStaff === s.staffName && currentMonth === s.monthVal;
 
-                    const isSelected = currentComp === cCode && currentStaff === st.name;
+                const claimedBadge = rec.claimedBy
+                    ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Staff Signed</span>`
+                    : `<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold">⏳ Draft</span>`;
+                const verifiedBadge = rec.verifiedBy
+                    ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Mgr Verified</span>`
+                    : `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold">● Pending Mgr</span>`;
+                const approvedBadge = rec.approvedBy
+                    ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Fin Approved</span>`
+                    : `<span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold">● Pending Fin</span>`;
+                const paidBadge = rec.paidDate
+                    ? `<span class="px-2 py-0.5 rounded-md bg-teal-600 text-white text-[10px] font-extrabold">💰 Paid</span>`
+                    : '';
 
-                    const claimedBadge = rec.claimedBy
-                        ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Staff Signed</span>`
-                        : `<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold">⏳ Draft</span>`;
-                    const verifiedBadge = rec.verifiedBy
-                        ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Mgr Verified</span>`
-                        : `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold">● Pending Mgr</span>`;
-                    const approvedBadge = rec.approvedBy
-                        ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Fin Approved (${escapeHtml(rec.approvedDate || '')})</span>`
-                        : `<span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold">● Pending Fin</span>`;
-
-                    cardsHtml.push(`
-                        <button type="button" onclick="selectClaimSheetFromTracker('${escapeHtml(cCode)}', '${escapeHtml(st.name)}')" class="text-left p-3 rounded-xl border transition ${isSelected ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-200' : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-indigo-300'}">
-                            <div class="flex items-center justify-between gap-2 mb-1">
-                                <span class="font-extrabold text-xs text-slate-900 truncate">${escapeHtml(st.name)}</span>
-                                <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] font-bold shrink-0">${escapeHtml(cCode)}</span>
-                            </div>
-                            <div class="text-xs font-bold text-indigo-700 mb-1.5">${matchingEntries.length} row(s) • RM ${totalRm.toFixed(2)}</div>
-                            <div class="flex flex-wrap gap-1">
-                                ${claimedBadge}
-                                ${verifiedBadge}
-                                ${approvedBadge}
-                            </div>
-                        </button>
-                    `);
-                });
+                rowsHtml.push(`
+                    <button type="button" onclick="selectClaimSheetFromTracker('${escapeHtml(s.companyCode)}', '${escapeHtml(s.staffName)}', '${escapeHtml(s.monthVal)}')" class="w-full text-left px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 transition ${isSelected ? 'bg-indigo-50/90 border-l-4 border-l-indigo-600' : 'bg-white hover:bg-slate-50'}">
+                        <div class="flex flex-wrap items-center gap-2 min-w-[220px]">
+                            <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-900 text-[10px] font-extrabold tracking-wide">${escapeHtml(monthShort)}</span>
+                            <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] font-bold">${escapeHtml(s.companyCode)}</span>
+                            <span class="font-extrabold text-xs text-slate-900">${escapeHtml(s.staffName)}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-extrabold text-slate-700 mr-1">${s.rowCount} row(s) • <span class="text-indigo-700">RM ${s.totalRm.toFixed(2)}</span></span>
+                            ${claimedBadge}
+                            ${verifiedBadge}
+                            ${approvedBadge}
+                            ${paidBadge}
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 ml-1"></i>
+                        </div>
+                    </button>
+                `);
             });
 
             const pendingCountEl = document.getElementById('tracker-count-pending');
@@ -2233,22 +2497,24 @@
             if (pendingCountEl) pendingCountEl.textContent = totalPendingCount;
             if (approvedCountEl) approvedCountEl.textContent = totalApprovedCount;
 
-            if (cardsHtml.length === 0) {
+            if (rowsHtml.length === 0) {
                 const emptyLabel = trackerSubTab === 'approved'
-                    ? `No approved claim sheets yet for ${formatMonthTitle(monthVal)}${trackerCompanyFilter !== 'ALL' ? ` (${trackerCompanyFilter})` : ''}.`
-                    : `No pending claim sheets for ${formatMonthTitle(monthVal)}${trackerCompanyFilter !== 'ALL' ? ` (${trackerCompanyFilter})` : ''}.`;
-                trackerList.innerHTML = `<div class="col-span-full text-xs text-slate-500 italic py-3 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">${emptyLabel}</div>`;
+                    ? `No approved claim sheets found${trackerCompanyFilter !== 'ALL' ? ` for ${trackerCompanyFilter}` : ''}.`
+                    : `No pending claim sheets found${trackerCompanyFilter !== 'ALL' ? ` for ${trackerCompanyFilter}` : ''}.`;
+                trackerList.innerHTML = `<div class="text-xs text-slate-500 italic py-4 text-center bg-slate-50">${emptyLabel}</div>`;
             } else {
-                trackerList.innerHTML = cardsHtml.join('');
+                trackerList.innerHTML = rowsHtml.join('');
             }
         }
 
-        window.selectClaimSheetFromTracker = function (compCode, staffName) {
+        window.selectClaimSheetFromTracker = function (compCode, staffName, monthVal = null) {
             const compSel = document.getElementById('sheet-filter-company');
             const staffSel = document.getElementById('sheet-filter-staff');
+            const monthSel = document.getElementById('sheet-filter-month');
             if (compSel) compSel.value = compCode;
             syncFilterStaffOptions('sheet', false);
             if (staffSel) staffSel.value = staffName;
+            if (monthVal && monthSel) monthSel.value = monthVal;
             renderOfficialClaimSheet();
         };
 
@@ -2286,6 +2552,7 @@
 
             saveStateToLocalAndCloud();
             renderOfficialClaimSheet();
+            renderApprovedAndPaidTab();
             showToast('Electronic signature recorded!');
         };
 
@@ -2305,10 +2572,14 @@
             } else if (tier === 'approved') {
                 delete appState.approvals[key].approvedBy;
                 delete appState.approvals[key].approvedDate;
+                delete appState.approvals[key].paidDate;
+                delete appState.approvals[key].paidRef;
+                delete appState.approvals[key].paidBy;
             }
 
             saveStateToLocalAndCloud();
             renderOfficialClaimSheet();
+            renderApprovedAndPaidTab();
             showToast('Signature cleared.', 'warning');
         };
 
@@ -2318,7 +2589,7 @@
             const staffName = document.getElementById('sheet-filter-staff')?.value;
             const monthVal = document.getElementById('sheet-filter-month')?.value;
 
-            renderApprovalStatusTracker(monthVal);
+            renderApprovalStatusTracker();
             updatePendingApprovalsBadge();
 
             const sheetEl = document.getElementById('printable-claim-sheet');
@@ -2574,7 +2845,188 @@
         };
 
         // =========================================================================
-        // 9. TAB 4: COMPANIES, STAFF PROFILES, NOTICE BOARD & BACKUP MANAGEMENT
+        // 9. TAB 4: APPROVED CLAIMS & MONEY PAID TRACKER
+        // =========================================================================
+        window.setPaidCompanyFilter = function (compCode) {
+            paidCompanyFilter = compCode || 'ALL';
+            renderApprovedAndPaidTab();
+        };
+
+        window.onPaidSearchInput = function (val) {
+            paidSearchQuery = (val || '').trim().toLowerCase();
+            renderApprovedAndPaidTab();
+        };
+
+        window.clearPaidMonthFilter = function () {
+            const mEl = document.getElementById('paid-month-filter');
+            if (mEl) mEl.value = '';
+            renderApprovedAndPaidTab();
+        };
+
+        window.renderApprovedAndPaidTab = function () {
+            const listEl = document.getElementById('approved-paid-list');
+            const pillsContainer = document.getElementById('paid-company-pills');
+            if (!listEl) return;
+
+            const loggedIn = getLoggedInStaff();
+            const canMarkPaid = isAdminOrFinance();
+            const statusFilter = document.getElementById('paid-status-filter')?.value || 'ALL';
+            const monthFilter = document.getElementById('paid-month-filter')?.value || '';
+
+            // Render Company Quick-Filter Pills
+            const availableCompanies = sortCompaniesABC(
+                isAdminOrFinance()
+                    ? appState.companies
+                    : getAccessibleCompaniesForStaff(loggedIn)
+            );
+            if (paidCompanyFilter !== 'ALL' && !availableCompanies.some(c => c.code === paidCompanyFilter)) {
+                paidCompanyFilter = 'ALL';
+            }
+            if (pillsContainer) {
+                const allBtnClass = paidCompanyFilter === 'ALL'
+                    ? 'bg-slate-900 text-white border-slate-900'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100';
+                const compPills = availableCompanies.map(c => {
+                    const active = paidCompanyFilter === c.code;
+                    return `<button type="button" onclick="setPaidCompanyFilter('${escapeHtml(c.code)}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}">${escapeHtml(c.code)}</button>`;
+                }).join('');
+                pillsContainer.innerHTML = `
+                    <span class="text-[10px] font-bold uppercase text-slate-400 mr-1">Company:</span>
+                    <button type="button" onclick="setPaidCompanyFilter('ALL')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${allBtnClass}">All Companies</button>
+                    ${compPills}
+                `;
+            }
+
+            const allSummaries = getAllAccessibleClaimSheetSummaries();
+            let sumApprovedRm = 0;
+            let sumPaidRm = 0;
+            let sumUnpaidRm = 0;
+            const cardsHtml = [];
+
+            allSummaries.forEach(s => {
+                const rec = (appState.approvals && appState.approvals[s.key]) || {};
+                if (!rec.approvedBy) return; // Only Finance-approved sheets appear here
+
+                if (paidCompanyFilter !== 'ALL' && s.companyCode !== paidCompanyFilter) return;
+                if (monthFilter && s.monthVal !== monthFilter) return;
+                if (paidSearchQuery && !s.staffName.toLowerCase().includes(paidSearchQuery)) return;
+
+                const isPaid = Boolean(rec.paidDate);
+                sumApprovedRm += s.totalRm;
+                if (isPaid) {
+                    sumPaidRm += s.totalRm;
+                } else {
+                    sumUnpaidRm += s.totalRm;
+                }
+
+                if (statusFilter === 'PAID' && !isPaid) return;
+                if (statusFilter === 'UNPAID' && isPaid) return;
+
+                const payoutBadge = isPaid
+                    ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-extrabold">✅ Paid on ${escapeHtml(formatDateDDMMMYYYY(rec.paidDate))}${rec.paidRef ? ` (${escapeHtml(rec.paidRef)})` : ''}</span>`
+                    : `<span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-xs font-extrabold">🟠 Approved — Awaiting Payout</span>`;
+
+                const payActionBtn = canMarkPaid
+                    ? (isPaid
+                        ? `<button type="button" onclick="clearPaidStatus('${escapeHtml(s.key)}')" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 text-xs font-bold transition">Undo Paid</button>`
+                        : `<button type="button" onclick="openMarkPaidModal('${escapeHtml(s.key)}', '${escapeHtml(s.staffName)}', '${escapeHtml(s.companyCode)}', '${escapeHtml(s.monthVal)}', ${s.totalRm.toFixed(2)})" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs transition">💰 Mark as Paid</button>`)
+                    : '';
+
+                cardsHtml.push(`
+                    <div class="bg-white rounded-2xl border ${isPaid ? 'border-emerald-200' : 'border-slate-200'} p-4 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+                        <div class="space-y-1.5 flex-1 min-w-[250px]">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-900 text-[11px] font-extrabold">${escapeHtml(formatMonthShort(s.monthVal))}</span>
+                                <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[11px] font-bold">${escapeHtml(s.companyCode)}</span>
+                                <span class="font-extrabold text-sm text-slate-900">${escapeHtml(s.staffName)}</span>
+                            </div>
+                            <div class="text-xs text-slate-500">
+                                Approved by <strong>${escapeHtml(rec.approvedBy)}</strong> on <strong>${escapeHtml(rec.approvedDate || '-')}</strong> • ${s.rowCount} row(s)
+                            </div>
+                            <div>${payoutBadge}</div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <div class="text-right mr-2">
+                                <div class="text-[10px] font-bold uppercase text-slate-400">Approved Payout</div>
+                                <div class="text-base font-extrabold text-slate-900">RM ${s.totalRm.toFixed(2)}</div>
+                            </div>
+                            ${payActionBtn}
+                            <button type="button" onclick="openPdfFromPaidTab('${escapeHtml(s.companyCode)}', '${escapeHtml(s.staffName)}', '${escapeHtml(s.monthVal)}')" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+                                📄 View / Print PDF
+                            </button>
+                        </div>
+                    </div>
+                `);
+            });
+
+            document.getElementById('paid-summary-approved').textContent = `RM ${sumApprovedRm.toFixed(2)}`;
+            document.getElementById('paid-summary-paid').textContent = `RM ${sumPaidRm.toFixed(2)}`;
+            document.getElementById('paid-summary-unpaid').textContent = `RM ${sumUnpaidRm.toFixed(2)}`;
+
+            if (cardsHtml.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-2">
+                        <div class="text-3xl">💳</div>
+                        <h3 class="text-sm font-extrabold text-slate-800">No approved claims match this filter</h3>
+                        <p class="text-xs text-slate-500">Once Finance clicks "Approve as Finance" on Tab 3, approved claim sheets appear here for payout tracking.</p>
+                    </div>
+                `;
+            } else {
+                listEl.innerHTML = cardsHtml.join('');
+            }
+        };
+
+        window.openMarkPaidModal = function (approvalKey, staffName, compCode, monthVal, totalRm) {
+            if (!isAdminOrFinance()) return;
+            document.getElementById('paid-modal-key').value = approvalKey;
+            document.getElementById('paid-modal-summary').textContent = `${staffName} • ${compCode} (${formatMonthShort(monthVal)}) — RM ${parseFloat(totalRm).toFixed(2)}`;
+            document.getElementById('paid-modal-date').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('paid-modal-ref').value = '';
+            document.getElementById('mark-paid-modal').classList.remove('hidden');
+        };
+
+        window.confirmMarkAsPaid = function (e) {
+            e.preventDefault();
+            if (!isAdminOrFinance()) return;
+            const key = document.getElementById('paid-modal-key').value;
+            const paidDate = document.getElementById('paid-modal-date').value;
+            const paidRef = document.getElementById('paid-modal-ref').value.trim();
+            if (!key || !paidDate) return;
+
+            if (!appState.approvals) appState.approvals = {};
+            if (!appState.approvals[key]) appState.approvals[key] = {};
+            appState.approvals[key].paidDate = paidDate;
+            appState.approvals[key].paidRef = paidRef;
+            appState.approvals[key].paidBy = isSuperAdmin() ? 'SUPERADMIN' : (getLoggedInStaff()?.name || 'FINANCE');
+
+            saveStateToLocalAndCloud();
+            closeModal('mark-paid-modal');
+            renderApprovedAndPaidTab();
+            renderApprovalStatusTracker();
+            updatePendingApprovalsBadge();
+            showToast('Claim sheet marked as Paid!');
+        };
+
+        window.clearPaidStatus = function (key) {
+            if (!isAdminOrFinance() || !appState.approvals || !appState.approvals[key]) return;
+            delete appState.approvals[key].paidDate;
+            delete appState.approvals[key].paidRef;
+            delete appState.approvals[key].paidBy;
+            saveStateToLocalAndCloud();
+            renderApprovedAndPaidTab();
+            renderApprovalStatusTracker();
+            updatePendingApprovalsBadge();
+            showToast('Payout status cleared.', 'warning');
+        };
+
+        window.openPdfFromPaidTab = function (compCode, staffName, monthVal) {
+            switchMainTab('sheet');
+            selectClaimSheetFromTracker(compCode, staffName, monthVal);
+        };
+
+        // =========================================================================
+        // 10. TAB 5: COMPANIES, STAFF PROFILES, NOTICE BOARD & BACKUP MANAGEMENT
         // =========================================================================
         window.renderSetupDirectory = function () {
             ensureListsSortedAndSync();
@@ -3042,7 +3494,7 @@
         }
 
         // =========================================================================
-        // 10. INITIALIZE ON WINDOW LOAD
+        // 11. INITIALIZE ON WINDOW LOAD
         // =========================================================================
         window.onload = function () {
             // Prevent mouse-wheel scroll from accidentally changing number inputs
