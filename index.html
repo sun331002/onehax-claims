@@ -311,7 +311,7 @@
                     <!-- Step 1: Company, Claimant & Date -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">1. Claiming Under Company *</label>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">1. Company Entity *</label>
                             <select id="entry-company" onchange="onEntryCompanyOrStaffChange()" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"></select>
                         </div>
                         <div>
@@ -386,15 +386,15 @@
             <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm flex flex-wrap items-end justify-between gap-4">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 min-w-[260px]">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Filter Company</label>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Company Entity</label>
                         <select id="filter-entries-company" onchange="onFilterCompanyChange('entries')" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold"></select>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Filter Staff</label>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Staff Claimant</label>
                         <select id="filter-entries-staff" onchange="renderSavedEntriesList()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold"></select>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Claim Month</label>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Claim Period (Month)</label>
                         <input type="month" id="filter-entries-month" onchange="renderSavedEntriesList()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold">
                     </div>
                 </div>
@@ -408,73 +408,51 @@
 
         <!-- TAB 3: OFFICIAL CLAIM SHEET & PDF -->
         <main id="tab-panel-sheet" class="hidden max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
-            <!-- Multi-Month Submission & Approval Status List (Supervisors, Managers, Finance & SuperAdmin) -->
-            <div id="approval-tracker-card" class="no-print hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3.5">
-                <div class="flex flex-wrap items-center justify-between gap-2">
+            <!-- Single Unified 4-Dropdown Selector Toolbar (Hidden in Print) -->
+            <div class="no-print bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-clipboard-check text-indigo-600"></i> Claim Submission &amp; Approval Overview (All Months)
+                            <i class="fa-solid fa-file-invoice text-indigo-600"></i> Official Claim Sheet &amp; Approval Selector
                         </h3>
-                        <p class="text-xs text-slate-500">Click any row below to load that staff member's claim sheet for that month and verify or approve.</p>
+                        <p class="text-xs text-slate-500">Select Approval Status, Company Entity, Staff Claimant, and Claim Period to load the official claim sheet below.</p>
                     </div>
+                    <button type="button" id="btn-print-official-pdf" onclick="printOfficialClaimSheet()" class="hidden px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Print / Save Official PDF
+                    </button>
                 </div>
 
-                <!-- Pending vs Already Approved Sub-Tabs + Search -->
-                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="tracker-tab-pending" onclick="setTrackerSubTab('pending')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-amber-500 text-slate-950 shadow-xs transition">
-                            🟠 Pending Approval <span id="tracker-count-pending" class="ml-1 px-1.5 py-0.5 rounded-full bg-white/80 text-slate-900 text-[10px]">0</span>
-                        </button>
-                        <button type="button" id="tracker-tab-approved" onclick="setTrackerSubTab('approved')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
-                            ✅ Already Approved <span id="tracker-count-approved" class="ml-1 px-1.5 py-0.5 rounded-full bg-white text-slate-700 text-[10px]">0</span>
-                        </button>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">1. Approval Status</label>
+                        <select id="sheet-filter-status" onchange="onSheetStatusChange()" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold focus:border-indigo-500 outline-none">
+                            <option value="">--- Please Select ---</option>
+                            <option value="pending">🟠 Pending Approval</option>
+                            <option value="approved">✅ Already Approved</option>
+                        </select>
                     </div>
-                    <div class="relative w-full sm:w-64">
-                        <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3 top-1/2 -translate-y-1/2"></i>
-                        <input type="text" id="tracker-search-input" oninput="onTrackerSearchInput(this.value)" placeholder="Search staff name or month..." class="w-full rounded-xl border border-slate-300 pl-8 pr-3 py-1.5 text-xs font-medium focus:border-indigo-500 outline-none">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">2. Company Entity</label>
+                        <select id="sheet-filter-company" onchange="onSheetCompanyChange()" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold focus:border-indigo-500 outline-none"></select>
                     </div>
-                </div>
-
-                <!-- Dynamic Company Quick-Filter Pills -->
-                <div id="tracker-company-pills" class="flex flex-wrap items-center gap-1.5"></div>
-
-                <!-- Compact Scrollable List -->
-                <div id="approval-tracker-list" class="divide-y divide-slate-200 border border-slate-200 rounded-xl overflow-hidden max-h-80 overflow-y-auto"></div>
-            </div>
-
-            <!-- Filter & Action Toolbar (Hidden in Print) -->
-            <div class="no-print bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
-                <div class="flex flex-wrap items-end justify-between gap-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 min-w-[280px]">
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Company Entity</label>
-                            <select id="sheet-filter-company" onchange="onFilterCompanyChange('sheet')" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold"></select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Staff Claimant</label>
-                            <select id="sheet-filter-staff" onchange="renderOfficialClaimSheet()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold"></select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Claim Period (Month)</label>
-                            <input type="month" id="sheet-filter-month" onchange="renderOfficialClaimSheet()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold">
-                        </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">3. Staff Claimant</label>
+                        <select id="sheet-filter-staff" onchange="onSheetStaffChange()" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold focus:border-indigo-500 outline-none"></select>
                     </div>
-
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" id="btn-print-official-pdf" onclick="printOfficialClaimSheet()" class="hidden px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold shadow-md transition flex items-center gap-2">
-                            <i class="fa-solid fa-print"></i> Print / Save Official PDF
-                        </button>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">4. Claim Period (Month)</label>
+                        <select id="sheet-filter-month" onchange="renderOfficialClaimSheet()" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold focus:border-indigo-500 outline-none"></select>
                     </div>
                 </div>
             </div>
 
-            <!-- Empty Selection Prompt (Shown until both Company Entity and Staff Claimant are selected) -->
+            <!-- Empty Selection Prompt (Shown until all 4 dropdowns are selected) -->
             <div id="sheet-empty-prompt" class="no-print bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center space-y-2">
                 <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center text-xl">
                     <i class="fa-solid fa-file-invoice"></i>
                 </div>
-                <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Select Company Entity &amp; Staff Claimant</h3>
-                <p class="text-xs text-slate-500 max-w-md mx-auto">Please choose both a <strong>Company Entity</strong> and <strong>Staff Claimant</strong> from the dropdowns above (or click any row in the Claim Overview list) to view, sign, approve, or print the Official Claim Sheet.</p>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Select Approval Status, Company Entity, Staff Claimant &amp; Claim Period</h3>
+                <p class="text-xs text-slate-500 max-w-md mx-auto">Please complete all 4 dropdown selections above to view, sign, verify, approve, or print the Official Claim Sheet.</p>
             </div>
 
             <!-- Printable A4 Landscape Claim Form (Hidden until selected) -->
@@ -596,19 +574,27 @@
 
             <!-- Filter Bar -->
             <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3.5">
-                <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-end justify-between gap-3">
                     <div>
                         <h3 class="text-base font-extrabold text-slate-900">💰 Approved Claims &amp; Disbursement Tracker</h3>
                         <p class="text-xs text-slate-500">Track Finance-approved claim sheets, record bank transfer dates/references, and open signed PDFs.</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <select id="paid-status-filter" onchange="renderApprovedAndPaidTab()" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold bg-white">
-                            <option value="ALL">All Statuses</option>
-                            <option value="UNPAID">🟠 Awaiting Payout Only</option>
-                            <option value="PAID">✅ Paid Out Only</option>
-                        </select>
-                        <input type="month" id="paid-month-filter" onchange="renderApprovedAndPaidTab()" title="Filter by Month (Clear to show all months)" class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold">
-                        <button type="button" onclick="clearPaidMonthFilter()" class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">All Months</button>
+                    <div class="flex flex-wrap items-end gap-2.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Payout Status</label>
+                            <select id="paid-status-filter" onchange="renderApprovedAndPaidTab()" class="rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold bg-white">
+                                <option value="ALL">All Statuses</option>
+                                <option value="UNPAID">🟠 Awaiting Payout Only</option>
+                                <option value="PAID">✅ Paid Out Only</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Claim Period (Month)</label>
+                            <div class="flex items-center gap-1.5">
+                                <input type="month" id="paid-month-filter" onchange="renderApprovedAndPaidTab()" title="Filter by Month (Clear to show all months)" class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold">
+                                <button type="button" onclick="clearPaidMonthFilter()" class="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">All Months</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -799,7 +785,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Employed Under (Home Company) *</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Company Entity (Home) *</label>
                         <select id="staff-modal-company" required onchange="renderSisterCompanyCheckboxes()" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold focus:border-indigo-500 outline-none"></select>
                     </div>
                     <div>
@@ -890,7 +876,7 @@
         </div>
     </div>
 
-    <!-- Firebase Modular SDK + Application Logic -->
+    <!-- Firebase Modular SDK + Complete Application Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -901,6 +887,15 @@
         // =========================================================================
         const LOCAL_STORAGE_KEY = 'claimflow_pro_state_v3';
         const PLEASE_SELECT_OPTION = '<option value="">--- Please Select ---</option>';
+
+        const EXPENSE_CATEGORIES = [
+            { key: 'publicTransport', label: 'Public Transport / Grab / Petrol' },
+            { key: 'parking', label: 'Parking' },
+            { key: 'toll', label: 'Toll' },
+            { key: 'meals', label: 'Meals' },
+            { key: 'entertainment', label: 'Entertainment' },
+            { key: 'others', label: 'Others' }
+        ];
 
         const DEFAULT_STATE = {
             noticeBoard: 'Welcome to ClaimFlow Pro! Please submit all monthly travel & expense claims by the 25th of each month.',
@@ -964,282 +959,112 @@
         let draftStops = [];
         let editingEntryId = null;
         let modalTempLogoDataUrl = '';
-        let trackerSubTab = 'pending'; // 'pending' | 'approved'
-        let trackerCompanyFilter = 'ALL';
-        let trackerSearchQuery = '';
         let paidCompanyFilter = 'ALL';
         let paidSearchQuery = '';
-
-        function sortCompaniesABC(list) {
-            return [...(list || [])].sort((a, b) =>
-                (a.fullName || a.name || a.code || '').localeCompare(b.fullName || b.name || b.code || '', undefined, { sensitivity: 'base' })
-            );
-        }
-
-        function sortStaffABC(list) {
-            return [...(list || [])].sort((a, b) =>
-                (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
-            );
-        }
-
-        function sortAppStateListsABC() {
-            if (Array.isArray(appState.companies)) {
-                appState.companies = sortCompaniesABC(appState.companies);
-            }
-            if (Array.isArray(appState.staffProfiles)) {
-                appState.staffProfiles = sortStaffABC(appState.staffProfiles);
-            }
-            if (appState.staffLocations && typeof appState.staffLocations === 'object') {
-                Object.keys(appState.staffLocations).forEach(k => {
-                    if (Array.isArray(appState.staffLocations[k])) {
-                        appState.staffLocations[k] = [...appState.staffLocations[k]].sort((a, b) =>
-                            String(a).localeCompare(String(b), undefined, { sensitivity: 'base' })
-                        );
-                    }
-                });
-            }
-        }
-
-        function ensureListsSortedAndSync() {
-            const beforeComp = (appState.companies || []).map(c => c.code).join(',');
-            const beforeStaff = (appState.staffProfiles || []).map(s => s.id).join(',');
-            sortAppStateListsABC();
-            const afterComp = (appState.companies || []).map(c => c.code).join(',');
-            const afterStaff = (appState.staffProfiles || []).map(s => s.id).join(',');
-            if ((beforeComp !== afterComp || beforeStaff !== afterStaff) && typeof populateAllSelectors === 'function') {
-                populateAllSelectors(false);
-            }
-        }
-
-        // Cloud Sync Handles
-        let firestoreDb = null;
-        let workspaceDocRef = null;
-        let isCloudConnected = false;
-        let isApplyingRemoteSnapshot = false;
+        let popupTimeoutId = null;
 
         // =========================================================================
-        // 2. CLOUD & LOCAL STORAGE PERSISTENCE
-        // =========================================================================
-        function updateSyncBadges(statusText, colorClass) {
-            const loginBadge = document.getElementById('sync-status-login');
-            const headerBadge = document.getElementById('sync-badge-header');
-            if (loginBadge) {
-                loginBadge.innerHTML = `<span class="w-2 h-2 rounded-full ${colorClass}"></span> ${statusText}`;
-            }
-            if (headerBadge) {
-                headerBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${colorClass}"></span> ${statusText}`;
-            }
-        }
-
-        function saveStateToLocalAndCloud() {
-            sortAppStateListsABC();
-            try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
-            } catch (e) {
-                console.warn('LocalStorage quota warning:', e);
-            }
-
-            if (isCloudConnected && workspaceDocRef && !isApplyingRemoteSnapshot) {
-                setDoc(workspaceDocRef, {
-                    payload: JSON.stringify(appState),
-                    updatedAt: new Date().toISOString()
-                }, { merge: true }).catch(err => {
-                    console.error('Firestore sync error:', err);
-                });
-            }
-        }
-
-        function loadLocalState() {
-            try {
-                const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    appState = {
-                        ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
-                        ...parsed
-                    };
-                }
-                sortAppStateListsABC();
-            } catch (e) {
-                console.error('Failed to parse local state:', e);
-            }
-        }
-
-        async function initFirebaseSync() {
-            try {
-                const liveFirebaseConfig = {
-                    apiKey: "AIzaSyBkoqynJLUy6HOpwAab5QALMq83PW8iamk",
-                    authDomain: "onehax-claims.firebaseapp.com",
-                    projectId: "onehax-claims",
-                    storageBucket: "onehax-claims.firebasestorage.app",
-                    messagingSenderId: "354358457542",
-                    appId: "1:354358457542:web:aaf19ad13e5b05248a53c7",
-                    measurementId: "G-SKSGXM9T68"
-                };
-
-                const hasEnvConfig = typeof __firebase_config !== 'undefined' && __firebase_config;
-                const firebaseConfig = hasEnvConfig ? JSON.parse(__firebase_config) : liveFirebaseConfig;
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'onehax-claims-live';
-
-                const app = initializeApp(firebaseConfig);
-                const auth = getAuth(app);
-                firestoreDb = getFirestore(app);
-
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                onAuthStateChanged(auth, (user) => {
-                    if (!user) return;
-                    workspaceDocRef = doc(firestoreDb, 'artifacts', appId, 'public', 'data', 'claimflow_workspace', 'main_state');
-                    isCloudConnected = true;
-                    updateSyncBadges('Cloud Synced', 'bg-emerald-400');
-
-                    onSnapshot(workspaceDocRef, (snap) => {
-                        if (snap.exists() && snap.data().payload) {
-                            try {
-                                isApplyingRemoteSnapshot = true;
-                                const remoteState = JSON.parse(snap.data().payload);
-                                appState = {
-                                    ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
-                                    ...remoteState
-                                };
-                                sortAppStateListsABC();
-                                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
-                                refreshAllUI(false);
-                            } catch (err) {
-                                console.error('Snapshot parse error:', err);
-                            } finally {
-                                isApplyingRemoteSnapshot = false;
-                            }
-                        } else {
-                            saveStateToLocalAndCloud();
-                        }
-                    }, (err) => {
-                        console.warn('Firestore listener error:', err);
-                        updateSyncBadges('Local Mode', 'bg-amber-400');
-                    });
-                });
-            } catch (err) {
-                console.warn('Firebase init fallback to local mode:', err);
-                updateSyncBadges('Local Mode', 'bg-amber-400');
-            }
-        }
-
-        // =========================================================================
-        // 3. CURSOR-PRESERVING FORMATTERS, CENTER POP-UP & HELPERS
+        // 2. FORMATTING, CURSOR PRESERVATION & ABC SORTING HELPERS
         // =========================================================================
         window.applyUppercasePreserveCursor = function (inputEl) {
+            if (!inputEl) return;
             const start = inputEl.selectionStart;
             const end = inputEl.selectionEnd;
-            const upper = inputEl.value.toUpperCase();
+            const upper = (inputEl.value || '').toUpperCase();
             if (inputEl.value !== upper) {
                 inputEl.value = upper;
                 if (typeof start === 'number' && typeof end === 'number') {
-                    inputEl.setSelectionRange(start, end);
+                    try {
+                        inputEl.setSelectionRange(start, end);
+                    } catch (_) {}
                 }
-            }
-        };
-
-        window.formatNricInputLive = function (inputEl) {
-            const rawVal = inputEl.value;
-            const caretPos = inputEl.selectionStart ?? rawVal.length;
-            const digitsBeforeCaret = rawVal.slice(0, caretPos).replace(/\D/g, '').length;
-
-            const digits = rawVal.replace(/\D/g, '').slice(0, 12);
-            let formatted = digits;
-            if (digits.length > 6 && digits.length <= 8) {
-                formatted = `${digits.slice(0, 6)}-${digits.slice(6)}`;
-            } else if (digits.length > 8) {
-                formatted = `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
-            }
-            inputEl.value = formatted;
-
-            let newCaret = 0;
-            let seenDigits = 0;
-            while (newCaret < formatted.length && seenDigits < digitsBeforeCaret) {
-                if (/\d/.test(formatted[newCaret])) seenDigits++;
-                newCaret++;
-            }
-            inputEl.setSelectionRange(newCaret, newCaret);
-
-            const pwInput = document.getElementById('staff-modal-password');
-            if (pwInput && digits.length >= 4 && !pwInput.dataset.userEdited) {
-                pwInput.value = digits.slice(-4);
             }
         };
 
         function formatNricString(raw) {
-            const digits = (raw || '').replace(/\D/g, '').slice(0, 12);
-            if (digits.length !== 12) return raw || '-';
+            const digits = String(raw || '').replace(/\D/g, '').slice(0, 12);
+            if (digits.length <= 6) return digits;
+            if (digits.length <= 8) return `${digits.slice(0, 6)}-${digits.slice(6)}`;
             return `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
         }
 
-        window.formatMobileInputLive = function (inputEl) {
-            const rawVal = inputEl.value;
-            const caretPos = inputEl.selectionStart ?? rawVal.length;
-            const digitsBeforeCaret = rawVal.slice(0, caretPos).replace(/\D/g, '').length;
-
-            const digits = rawVal.replace(/\D/g, '').slice(0, 11);
-            let formatted = digits;
-            if (digits.startsWith('011') || digits.startsWith('015')) {
-                if (digits.length > 3 && digits.length <= 7) {
-                    formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-                } else if (digits.length > 7) {
-                    formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)} ${digits.slice(7)}`;
-                }
-            } else {
-                if (digits.length > 3 && digits.length <= 6) {
-                    formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-                } else if (digits.length > 6) {
-                    formatted = `${digits.slice(0, 3)}-${digits.slice(3, 6)} ${digits.slice(6)}`;
-                }
-            }
+        window.formatNricInputLive = function (inputEl) {
+            if (!inputEl) return;
+            const rawVal = inputEl.value || '';
+            const cursorPos = inputEl.selectionStart ?? rawVal.length;
+            const digitsBeforeCursor = rawVal.slice(0, cursorPos).replace(/\D/g, '').length;
+            const formatted = formatNricString(rawVal);
             inputEl.value = formatted;
 
-            let newCaret = 0;
+            let newPos = 0;
             let seenDigits = 0;
-            while (newCaret < formatted.length && seenDigits < digitsBeforeCaret) {
-                if (/\d/.test(formatted[newCaret])) seenDigits++;
-                newCaret++;
+            while (newPos < formatted.length && seenDigits < digitsBeforeCursor) {
+                if (/\d/.test(formatted[newPos])) seenDigits++;
+                newPos++;
             }
-            inputEl.setSelectionRange(newCaret, newCaret);
+            try {
+                inputEl.setSelectionRange(newPos, newPos);
+            } catch (_) {}
+
+            const digits = formatted.replace(/\D/g, '');
+            const pwInput = document.getElementById('staff-modal-password');
+            if (pwInput && !pwInput.dataset.userEdited && digits.length >= 4) {
+                pwInput.value = digits.slice(-4);
+            }
         };
 
         function formatMobileString(raw) {
-            const digits = (raw || '').replace(/\D/g, '');
-            if (!digits) return raw || '-';
-            if (digits.startsWith('011') || digits.startsWith('015')) {
-                if (digits.length >= 10) return `${digits.slice(0, 3)}-${digits.slice(3, 7)} ${digits.slice(7)}`;
-            } else if (digits.length >= 9) {
-                return `${digits.slice(0, 3)}-${digits.slice(3, 6)} ${digits.slice(6)}`;
+            const digits = String(raw || '').replace(/\D/g, '').slice(0, 11);
+            if (digits.length <= 3) return digits;
+            if (digits.startsWith('011') || digits.length === 11) {
+                if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                return `${digits.slice(0, 3)}-${digits.slice(3, 7)} ${digits.slice(7)}`;
             }
-            return raw;
+            if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+            return `${digits.slice(0, 3)}-${digits.slice(3, 6)} ${digits.slice(6)}`;
         }
 
-        function formatDateDDMMMYYYY(isoDate) {
-            if (!isoDate) return '-';
-            const parts = isoDate.split('-');
-            if (parts.length !== 3) return isoDate;
+        window.formatMobileInputLive = function (inputEl) {
+            if (!inputEl) return;
+            const rawVal = inputEl.value || '';
+            const cursorPos = inputEl.selectionStart ?? rawVal.length;
+            const digitsBeforeCursor = rawVal.slice(0, cursorPos).replace(/\D/g, '').length;
+            const formatted = formatMobileString(rawVal);
+            inputEl.value = formatted;
+
+            let newPos = 0;
+            let seenDigits = 0;
+            while (newPos < formatted.length && seenDigits < digitsBeforeCursor) {
+                if (/\d/.test(formatted[newPos])) seenDigits++;
+                newPos++;
+            }
+            try {
+                inputEl.setSelectionRange(newPos, newPos);
+            } catch (_) {}
+        };
+
+        function formatDateDDMMMYYYY(isoStr) {
+            if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return isoStr || '-';
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const mIdx = parseInt(parts[1], 10) - 1;
-            return `${parts[2]}-${months[mIdx] || parts[1]}-${parts[0]}`;
+            const [y, m, d] = isoStr.split('-');
+            const mIdx = parseInt(m, 10) - 1;
+            return `${d}-${months[mIdx] || m}-${y}`;
         }
 
         function formatMonthTitle(yyyyMm) {
-            if (!yyyyMm) return '-';
-            const [y, m] = yyyyMm.split('-');
+            if (!yyyyMm || !/^\d{4}-\d{2}$/.test(yyyyMm)) return yyyyMm || '-';
             const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
-            return `${months[parseInt(m, 10) - 1] || m} ${y}`;
+            const [y, m] = yyyyMm.split('-');
+            const mIdx = parseInt(m, 10) - 1;
+            return `${months[mIdx] || m} ${y}`;
         }
 
         function formatMonthShort(yyyyMm) {
-            if (!yyyyMm) return '-';
-            const [y, m] = yyyyMm.split('-');
+            if (!yyyyMm || !/^\d{4}-\d{2}$/.test(yyyyMm)) return yyyyMm || '-';
             const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-            return `${months[parseInt(m, 10) - 1] || m} ${y}`;
+            const [y, m] = yyyyMm.split('-');
+            const mIdx = parseInt(m, 10) - 1;
+            return `${months[mIdx] || m} ${y}`;
         }
 
         function formatCurrency(val) {
@@ -1249,7 +1074,7 @@
 
         function formatCurrencyBlankZero(val) {
             const num = parseFloat(val) || 0;
-            return num === 0 ? '-' : num.toFixed(2);
+            return num > 0 ? num.toFixed(2) : '-';
         }
 
         function getCompanyLegalName(comp) {
@@ -1260,100 +1085,116 @@
         function getNoticeBoardString(nb) {
             if (!nb) return '';
             if (typeof nb === 'string') return nb;
-            if (typeof nb === 'object') {
-                if (nb.enabled === false) return '';
-                return String(nb.text || nb.message || nb.content || '');
-            }
-            return String(nb);
+            if (typeof nb === 'object' && nb.message) return String(nb.message);
+            return '';
         }
 
-        // Center-Screen Pop-Up Notification
-        let activePopupTimer = null;
+        function sortCompaniesABC(list) {
+            return [...(list || [])].sort((a, b) =>
+                getCompanyLegalName(a).localeCompare(getCompanyLegalName(b), undefined, { sensitivity: 'base' })
+            );
+        }
+
+        function sortStaffABC(list) {
+            return [...(list || [])].sort((a, b) =>
+                String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' })
+            );
+        }
+
+        function sortAppStateListsABC() {
+            if (Array.isArray(appState.companies)) {
+                appState.companies = sortCompaniesABC(appState.companies);
+            }
+            if (Array.isArray(appState.staffProfiles)) {
+                appState.staffProfiles = sortStaffABC(appState.staffProfiles);
+            }
+        }
+
+        function ensureListsSortedAndSync() {
+            sortAppStateListsABC();
+        }
+
         function showToast(message, type = 'success') {
             const container = document.getElementById('center-popup-container');
             if (!container) return;
-            if (activePopupTimer) {
-                clearTimeout(activePopupTimer);
-                activePopupTimer = null;
+
+            if (popupTimeoutId) {
+                clearTimeout(popupTimeoutId);
+                popupTimeoutId = null;
             }
 
-            const config = {
+            const styles = {
                 success: {
-                    ring: 'border-emerald-500 bg-white',
-                    iconBg: 'bg-emerald-100 text-emerald-600',
+                    ring: 'border-emerald-300 bg-white',
+                    iconBg: 'bg-emerald-100 text-emerald-700',
                     icon: 'fa-circle-check',
                     title: 'Success'
                 },
-                error: {
-                    ring: 'border-rose-500 bg-white',
-                    iconBg: 'bg-rose-100 text-rose-600',
-                    icon: 'fa-circle-xmark',
-                    title: 'Action Blocked'
-                },
                 warning: {
-                    ring: 'border-amber-500 bg-white',
-                    iconBg: 'bg-amber-100 text-amber-600',
+                    ring: 'border-amber-300 bg-white',
+                    iconBg: 'bg-amber-100 text-amber-700',
                     icon: 'fa-triangle-exclamation',
-                    title: 'Please Check'
+                    title: 'Notice'
+                },
+                error: {
+                    ring: 'border-rose-300 bg-white',
+                    iconBg: 'bg-rose-100 text-rose-700',
+                    icon: 'fa-circle-xmark',
+                    title: 'Action Required'
                 }
-            }[type] || {
-                ring: 'border-emerald-500 bg-white',
-                iconBg: 'bg-emerald-100 text-emerald-600',
-                icon: 'fa-circle-check',
-                title: 'Notice'
             };
+            const cfg = styles[type] || styles.success;
 
             container.innerHTML = `
-                <div class="animate-center-pop pointer-events-auto max-w-sm w-full rounded-3xl border-2 ${config.ring} shadow-2xl px-6 py-5 text-center space-y-2.5">
-                    <div class="w-12 h-12 rounded-2xl ${config.iconBg} mx-auto flex items-center justify-center text-2xl">
-                        <i class="fa-solid ${config.icon}"></i>
+                <div onclick="this.parentElement.innerHTML=''" class="pointer-events-auto animate-center-pop max-w-sm w-full rounded-3xl border-2 ${cfg.ring} shadow-2xl p-5 text-center space-y-2.5 cursor-pointer">
+                    <div class="w-12 h-12 rounded-2xl ${cfg.iconBg} mx-auto flex items-center justify-center text-2xl">
+                        <i class="fa-solid ${cfg.icon}"></i>
                     </div>
-                    <div class="text-sm font-extrabold text-slate-900">${config.title}</div>
+                    <div class="text-sm font-extrabold text-slate-900">${cfg.title}</div>
                     <div class="text-xs font-semibold text-slate-600 leading-relaxed">${escapeHtml(message)}</div>
                 </div>
             `;
 
-            activePopupTimer = setTimeout(() => {
+            popupTimeoutId = setTimeout(() => {
                 container.innerHTML = '';
             }, 2400);
         }
 
         // =========================================================================
-        // 4. AUTHENTICATION & MULTI-TIER ROLE-BASED ACCESS CONTROL (RBAC)
+        // 3. ROLE, HIERARCHY & ACCESS CONTROL HELPERS
         // =========================================================================
+        function isSuperAdmin() {
+            return Boolean(currentSession && currentSession.type === 'admin');
+        }
+
         function getLoggedInStaff() {
             if (!currentSession || currentSession.type !== 'user') return null;
             return appState.staffProfiles.find(s => s.id === currentSession.staffId) || null;
         }
 
-        function isSuperAdmin() {
-            return currentSession && currentSession.type === 'admin';
-        }
-
         function isAdminOrFinance() {
             if (isSuperAdmin()) return true;
-            const staff = getLoggedInStaff();
-            return staff && staff.role === 'finance';
+            const st = getLoggedInStaff();
+            return Boolean(st && st.role === 'finance');
         }
 
         function isSupervisorOrManagerRole(role) {
             return role === 'supervisor' || role === 'manager';
         }
 
-        // Recursively collects direct & indirect subordinates (e.g. Manager -> Supervisor -> Executive/Staff)
-        function getTransitiveManagedStaffIds(leaderObj) {
+        function getTransitiveManagedStaffIds(leaderProfile) {
             const result = new Set();
-            if (!leaderObj || !Array.isArray(leaderObj.managedStaffIds)) return result;
+            if (!leaderProfile || !Array.isArray(leaderProfile.managedStaffIds)) return result;
 
-            const queue = [...leaderObj.managedStaffIds];
+            const queue = [...leaderProfile.managedStaffIds];
             while (queue.length > 0) {
                 const subId = queue.shift();
-                if (!subId || subId === leaderObj.id || result.has(subId)) continue;
+                if (!subId || subId === leaderProfile.id || result.has(subId)) continue;
                 result.add(subId);
                 const subProfile = appState.staffProfiles.find(s => s.id === subId);
                 if (subProfile && Array.isArray(subProfile.managedStaffIds)) {
-                    subProfile.managedStaffIds.forEach(nestedId => {
-                        if (!result.has(nestedId)) queue.push(nestedId);
+                    subProfile.managedStaffIds.forEach(nextId => {
+                        if (!result.has(nextId)) queue.push(nextId);
                     });
                 }
             }
@@ -1362,50 +1203,59 @@
 
         function hasAnySubordinates() {
             if (isAdminOrFinance()) return true;
-            const staff = getLoggedInStaff();
-            if (!staff) return false;
-            return getTransitiveManagedStaffIds(staff).size > 0;
+            const st = getLoggedInStaff();
+            if (!st) return false;
+            return getTransitiveManagedStaffIds(st).size > 0;
+        }
+
+        function getAccessibleCompaniesForStaff(staff) {
+            if (!staff) return sortCompaniesABC(appState.companies);
+            const allowedSet = new Set([staff.companyCode, ...(staff.allowedCompanies || [])]);
+            const filtered = appState.companies.filter(c => allowedSet.has(c.code));
+            return sortCompaniesABC(filtered.length > 0 ? filtered : appState.companies);
         }
 
         function getAccessibleStaffProfiles() {
             if (isAdminOrFinance()) {
                 return sortStaffABC(appState.staffProfiles);
             }
-            const staff = getLoggedInStaff();
-            if (!staff) return [];
-            if (isSupervisorOrManagerRole(staff.role)) {
-                const managedSet = getTransitiveManagedStaffIds(staff);
-                managedSet.add(staff.id);
-                return sortStaffABC(appState.staffProfiles.filter(s => managedSet.has(s.id)));
-            }
-            return [staff];
+            const loggedIn = getLoggedInStaff();
+            if (!loggedIn) return [];
+            const managedSet = getTransitiveManagedStaffIds(loggedIn);
+            return sortStaffABC(
+                appState.staffProfiles.filter(s => s.id === loggedIn.id || managedSet.has(s.id))
+            );
         }
 
-        function getAccessibleCompaniesForStaff(staffObj) {
-            if (isAdminOrFinance()) return sortCompaniesABC(appState.companies);
-            if (!staffObj) return [];
-            const codes = new Set([staffObj.companyCode, ...(staffObj.allowedCompanies || [])]);
-            return sortCompaniesABC(appState.companies.filter(c => codes.has(c.code)));
+        function isMonthApprovedByFinance(compCode, staffName, monthVal) {
+            if (!compCode || !staffName || !monthVal) return false;
+            const key = `${compCode}__${staffName}__${monthVal}`;
+            return Boolean(appState.approvals && appState.approvals[key] && appState.approvals[key].approvedBy);
         }
 
+        // =========================================================================
+        // 4. LOGIN, LOGOUT & WORKSPACE INITIALIZATION
+        // =========================================================================
         window.switchLoginMode = function (mode) {
             loginMode = mode;
-            const userTab = document.getElementById('login-tab-user');
-            const adminTab = document.getElementById('login-tab-admin');
+            const errBox = document.getElementById('login-error-box');
+            errBox.classList.add('hidden');
+
+            const tabUser = document.getElementById('login-tab-user');
+            const tabAdmin = document.getElementById('login-tab-admin');
             const userFields = document.getElementById('user-login-fields');
             const adminFields = document.getElementById('admin-login-fields');
-            document.getElementById('login-error-box').classList.add('hidden');
 
-            if (mode === 'user') {
-                userTab.className = 'py-3.5 text-indigo-700 border-b-2 border-indigo-600 bg-white transition';
-                adminTab.className = 'py-3.5 text-slate-500 hover:text-slate-700 transition';
-                userFields.classList.remove('hidden');
-                adminFields.classList.add('hidden');
-            } else {
-                adminTab.className = 'py-3.5 text-indigo-700 border-b-2 border-indigo-600 bg-white transition';
-                userTab.className = 'py-3.5 text-slate-500 hover:text-slate-700 transition';
+            if (mode === 'admin') {
+                tabAdmin.className = 'py-3.5 text-indigo-700 border-b-2 border-indigo-600 bg-white transition';
+                tabUser.className = 'py-3.5 text-slate-500 hover:text-slate-700 transition';
                 adminFields.classList.remove('hidden');
                 userFields.classList.add('hidden');
+            } else {
+                tabUser.className = 'py-3.5 text-indigo-700 border-b-2 border-indigo-600 bg-white transition';
+                tabAdmin.className = 'py-3.5 text-slate-500 hover:text-slate-700 transition';
+                userFields.classList.remove('hidden');
+                adminFields.classList.add('hidden');
             }
         };
 
@@ -1415,9 +1265,9 @@
             errBox.classList.add('hidden');
 
             if (loginMode === 'admin') {
-                const id = document.getElementById('login-admin-id').value.trim();
-                const pw = document.getElementById('login-admin-password').value.trim();
-                if (id === 'admin' && pw === '333666') {
+                const adminId = document.getElementById('login-admin-id').value.trim();
+                const adminPw = document.getElementById('login-admin-password').value.trim();
+                if (adminId === 'admin' && adminPw === '333666') {
                     currentSession = { type: 'admin' };
                     enterWorkspace();
                 } else {
@@ -1427,8 +1277,8 @@
                 return;
             }
 
-            const nric6 = document.getElementById('login-nric-id').value.replace(/\D/g, '');
-            const pw = document.getElementById('login-user-password').value.trim();
+            const nric6 = document.getElementById('login-nric-id').value.replace(/\D/g, '').slice(-6);
+            const userPw = document.getElementById('login-user-password').value.trim();
 
             if (nric6.length !== 6) {
                 errBox.textContent = 'Please enter the last 6 digits of your NRIC.';
@@ -1436,23 +1286,23 @@
                 return;
             }
 
-            const matchedUser = appState.staffProfiles.find(s => {
-                const digits = (s.nric || '').replace(/\D/g, '');
+            const matchedUser = appState.staffProfiles.find(st => {
+                const digits = (st.nric || '').replace(/\D/g, '');
                 return digits.slice(-6) === nric6;
             });
 
             if (!matchedUser) {
-                errBox.textContent = 'No registered profile found for that NRIC ID. Please contact Finance / Admin.';
+                errBox.textContent = 'NRIC Login ID not found. Please contact Finance / Admin to register your account.';
                 errBox.classList.remove('hidden');
                 return;
             }
 
-            const digits = (matchedUser.nric || '').replace(/\D/g, '');
-            const expectedPw = matchedUser.password && matchedUser.password.trim() !== ''
+            const fullDigits = (matchedUser.nric || '').replace(/\D/g, '');
+            const expectedPw = (matchedUser.password && matchedUser.password.trim() !== '')
                 ? matchedUser.password.trim()
-                : digits.slice(-4);
+                : fullDigits.slice(-4);
 
-            if (pw !== expectedPw) {
+            if (userPw !== expectedPw) {
                 errBox.textContent = 'Incorrect password. Default password is the last 4 digits of your NRIC.';
                 errBox.classList.remove('hidden');
                 return;
@@ -1460,6 +1310,15 @@
 
             currentSession = { type: 'user', staffId: matchedUser.id };
             enterWorkspace();
+        };
+
+        window.handleLogout = function () {
+            currentSession = null;
+            editingEntryId = null;
+            document.getElementById('app-shell').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-user-password').value = '';
+            document.getElementById('login-admin-password').value = '';
         };
 
         function enterWorkspace() {
@@ -1472,7 +1331,6 @@
 
             document.getElementById('entry-date').value = yyyyMmDd;
             document.getElementById('filter-entries-month').value = yyyyMm;
-            document.getElementById('sheet-filter-month').value = yyyyMm;
 
             if (draftStops.length === 0) {
                 addRouteStop();
@@ -1482,28 +1340,55 @@
             switchMainTab(isSuperAdmin() ? 'sheet' : 'log');
         }
 
-        window.handleLogout = function () {
-            currentSession = null;
-            document.getElementById('login-user-password').value = '';
-            document.getElementById('login-admin-password').value = '';
-            document.getElementById('app-shell').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
-        };
+        function updateHeaderAndRoleVisibility() {
+            const subEl = document.getElementById('header-user-subtitle');
+            const cpBtn = document.getElementById('btn-change-password');
+            const adminNotice = document.getElementById('superadmin-no-claim-notice');
+            const entryCard = document.getElementById('claim-entry-card');
 
-        // =========================================================================
-        // 5. NAVIGATION & SMART ROLE-BASED DROPDOWN DEFAULTS
-        // =========================================================================
+            if (isSuperAdmin()) {
+                subEl.textContent = 'SuperAdmin (Full System Access)';
+                cpBtn.classList.add('hidden');
+                if (adminNotice) adminNotice.classList.remove('hidden');
+                if (entryCard) entryCard.classList.add('hidden');
+            } else {
+                const st = getLoggedInStaff();
+                const roleLabel = st?.role === 'finance'
+                    ? 'Finance'
+                    : st?.role === 'manager'
+                        ? 'Manager'
+                        : st?.role === 'supervisor'
+                            ? 'Supervisor'
+                            : 'Staff / Executive';
+                subEl.textContent = st ? `${st.name} • ${roleLabel} (${st.companyCode})` : 'Signed in';
+                cpBtn.classList.remove('hidden');
+                if (adminNotice) adminNotice.classList.add('hidden');
+                if (entryCard) entryCard.classList.remove('hidden');
+            }
+
+            const nbBanner = document.getElementById('notice-board-banner');
+            const nbText = document.getElementById('notice-board-text');
+            const msg = getNoticeBoardString(appState.noticeBoard).trim();
+            if (msg) {
+                nbText.textContent = msg;
+                nbBanner.classList.remove('hidden');
+            } else {
+                nbBanner.classList.add('hidden');
+            }
+        }
+
         window.switchMainTab = function (tabName) {
-            ['log', 'entries', 'sheet', 'paid', 'setup'].forEach(t => {
-                const panel = document.getElementById(`tab-panel-${t}`);
+            const tabs = ['log', 'entries', 'sheet', 'paid', 'setup'];
+            tabs.forEach(t => {
                 const btn = document.getElementById(`main-tab-${t}`);
-                if (!panel || !btn) return;
+                const panel = document.getElementById(`tab-panel-${t}`);
+                if (!btn || !panel) return;
                 if (t === tabName) {
-                    panel.classList.remove('hidden');
                     btn.className = 'px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl bg-slate-50 text-indigo-700 border-t-2 border-indigo-500 whitespace-nowrap transition';
+                    panel.classList.remove('hidden');
                 } else {
-                    panel.classList.add('hidden');
                     btn.className = 'px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl text-slate-300 hover:text-white hover:bg-slate-800/60 whitespace-nowrap transition';
+                    panel.classList.add('hidden');
                 }
             });
 
@@ -1513,47 +1398,12 @@
             if (tabName === 'setup') renderSetupDirectory();
         };
 
-        function refreshAllUI(resetDropdownsToDefault = false) {
-            if (!currentSession) return;
+        function refreshAllUI(resetToDefault = false) {
             sortAppStateListsABC();
+            if (!currentSession) return;
 
-            const subtitleEl = document.getElementById('header-user-subtitle');
-            const changePwBtn = document.getElementById('btn-change-password');
-            const superadminNotice = document.getElementById('superadmin-no-claim-notice');
-            const claimEntryCard = document.getElementById('claim-entry-card');
-
-            if (isSuperAdmin()) {
-                subtitleEl.textContent = 'SuperAdmin (Full System Access)';
-                changePwBtn.classList.add('hidden');
-                if (superadminNotice) superadminNotice.classList.remove('hidden');
-                if (claimEntryCard) claimEntryCard.classList.add('hidden');
-            } else {
-                const staff = getLoggedInStaff();
-                if (!staff) {
-                    handleLogout();
-                    return;
-                }
-                const roleLabel = staff.role === 'finance'
-                    ? 'Finance'
-                    : (staff.role === 'manager' ? 'Manager' : (staff.role === 'supervisor' ? 'Supervisor' : 'Staff / Executive'));
-                subtitleEl.textContent = `${staff.name} • ${roleLabel}`;
-                changePwBtn.classList.remove('hidden');
-                if (superadminNotice) superadminNotice.classList.add('hidden');
-                if (claimEntryCard) claimEntryCard.classList.remove('hidden');
-            }
-
-            // Notice Board
-            const noticeBanner = document.getElementById('notice-board-banner');
-            const noticeText = document.getElementById('notice-board-text');
-            const nbMessage = getNoticeBoardString(appState.noticeBoard).trim();
-            if (nbMessage) {
-                noticeText.textContent = nbMessage;
-                noticeBanner.classList.remove('hidden');
-            } else {
-                noticeBanner.classList.add('hidden');
-            }
-
-            populateAllSelectors(resetDropdownsToDefault);
+            updateHeaderAndRoleVisibility();
+            populateAllSelectors(resetToDefault);
             renderLocationMemoryForSelectedStaff();
             updateBadgesAndLivePreview();
             renderSavedEntriesList();
@@ -1562,9 +1412,11 @@
             renderSetupDirectory();
         }
 
+        // =========================================================================
+        // 5. DROPDOWN POPULATION & CASCADING FILTERS
+        // =========================================================================
         function populateAllSelectors(resetToDefault = false) {
             const loggedInStaff = getLoggedInStaff();
-            const canSeeSubordinates = hasAnySubordinates();
 
             // 1. Tab 1 ("1. Log New Claim") -> STRICT SELF-CLAIM ONLY
             const entryStaffSel = document.getElementById('entry-staff');
@@ -1580,30 +1432,29 @@
 
             syncEntryCompanyOptionsForSelectedStaff(resetToDefault);
 
-            // 2. Filter Dropdowns for Tab 2 (Entries) & Tab 3 (Sheet)
+            // 2. Tab 2 ("2. Saved Entries") Company & Staff Filters
             const filterCompanies = isAdminOrFinance()
                 ? sortCompaniesABC(appState.companies)
                 : getAccessibleCompaniesForStaff(loggedInStaff);
 
-            ['filter-entries-company', 'sheet-filter-company'].forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                const prev = resetToDefault ? '' : el.value;
+            const entriesCompEl = document.getElementById('filter-entries-company');
+            if (entriesCompEl) {
+                const prev = resetToDefault ? '' : entriesCompEl.value;
                 if (filterCompanies.length === 1) {
-                    el.innerHTML = `<option value="${escapeHtml(filterCompanies[0].code)}">${escapeHtml(getCompanyLegalName(filterCompanies[0]))}</option>`;
-                    el.value = filterCompanies[0].code;
+                    entriesCompEl.innerHTML = `<option value="${escapeHtml(filterCompanies[0].code)}">${escapeHtml(getCompanyLegalName(filterCompanies[0]))}</option>`;
+                    entriesCompEl.value = filterCompanies[0].code;
                 } else {
-                    el.innerHTML = PLEASE_SELECT_OPTION + filterCompanies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
-                    if (prev && filterCompanies.some(c => c.code === prev)) {
-                        el.value = prev;
-                    } else {
-                        el.value = '';
-                    }
+                    entriesCompEl.innerHTML = PLEASE_SELECT_OPTION + filterCompanies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
+                    entriesCompEl.value = (prev && filterCompanies.some(c => c.code === prev)) ? prev : '';
                 }
-            });
-
+            }
             syncFilterStaffOptions('entries', resetToDefault);
-            syncFilterStaffOptions('sheet', resetToDefault);
+
+            // 3. Tab 3 ("3. Official Claim Sheet & PDF") Unified 4-Dropdown Selector
+            syncSheetStatusOptions(resetToDefault);
+            syncSheetCompanyOptions(resetToDefault);
+            syncSheetStaffOptions(resetToDefault);
+            syncSheetMonthOptions(resetToDefault);
         }
 
         function syncEntryCompanyOptionsForSelectedStaff(resetToDefault = false) {
@@ -1639,18 +1490,16 @@
         window.onFilterCompanyChange = function (target) {
             syncFilterStaffOptions(target, false);
             if (target === 'entries') renderSavedEntriesList();
-            if (target === 'sheet') renderOfficialClaimSheet();
         };
 
         function syncFilterStaffOptions(target, resetToDefault = false) {
-            const compSel = document.getElementById(target === 'entries' ? 'filter-entries-company' : 'sheet-filter-company');
-            const staffSel = document.getElementById(target === 'entries' ? 'filter-entries-staff' : 'sheet-filter-staff');
+            const compSel = document.getElementById('filter-entries-company');
+            const staffSel = document.getElementById('filter-entries-staff');
             if (!compSel || !staffSel) return;
 
             const loggedInStaff = getLoggedInStaff();
             const canSeeSubordinates = hasAnySubordinates();
 
-            // Staff / Exec (or Supervisor/Manager/Finance with 0 subordinates) -> auto-fill their own name automatically!
             if (loggedInStaff && !canSeeSubordinates) {
                 staffSel.innerHTML = `<option value="${escapeHtml(loggedInStaff.name)}">${escapeHtml(loggedInStaff.name)}</option>`;
                 staffSel.value = loggedInStaff.name;
@@ -1682,48 +1531,269 @@
             }
         }
 
-        // =========================================================================
-        // 6. PER-STAFF LOCATION MEMORY & MULTI-STOP BUILDER WITH PER-STOP EXPENSES
-        // =========================================================================
-        function renderLocationMemoryForSelectedStaff() {
-            const staffName = document.getElementById('entry-staff')?.value || '';
-            const datalist = document.getElementById('staff-location-memory');
-            if (!datalist) return;
-            const savedList = [...((appState.staffLocations && appState.staffLocations[staffName]) || [])]
-                .sort((a, b) => String(a).localeCompare(String(b), undefined, { sensitivity: 'base' }));
-            datalist.innerHTML = savedList.map(loc => `<option value="${escapeHtml(loc)}"></option>`).join('');
-        }
+        // Tab 3 Cascading 4-Dropdown Helpers
+        function getAllAccessibleClaimSheetSummaries() {
+            const accessibleStaffNames = new Set(getAccessibleStaffProfiles().map(s => s.name));
+            const grouped = new Map();
 
-        function recordStaffLocations(staffName, locationsArray) {
-            if (!staffName) return;
-            if (!appState.staffLocations) appState.staffLocations = {};
-            const existing = new Set((appState.staffLocations[staffName] || []).map(x => x.toUpperCase()));
-            locationsArray.forEach(loc => {
-                const clean = (loc || '').trim().toUpperCase();
-                if (clean.length >= 2) existing.add(clean);
+            (appState.entries || []).forEach(entry => {
+                if (!entry || !entry.companyCode || !entry.staffName || !entry.date) return;
+                if (!isAdminOrFinance() && !accessibleStaffNames.has(entry.staffName)) return;
+
+                const monthVal = entry.date.slice(0, 7);
+                const key = getApprovalKey(entry.companyCode, entry.staffName, monthVal);
+                const comp = appState.companies.find(c => c.code === entry.companyCode);
+                const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
+
+                if (!grouped.has(key)) {
+                    grouped.set(key, {
+                        key,
+                        companyCode: entry.companyCode,
+                        staffName: entry.staffName,
+                        monthVal,
+                        rowCount: 0,
+                        totalRm: 0
+                    });
+                }
+                const item = grouped.get(key);
+
+                if (entry.tripType === 'driving' && Array.isArray(entry.stops) && entry.stops.length > 0) {
+                    entry.stops.forEach((st, idx) => {
+                        item.rowCount++;
+                        const km = parseFloat(st.distanceKm) || 0;
+                        const mileage = km * rate;
+                        const useLegacy = !entry.hasPerStopExpenses && idx === 0;
+                        const exp = useLegacy
+                            ? (parseFloat(entry.publicTransport) || 0) + (parseFloat(entry.parking) || 0) + (parseFloat(entry.toll) || 0) + (parseFloat(entry.meals) || 0) + (parseFloat(entry.entertainment) || 0) + (parseFloat(entry.others) || 0)
+                            : (parseFloat(st.publicTransport) || 0) + (parseFloat(st.parking) || 0) + (parseFloat(st.toll) || 0) + (parseFloat(st.meals) || 0) + (parseFloat(st.entertainment) || 0) + (parseFloat(st.others) || 0);
+                        item.totalRm += mileage + exp;
+                    });
+                } else {
+                    item.rowCount++;
+                    const exp = (parseFloat(entry.publicTransport) || 0) + (parseFloat(entry.parking) || 0) + (parseFloat(entry.toll) || 0) + (parseFloat(entry.meals) || 0) + (parseFloat(entry.entertainment) || 0) + (parseFloat(entry.others) || 0);
+                    item.totalRm += exp;
+                }
             });
-            appState.staffLocations[staffName] = Array.from(existing)
-                .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
-                .slice(0, 80);
-            renderLocationMemoryForSelectedStaff();
+
+            return Array.from(grouped.values()).sort((a, b) => {
+                const mCmp = b.monthVal.localeCompare(a.monthVal);
+                if (mCmp !== 0) return mCmp;
+                return a.staffName.localeCompare(b.staffName, undefined, { sensitivity: 'base' });
+            });
         }
 
+        function updatePendingApprovalsBadge() {
+            const summaries = getAllAccessibleClaimSheetSummaries();
+            let pendingCount = 0;
+            let unpaidApprovedCount = 0;
+
+            summaries.forEach(s => {
+                const rec = (appState.approvals && appState.approvals[s.key]) || {};
+                if (!rec.approvedBy) {
+                    pendingCount++;
+                } else if (!rec.paidDate) {
+                    unpaidApprovedCount++;
+                }
+            });
+
+            const pendingBadge = document.getElementById('badge-pending-approvals');
+            if (pendingBadge) {
+                if (pendingCount > 0) {
+                    pendingBadge.textContent = pendingCount;
+                    pendingBadge.classList.remove('hidden');
+                } else {
+                    pendingBadge.classList.add('hidden');
+                }
+            }
+
+            const unpaidBadge = document.getElementById('badge-unpaid-approved');
+            if (unpaidBadge) {
+                if (unpaidApprovedCount > 0) {
+                    unpaidBadge.textContent = `${unpaidApprovedCount} To Pay`;
+                    unpaidBadge.classList.remove('hidden');
+                } else {
+                    unpaidBadge.classList.add('hidden');
+                }
+            }
+        }
+
+        function getSummariesMatchingStatus(statusVal) {
+            const allSummaries = getAllAccessibleClaimSheetSummaries();
+            if (!statusVal) return allSummaries;
+            return allSummaries.filter(s => {
+                const rec = (appState.approvals && appState.approvals[s.key]) || {};
+                const isApproved = Boolean(rec.approvedBy);
+                return statusVal === 'approved' ? isApproved : !isApproved;
+            });
+        }
+
+        function syncSheetStatusOptions(resetToDefault = false) {
+            const statusSel = document.getElementById('sheet-filter-status');
+            if (!statusSel) return;
+            const prev = resetToDefault ? '' : statusSel.value;
+
+            const allSummaries = getAllAccessibleClaimSheetSummaries();
+            let pendingCount = 0;
+            let approvedCount = 0;
+            allSummaries.forEach(s => {
+                const rec = (appState.approvals && appState.approvals[s.key]) || {};
+                if (rec.approvedBy) approvedCount++;
+                else pendingCount++;
+            });
+
+            statusSel.innerHTML = `
+                <option value="">--- Please Select ---</option>
+                <option value="pending">🟠 Pending Approval (${pendingCount})</option>
+                <option value="approved">✅ Already Approved (${approvedCount})</option>
+            `;
+            statusSel.value = (prev === 'pending' || prev === 'approved') ? prev : '';
+        }
+
+        function syncSheetCompanyOptions(resetToDefault = false) {
+            const compSel = document.getElementById('sheet-filter-company');
+            if (!compSel) return;
+            const loggedInStaff = getLoggedInStaff();
+            const prev = resetToDefault ? '' : compSel.value;
+
+            const baseCompanies = isAdminOrFinance()
+                ? sortCompaniesABC(appState.companies)
+                : getAccessibleCompaniesForStaff(loggedInStaff);
+
+            if (baseCompanies.length === 1) {
+                compSel.innerHTML = `<option value="${escapeHtml(baseCompanies[0].code)}">${escapeHtml(getCompanyLegalName(baseCompanies[0]))}</option>`;
+                compSel.value = baseCompanies[0].code;
+                return;
+            }
+
+            compSel.innerHTML = PLEASE_SELECT_OPTION + baseCompanies.map(c =>
+                `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`
+            ).join('');
+            compSel.value = (prev && baseCompanies.some(c => c.code === prev)) ? prev : '';
+        }
+
+        function syncSheetStaffOptions(resetToDefault = false) {
+            const statusVal = document.getElementById('sheet-filter-status')?.value || '';
+            const compCode = document.getElementById('sheet-filter-company')?.value || '';
+            const staffSel = document.getElementById('sheet-filter-staff');
+            if (!staffSel) return;
+
+            const loggedInStaff = getLoggedInStaff();
+            const canSeeSubordinates = hasAnySubordinates();
+
+            if (loggedInStaff && !canSeeSubordinates) {
+                staffSel.innerHTML = `<option value="${escapeHtml(loggedInStaff.name)}">${escapeHtml(loggedInStaff.name)}</option>`;
+                staffSel.value = loggedInStaff.name;
+                staffSel.disabled = true;
+                staffSel.classList.add('bg-slate-100', 'cursor-not-allowed');
+                return;
+            }
+
+            staffSel.disabled = false;
+            staffSel.classList.remove('bg-slate-100', 'cursor-not-allowed');
+
+            const prev = resetToDefault ? '' : staffSel.value;
+            const matchingSummaries = getSummariesMatchingStatus(statusVal)
+                .filter(s => !compCode || s.companyCode === compCode);
+
+            if (statusVal && compCode) {
+                const uniqueNames = Array.from(new Set(matchingSummaries.map(s => s.staffName)))
+                    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+                if (uniqueNames.length === 0) {
+                    staffSel.innerHTML = '<option value="">--- No Matching Staff ---</option>';
+                    staffSel.value = '';
+                    return;
+                }
+                staffSel.innerHTML = PLEASE_SELECT_OPTION + uniqueNames.map(name =>
+                    `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`
+                ).join('');
+                staffSel.value = (prev && uniqueNames.includes(prev)) ? prev : '';
+                return;
+            }
+
+            const allAccessible = getAccessibleStaffProfiles();
+            const candidates = compCode
+                ? allAccessible.filter(s => new Set([s.companyCode, ...(s.allowedCompanies || [])]).has(compCode))
+                : allAccessible;
+            const sortedCandidates = sortStaffABC(candidates.length > 0 ? candidates : allAccessible);
+
+            staffSel.innerHTML = PLEASE_SELECT_OPTION + sortedCandidates.map(s =>
+                `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`
+            ).join('');
+            staffSel.value = (prev && sortedCandidates.some(s => s.name === prev)) ? prev : '';
+        }
+
+        function syncSheetMonthOptions(resetToDefault = false) {
+            const statusVal = document.getElementById('sheet-filter-status')?.value || '';
+            const compCode = document.getElementById('sheet-filter-company')?.value || '';
+            const staffName = document.getElementById('sheet-filter-staff')?.value || '';
+            const monthSel = document.getElementById('sheet-filter-month');
+            if (!monthSel) return;
+
+            const prev = resetToDefault ? '' : monthSel.value;
+
+            if (!statusVal || !compCode || !staffName) {
+                monthSel.innerHTML = PLEASE_SELECT_OPTION;
+                monthSel.value = '';
+                return;
+            }
+
+            const matchingSummaries = getSummariesMatchingStatus(statusVal)
+                .filter(s => s.companyCode === compCode && s.staffName === staffName);
+
+            const months = Array.from(new Set(matchingSummaries.map(s => s.monthVal)))
+                .sort((a, b) => b.localeCompare(a));
+
+            if (months.length === 0) {
+                monthSel.innerHTML = '<option value="">--- No Claims Found ---</option>';
+                monthSel.value = '';
+                return;
+            }
+
+            monthSel.innerHTML = PLEASE_SELECT_OPTION + months.map(m =>
+                `<option value="${escapeHtml(m)}">${escapeHtml(formatMonthTitle(m))}</option>`
+            ).join('');
+            monthSel.value = (prev && months.includes(prev)) ? prev : '';
+        }
+
+        window.onSheetStatusChange = function () {
+            syncSheetCompanyOptions(false);
+            syncSheetStaffOptions(false);
+            syncSheetMonthOptions(false);
+            renderOfficialClaimSheet();
+        };
+
+        window.onSheetCompanyChange = function () {
+            syncSheetStaffOptions(false);
+            syncSheetMonthOptions(false);
+            renderOfficialClaimSheet();
+        };
+
+        window.onSheetStaffChange = function () {
+            syncSheetMonthOptions(false);
+            renderOfficialClaimSheet();
+        };
+
+        // =========================================================================
+        // 6. TAB 1: MULTI-STOP ROUTE BUILDER & CLAIM ENTRY LOGGING
+        // =========================================================================
         window.addRouteStop = function (prefill = null) {
-            draftStops.push(prefill || {
-                destination: '',
-                distanceKm: '',
-                arrivalTime: '',
-                purpose: '',
-                enabledExpenses: [],
-                publicTransport: '',
-                parking: '',
-                toll: '',
-                meals: '',
-                entertainment: '',
-                others: '',
-                expenseNote: ''
+            draftStops.push({
+                destination: prefill?.destination || '',
+                distanceKm: prefill?.distanceKm ?? '',
+                arrivalTime: prefill?.arrivalTime || '',
+                purpose: prefill?.purpose || '',
+                enabledExpenses: Array.isArray(prefill?.enabledExpenses) ? [...prefill.enabledExpenses] : [],
+                publicTransport: prefill?.publicTransport ?? '',
+                parking: prefill?.parking ?? '',
+                toll: prefill?.toll ?? '',
+                meals: prefill?.meals ?? '',
+                entertainment: prefill?.entertainment ?? '',
+                others: prefill?.others ?? '',
+                expenseNote: prefill?.expenseNote || ''
             });
             renderDraftStops();
+            updateBadgesAndLivePreview();
         };
 
         window.removeRouteStop = function (idx) {
@@ -1736,342 +1806,252 @@
             updateBadgesAndLivePreview();
         };
 
-        window.updateDraftStopField = function (idx, field, value, inputEl = null) {
-            if (!draftStops[idx]) return;
-            if (field === 'destination') {
-                if (inputEl) applyUppercasePreserveCursor(inputEl);
-                draftStops[idx][field] = inputEl ? inputEl.value : value.toUpperCase();
-            } else {
-                draftStops[idx][field] = value;
-            }
-            if (['distanceKm', 'publicTransport', 'parking', 'toll', 'meals', 'entertainment', 'others'].includes(field)) {
-                updateBadgesAndLivePreview();
-            }
-        };
-
-        const STOP_EXPENSE_OPTIONS = [
-            { key: 'toll', label: '🛣️ Toll' },
-            { key: 'parking', label: '🅿️ Parking' },
-            { key: 'meals', label: '🍽️ Meals' },
-            { key: 'entertainment', label: '🤝 Entertainment' },
-            { key: 'publicTransport', label: '🚕 Grab / Petrol' },
-            { key: 'others', label: '📦 Others' }
-        ];
-
-        window.toggleStopExpenseCategory = function (idx, expKey) {
-            const stop = draftStops[idx];
+        window.toggleStopExpenseCategory = function (stopIdx, catKey) {
+            const stop = draftStops[stopIdx];
             if (!stop) return;
             if (!Array.isArray(stop.enabledExpenses)) stop.enabledExpenses = [];
-            const pos = stop.enabledExpenses.indexOf(expKey);
-            if (pos >= 0) {
-                stop.enabledExpenses.splice(pos, 1);
-                stop[expKey] = '';
+
+            const pos = stop.enabledExpenses.indexOf(catKey);
+            if (pos === -1) {
+                stop.enabledExpenses.push(catKey);
             } else {
-                stop.enabledExpenses.push(expKey);
+                stop.enabledExpenses.splice(pos, 1);
+                stop[catKey] = '';
             }
             renderDraftStops();
             updateBadgesAndLivePreview();
         };
 
-        function getStopExpenseSum(stop) {
-            if (!stop) return 0;
-            return (parseFloat(stop.publicTransport) || 0)
-                + (parseFloat(stop.parking) || 0)
-                + (parseFloat(stop.toll) || 0)
-                + (parseFloat(stop.meals) || 0)
-                + (parseFloat(stop.entertainment) || 0)
-                + (parseFloat(stop.others) || 0);
-        }
+        window.updateStopField = function (stopIdx, field, val) {
+            const stop = draftStops[stopIdx];
+            if (!stop) return;
+            stop[field] = val;
+            updateBadgesAndLivePreview();
+        };
 
         function renderDraftStops() {
             const container = document.getElementById('stops-container');
             if (!container) return;
-            container.innerHTML = draftStops.map((stop, idx) => {
-                const activeKeys = Array.isArray(stop.enabledExpenses) ? stop.enabledExpenses : [];
-                const activeMeta = STOP_EXPENSE_OPTIONS.filter(opt => activeKeys.includes(opt.key));
 
-                const togglePillsHtml = STOP_EXPENSE_OPTIONS.map(opt => {
-                    const isActive = activeKeys.includes(opt.key);
+            container.innerHTML = draftStops.map((stop, idx) => {
+                const enabled = new Set(stop.enabledExpenses || []);
+
+                const categoryPills = EXPENSE_CATEGORIES.map(cat => {
+                    const isActive = enabled.has(cat.key);
                     return `
-                        <button type="button" onclick="toggleStopExpenseCategory(${idx}, '${opt.key}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}">
-                            ${isActive ? '✓ ' : '+ '}${opt.label}
+                        <button type="button" onclick="toggleStopExpenseCategory(${idx}, '${cat.key}')"
+                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${
+                                isActive
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                            }">
+                            ${isActive ? '✓ ' : '+ '}${cat.label}
                         </button>
                     `;
                 }).join('');
 
-                const activeInputsHtml = activeMeta.length === 0 ? '' : `
-                    <div class="mt-2.5 pt-2.5 border-t border-slate-100 space-y-2.5">
-                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-                            ${activeMeta.map(opt => `
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-600 mb-1">${opt.label} (RM)</label>
-                                    <input type="number" step="0.01" min="0" value="${escapeHtml(stop[opt.key] || '')}" oninput="updateDraftStopField(${idx}, '${opt.key}', this.value)" placeholder="0.00" class="w-full rounded-xl border border-indigo-200 bg-indigo-50/30 px-2.5 py-1.5 text-xs font-bold text-right focus:border-indigo-500 outline-none">
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Expense / Meal Remarks for Stop ${idx + 1} (Optional — e.g. Lunch with Customer at Restaurant)</label>
-                            <input type="text" value="${escapeHtml(stop.expenseNote || '')}" oninput="updateDraftStopField(${idx}, 'expenseNote', this.value)" placeholder="e.g. Lunch with Fierra Products PIC at Madam Kwan Mid Valley" class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-1.5 text-xs focus:border-indigo-500 outline-none">
-                        </div>
+                const activeExpenseInputs = EXPENSE_CATEGORIES.filter(cat => enabled.has(cat.key)).map(cat => `
+                    <div>
+                        <label class="block text-[10px] font-bold text-indigo-900 uppercase mb-1">${cat.label} (RM)</label>
+                        <input type="number" step="0.01" min="0" value="${escapeHtml(stop[cat.key])}"
+                            oninput="updateStopField(${idx}, '${cat.key}', this.value)"
+                            placeholder="0.00"
+                            class="w-full rounded-xl border border-indigo-200 bg-indigo-50/40 px-3 py-1.5 text-sm font-bold text-slate-900 focus:border-indigo-500 outline-none">
                     </div>
-                `;
+                `).join('');
 
                 return `
-                    <div class="bg-white p-3.5 rounded-xl border border-indigo-100 shadow-sm space-y-3">
+                    <div class="bg-white rounded-2xl border border-indigo-200 p-4 space-y-3 shadow-2xs">
                         <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center gap-2 text-xs font-extrabold text-indigo-900">
-                                <span class="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] flex items-center justify-center">${idx + 1}</span>
-                                Stop ${idx + 1} (Row No. ${idx + 1} on Claim Form)
-                            </span>
-                            ${draftStops.length > 1 ? `<button type="button" onclick="removeRouteStop(${idx})" class="text-xs font-bold text-rose-600 hover:underline">Remove</button>` : ''}
+                            <span class="px-2.5 py-0.5 rounded-full bg-indigo-900 text-white text-[11px] font-extrabold">STOP #${idx + 1}</span>
+                            ${draftStops.length > 1 ? `
+                                <button type="button" onclick="removeRouteStop(${idx})" class="text-xs font-bold text-rose-600 hover:underline">
+                                    <i class="fa-solid fa-trash-can mr-1"></i> Remove Stop
+                                </button>
+                            ` : ''}
                         </div>
+
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                            <div class="sm:col-span-5">
-                                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Destination / Client *</label>
-                                <input type="text" list="staff-location-memory" autocomplete="off" value="${escapeHtml(stop.destination)}" oninput="updateDraftStopField(${idx}, 'destination', this.value, this)" placeholder="e.g. FOREVER PRODUCTS" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 outline-none">
+                            <div class="sm:col-span-6">
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Destination *</label>
+                                <input type="text" list="staff-location-memory" autocomplete="off"
+                                    value="${escapeHtml(stop.destination)}"
+                                    oninput="applyUppercasePreserveCursor(this); updateStopField(${idx}, 'destination', this.value)"
+                                    placeholder="e.g. CLIENT OFFICE (PUCHONG)"
+                                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium uppercase focus:border-indigo-500 outline-none">
                             </div>
                             <div class="sm:col-span-3">
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Distance (KM) *</label>
-                                <input type="number" step="0.1" min="0" value="${escapeHtml(stop.distanceKm)}" oninput="updateDraftStopField(${idx}, 'distanceKm', this.value)" placeholder="0" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold focus:border-indigo-500 outline-none">
+                                <input type="number" step="0.1" min="0"
+                                    value="${escapeHtml(stop.distanceKm)}"
+                                    oninput="updateStopField(${idx}, 'distanceKm', this.value)"
+                                    placeholder="0.0"
+                                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold focus:border-indigo-500 outline-none">
                             </div>
-                            <div class="sm:col-span-4">
+                            <div class="sm:col-span-3">
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Arrival Time (Optional)</label>
-                                <input type="text" value="${escapeHtml(stop.arrivalTime)}" oninput="updateDraftStopField(${idx}, 'arrivalTime', this.value)" placeholder="e.g. 3:00 PM" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
+                                <input type="text"
+                                    value="${escapeHtml(stop.arrivalTime)}"
+                                    oninput="updateStopField(${idx}, 'arrivalTime', this.value)"
+                                    placeholder="e.g. 10:15 AM"
+                                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
                             </div>
                         </div>
+
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Purpose for Stop ${idx + 1} *</label>
-                            <input type="text" value="${escapeHtml(stop.purpose)}" oninput="updateDraftStopField(${idx}, 'purpose', this.value)" placeholder="e.g. Meeting Customer / Check Machine / Return to Office" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
+                            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Business Purpose / Client Visited *</label>
+                            <input type="text"
+                                value="${escapeHtml(stop.purpose)}"
+                                oninput="applyUppercasePreserveCursor(this); updateStopField(${idx}, 'purpose', this.value)"
+                                placeholder="e.g. CLIENT MEETING & SAMPLE DELIVERY"
+                                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium uppercase focus:border-indigo-500 outline-none">
                         </div>
-                        <div class="pt-1">
-                            <div class="flex flex-wrap items-center gap-1.5">
-                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mr-1">Stop ${idx + 1} Expenses (Tap to add):</span>
-                                ${togglePillsHtml}
+
+                        <!-- Per-Stop Expense Toggles -->
+                        <div class="pt-1 border-t border-slate-100 space-y-2.5">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                Add Expenses For Stop #${idx + 1} (Optional):
                             </div>
-                            ${activeInputsHtml}
+                            <div class="flex flex-wrap gap-1.5">${categoryPills}</div>
+                            ${activeExpenseInputs ? `
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">${activeExpenseInputs}</div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Expense / Receipt Remarks (Optional)</label>
+                                    <input type="text"
+                                        value="${escapeHtml(stop.expenseNote)}"
+                                        oninput="applyUppercasePreserveCursor(this); updateStopField(${idx}, 'expenseNote', this.value)"
+                                        placeholder="e.g. BASEMENT PARKING RECEIPT / LUNCH WITH CLIENT"
+                                        class="w-full rounded-xl border border-slate-300 px-3 py-1.5 text-xs uppercase focus:border-indigo-500 outline-none">
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Helper: Collect all unique (companyCode, staffName, monthVal) claim sheets accessible to the current user
-        function getAllAccessibleClaimSheetSummaries() {
-            const accessibleStaff = sortStaffABC(getAccessibleStaffProfiles());
-            const accessibleMap = new Map(accessibleStaff.map(s => [s.name, s]));
-            const groups = new Map();
+        function renderLocationMemoryForSelectedStaff() {
+            const datalist = document.getElementById('staff-location-memory');
+            if (!datalist) return;
+            const staffName = document.getElementById('entry-staff')?.value || '';
+            const savedList = (appState.staffLocations && appState.staffLocations[staffName]) || [];
+            const sorted = [...savedList].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+            datalist.innerHTML = sorted.map(loc => `<option value="${escapeHtml(loc)}">`).join('');
+        }
 
-            (appState.entries || []).forEach(ent => {
-                if (!ent || !ent.companyCode || !ent.staffName || !ent.date) return;
-                const staffObj = accessibleMap.get(ent.staffName);
-                if (!staffObj) return;
-
-                const monthVal = ent.date.slice(0, 7);
-                const key = getApprovalKey(ent.companyCode, ent.staffName, monthVal);
-                if (!groups.has(key)) {
-                    const compObj = appState.companies.find(c => c.code === ent.companyCode);
-                    const rate = compObj ? (parseFloat(compObj.mileageRate) || 0.60) : 0.60;
-                    groups.set(key, {
-                        key,
-                        companyCode: ent.companyCode,
-                        companyName: compObj ? getCompanyLegalName(compObj) : ent.companyCode,
-                        staffId: staffObj.id,
-                        staffName: ent.staffName,
-                        monthVal,
-                        rate,
-                        entryCount: 0,
-                        rowCount: 0,
-                        totalKm: 0,
-                        totalRm: 0
-                    });
-                }
-
-                const g = groups.get(key);
-                g.entryCount += 1;
-                const km = ent.tripType === 'driving'
-                    ? (ent.stops || []).reduce((s, x) => s + (parseFloat(x.distanceKm) || 0), 0)
-                    : 0;
-                const rows = ent.tripType === 'driving' && Array.isArray(ent.stops) && ent.stops.length > 0
-                    ? ent.stops.length
-                    : 1;
-                const exp = (parseFloat(ent.publicTransport) || 0)
-                    + (parseFloat(ent.parking) || 0)
-                    + (parseFloat(ent.toll) || 0)
-                    + (parseFloat(ent.meals) || 0)
-                    + (parseFloat(ent.entertainment) || 0)
-                    + (parseFloat(ent.others) || 0);
-
-                g.rowCount += rows;
-                g.totalKm += km;
-                g.totalRm += (km * g.rate) + exp;
+        function rememberStaffLocations(staffName, locationsArr) {
+            if (!staffName || !Array.isArray(locationsArr)) return;
+            if (!appState.staffLocations) appState.staffLocations = {};
+            const existing = new Set(appState.staffLocations[staffName] || []);
+            locationsArr.forEach(loc => {
+                const clean = String(loc || '').trim().toUpperCase();
+                if (clean) existing.add(clean);
             });
-
-            return Array.from(groups.values()).sort((a, b) => {
-                const mCmp = b.monthVal.localeCompare(a.monthVal);
-                if (mCmp !== 0) return mCmp;
-                const nCmp = a.staffName.localeCompare(b.staffName, undefined, { sensitivity: 'base' });
-                if (nCmp !== 0) return nCmp;
-                return a.companyCode.localeCompare(b.companyCode);
-            });
+            appState.staffLocations[staffName] = Array.from(existing).sort((a, b) => a.localeCompare(b));
+            renderLocationMemoryForSelectedStaff();
         }
 
         window.updateBadgesAndLivePreview = function () {
-            const compCode = document.getElementById('entry-company')?.value;
-            const comp = compCode ? appState.companies.find(c => c.code === compCode) : null;
+            const compCode = document.getElementById('entry-company')?.value || '';
+            const comp = appState.companies.find(c => c.code === compCode);
             const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
 
             const ratePill = document.getElementById('active-rate-pill');
             if (ratePill) ratePill.textContent = `Rate: RM ${rate.toFixed(2)} / KM`;
 
-            const totalKm = draftStops.reduce((sum, s) => sum + (parseFloat(s.distanceKm) || 0), 0);
-            const expRm = draftStops.reduce((sum, s) => sum + getStopExpenseSum(s), 0);
-            const mileageRm = totalKm * rate;
+            let totalKm = 0;
+            let totalExpenses = 0;
 
-            const liveKmEl = document.getElementById('live-total-km');
-            const liveMilEl = document.getElementById('live-mileage-rm');
-            const liveGrandEl = document.getElementById('live-grand-rm');
-            if (liveKmEl) liveKmEl.textContent = `${totalKm.toFixed(1)} KM`;
-            if (liveMilEl) liveMilEl.textContent = `RM ${mileageRm.toFixed(2)}`;
-            if (liveGrandEl) liveGrandEl.textContent = `RM ${(mileageRm + expRm).toFixed(2)}`;
+            draftStops.forEach(stop => {
+                totalKm += parseFloat(stop.distanceKm) || 0;
+                totalExpenses +=
+                    (parseFloat(stop.publicTransport) || 0) +
+                    (parseFloat(stop.parking) || 0) +
+                    (parseFloat(stop.toll) || 0) +
+                    (parseFloat(stop.meals) || 0) +
+                    (parseFloat(stop.entertainment) || 0) +
+                    (parseFloat(stop.others) || 0);
+            });
+
+            const mileageRm = totalKm * rate;
+            const grandRm = mileageRm + totalExpenses;
+
+            const kmEl = document.getElementById('live-total-km');
+            const milEl = document.getElementById('live-mileage-rm');
+            const grdEl = document.getElementById('live-grand-rm');
+            if (kmEl) kmEl.textContent = `${totalKm.toFixed(1)} KM`;
+            if (milEl) milEl.textContent = `RM ${mileageRm.toFixed(2)}`;
+            if (grdEl) grdEl.textContent = `RM ${grandRm.toFixed(2)}`;
 
             const accessibleNames = new Set(getAccessibleStaffProfiles().map(s => s.name));
-            const count = appState.entries.filter(e => accessibleNames.has(e.staffName)).length;
-            const badge = document.getElementById('badge-entries-count');
-            if (badge) badge.textContent = count;
+            const visibleEntriesCount = (appState.entries || []).filter(e =>
+                isAdminOrFinance() || accessibleNames.has(e.staffName)
+            ).length;
+            const badgeEntries = document.getElementById('badge-entries-count');
+            if (badgeEntries) badgeEntries.textContent = visibleEntriesCount;
 
             updatePendingApprovalsBadge();
         };
 
-        function updatePendingApprovalsBadge() {
-            const badgeEl = document.getElementById('badge-pending-approvals');
-            const unpaidBadgeEl = document.getElementById('badge-unpaid-approved');
-            const loggedIn = getLoggedInStaff();
-            const isSupOrMgr = loggedIn && isSupervisorOrManagerRole(loggedIn.role);
-            const isFinOrAdm = isAdminOrFinance();
-            const managedSet = isSupOrMgr ? getTransitiveManagedStaffIds(loggedIn) : new Set();
-
-            const summaries = getAllAccessibleClaimSheetSummaries();
-            let pendingCount = 0;
-            let unpaidApprovedCount = 0;
-
-            summaries.forEach(s => {
-                const rec = (appState.approvals && appState.approvals[s.key]) || {};
-                if (isSupOrMgr && managedSet.has(s.staffId) && !rec.verifiedBy) {
-                    pendingCount++;
-                } else if (isFinOrAdm && !rec.approvedBy) {
-                    pendingCount++;
-                }
-                if (rec.approvedBy && !rec.paidDate) {
-                    unpaidApprovedCount++;
-                }
-            });
-
-            if (badgeEl) {
-                if ((isSupOrMgr || isFinOrAdm) && pendingCount > 0) {
-                    badgeEl.textContent = `${pendingCount} Pending`;
-                    badgeEl.classList.remove('hidden');
-                } else {
-                    badgeEl.classList.add('hidden');
-                }
-            }
-
-            if (unpaidBadgeEl) {
-                if (isFinOrAdm && unpaidApprovedCount > 0) {
-                    unpaidBadgeEl.textContent = `${unpaidApprovedCount} To Pay`;
-                    unpaidBadgeEl.classList.remove('hidden');
-                } else {
-                    unpaidBadgeEl.classList.add('hidden');
-                }
-            }
-        }
-
-        // =========================================================================
-        // 7. SAVE, EDIT & DELETE CLAIM ENTRIES (WITH SELF-CLAIM & APPROVAL LOCKS)
-        // =========================================================================
         window.handleSaveClaimEntry = function (e) {
             e.preventDefault();
-            const loggedInStaff = getLoggedInStaff();
-            if (!loggedInStaff) {
-                showToast('Please sign in with an employee NRIC account to log claims.', 'error');
+            if (isSuperAdmin()) {
+                showToast('SuperAdmin accounts cannot log personal claims.', 'error');
                 return;
             }
 
             const companyCode = document.getElementById('entry-company').value;
-            const staffName = loggedInStaff.name; // Strictly enforced self-claim only
+            const staffName = document.getElementById('entry-staff').value;
             const date = document.getElementById('entry-date').value;
-
-            if (!companyCode) {
-                showToast('Please select "1. Claiming Under Company" first.', 'warning');
-                return;
-            }
-            if (!date) {
-                showToast('Please select "3. Claim Date".', 'warning');
-                return;
-            }
-
-            // Block adding/editing into an already Finance-approved month sheet
-            const targetMonth = date.slice(0, 7);
-            const targetApprovalKey = getApprovalKey(companyCode, staffName, targetMonth);
-            const targetApprovalRec = (appState.approvals && appState.approvals[targetApprovalKey]) || {};
-            if (targetApprovalRec.approvedBy) {
-                showToast(`The ${formatMonthShort(targetMonth)} claim sheet for ${companyCode} is already approved by Finance and locked.`, 'error');
-                return;
-            }
-
             const origin = document.getElementById('route-origin').value.trim().toUpperCase();
             const departTime = document.getElementById('route-depart-time').value.trim();
+
+            if (!companyCode) {
+                showToast('Please select 1. Company Entity.', 'warning');
+                return;
+            }
+            if (!staffName || !date) {
+                showToast('Please confirm Staff Claimant and Claim Date.', 'warning');
+                return;
+            }
             if (!origin) {
-                showToast('Please enter the Starting Point (Origin).', 'warning');
-                return;
-            }
-            if (draftStops.length === 0) {
-                showToast('Please add at least one destination stop.', 'warning');
+                showToast('Please enter a Starting Point (Origin).', 'warning');
                 return;
             }
 
-            const stops = [];
-            let publicTransport = 0;
-            let parking = 0;
-            let toll = 0;
-            let meals = 0;
-            let entertainment = 0;
-            let others = 0;
+            const monthVal = date.slice(0, 7);
+            if (isMonthApprovedByFinance(companyCode, staffName, monthVal)) {
+                showToast(`Claims for ${formatMonthTitle(monthVal)} are already approved by Finance and locked.`, 'error');
+                return;
+            }
 
+            const cleanedStops = [];
             for (let i = 0; i < draftStops.length; i++) {
                 const s = draftStops[i];
-                if (!s.destination.trim() || !s.purpose.trim()) {
-                    showToast(`Please complete Destination and Purpose for Stop ${i + 1}.`, 'warning');
+                const dest = (s.destination || '').trim().toUpperCase();
+                const purpose = (s.purpose || '').trim().toUpperCase();
+                const dist = parseFloat(s.distanceKm);
+
+                if (!dest || !purpose || isNaN(dist) || dist < 0) {
+                    showToast(`Please complete Destination, Distance (KM), and Purpose for Stop #${i + 1}.`, 'warning');
                     return;
                 }
-                const sPub = parseFloat(s.publicTransport) || 0;
-                const sPark = parseFloat(s.parking) || 0;
-                const sToll = parseFloat(s.toll) || 0;
-                const sMeal = parseFloat(s.meals) || 0;
-                const sEnt = parseFloat(s.entertainment) || 0;
-                const sOth = parseFloat(s.others) || 0;
 
-                publicTransport += sPub;
-                parking += sPark;
-                toll += sToll;
-                meals += sMeal;
-                entertainment += sEnt;
-                others += sOth;
-
-                stops.push({
-                    destination: s.destination.trim().toUpperCase(),
-                    distanceKm: parseFloat(s.distanceKm) || 0,
+                cleanedStops.push({
+                    destination: dest,
+                    distanceKm: dist,
                     arrivalTime: (s.arrivalTime || '').trim(),
-                    purpose: s.purpose.trim(),
-                    publicTransport: sPub,
-                    parking: sPark,
-                    toll: sToll,
-                    meals: sMeal,
-                    entertainment: sEnt,
-                    others: sOth,
-                    expenseNote: (s.expenseNote || '').trim()
+                    purpose,
+                    enabledExpenses: Array.isArray(s.enabledExpenses) ? [...s.enabledExpenses] : [],
+                    publicTransport: parseFloat(s.publicTransport) || 0,
+                    parking: parseFloat(s.parking) || 0,
+                    toll: parseFloat(s.toll) || 0,
+                    meals: parseFloat(s.meals) || 0,
+                    entertainment: parseFloat(s.entertainment) || 0,
+                    others: parseFloat(s.others) || 0,
+                    expenseNote: (s.expenseNote || '').trim().toUpperCase()
                 });
             }
-            recordStaffLocations(staffName, [origin, ...stops.map(st => st.destination)]);
 
             const entryObj = {
                 id: editingEntryId || `entry-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -2081,16 +2061,8 @@
                 tripType: 'driving',
                 origin,
                 departTime,
-                stops,
                 hasPerStopExpenses: true,
-                nonDrivePurpose: '',
-                nonDriveDetails: '',
-                publicTransport,
-                parking,
-                toll,
-                meals,
-                entertainment,
-                others
+                stops: cleanedStops
             };
 
             if (editingEntryId) {
@@ -2099,27 +2071,24 @@
                 showToast('Claim entry updated!');
             } else {
                 appState.entries.push(entryObj);
-                showToast('Claim entry added to monthly sheet!');
+                showToast('Claim entry added to your monthly claim sheet!');
             }
 
-            const yyyyMm = date.slice(0, 7);
+            rememberStaffLocations(staffName, [origin, ...cleanedStops.map(s => s.destination)]);
+
             document.getElementById('filter-entries-company').value = companyCode;
             syncFilterStaffOptions('entries', false);
             document.getElementById('filter-entries-staff').value = staffName;
-            document.getElementById('filter-entries-month').value = yyyyMm;
+            document.getElementById('filter-entries-month').value = monthVal;
 
-            document.getElementById('sheet-filter-company').value = companyCode;
-            syncFilterStaffOptions('sheet', false);
-            document.getElementById('sheet-filter-staff').value = staffName;
-            document.getElementById('sheet-filter-month').value = yyyyMm;
+            syncSheetStatusOptions(false);
+            syncSheetCompanyOptions(false);
+            syncSheetStaffOptions(false);
+            syncSheetMonthOptions(false);
 
             resetClaimEntryForm();
             saveStateToLocalAndCloud();
             updateBadgesAndLivePreview();
-        };
-
-        window.cancelEditEntry = function () {
-            resetClaimEntryForm();
         };
 
         function resetClaimEntryForm() {
@@ -2127,118 +2096,131 @@
             document.getElementById('form-heading-title').textContent = 'Log Daily Travel & Expense Claim';
             document.getElementById('btn-submit-entry').innerHTML = '<i class="fa-solid fa-plus-circle mr-1.5"></i> Add Entry to Claim Sheet';
             document.getElementById('btn-cancel-edit').classList.add('hidden');
-
             document.getElementById('route-origin').value = '';
             document.getElementById('route-depart-time').value = '';
-            draftStops = [{
-                destination: '',
-                distanceKm: '',
-                arrivalTime: '',
-                purpose: '',
-                enabledExpenses: [],
-                publicTransport: '',
-                parking: '',
-                toll: '',
-                meals: '',
-                entertainment: '',
-                others: '',
-                expenseNote: ''
-            }];
-            renderDraftStops();
-            renderLocationMemoryForSelectedStaff();
-            updateBadgesAndLivePreview();
+            draftStops = [];
+            addRouteStop();
         }
 
-        window.renderSavedEntriesList = function () {
-            const container = document.getElementById('saved-entries-list');
-            if (!container) return;
+        window.cancelEditEntry = function () {
+            resetClaimEntryForm();
+            showToast('Edit cancelled.', 'warning');
+        };
 
-            const compCode = document.getElementById('filter-entries-company')?.value;
-            const staffName = document.getElementById('filter-entries-staff')?.value;
-            const monthVal = document.getElementById('filter-entries-month')?.value;
-            const loggedInStaff = getLoggedInStaff();
+        // =========================================================================
+        // 7. TAB 2: SAVED ENTRIES LIST, EDIT & DELETE
+        // =========================================================================
+        window.renderSavedEntriesList = function () {
+            const listEl = document.getElementById('saved-entries-list');
+            if (!listEl) return;
+
+            const compCode = document.getElementById('filter-entries-company')?.value || '';
+            const staffName = document.getElementById('filter-entries-staff')?.value || '';
+            const monthVal = document.getElementById('filter-entries-month')?.value || '';
 
             const accessibleNames = new Set(getAccessibleStaffProfiles().map(s => s.name));
-            const comp = compCode ? appState.companies.find(c => c.code === compCode) : null;
-            const defaultRate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
+            const loggedInStaff = getLoggedInStaff();
 
-            const filtered = appState.entries
-                .filter(e => accessibleNames.has(e.staffName) && (!compCode || e.companyCode === compCode) && (!staffName || e.staffName === staffName) && (!monthVal || (e.date || '').startsWith(monthVal)))
-                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-2">
-                        <div class="text-3xl">📭</div>
-                        <h3 class="text-sm font-extrabold text-slate-800">No entries logged for this selection</h3>
-                        <p class="text-xs text-slate-500">Select a Company &amp; Staff filter above or use Tab 1 (Log New Claim) to record daily travel.</p>
+            if (!compCode || !staffName) {
+                listEl.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center space-y-2">
+                        <div class="text-2xl text-indigo-600"><i class="fa-solid fa-filter"></i></div>
+                        <h3 class="text-sm font-extrabold text-slate-800">Select Company Entity &amp; Staff Claimant</h3>
+                        <p class="text-xs text-slate-500">Choose a Company Entity, Staff Claimant, and Claim Period above to view saved entries.</p>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = filtered.map((entry, idx) => {
-                const entryComp = appState.companies.find(c => c.code === entry.companyCode);
-                const rate = entryComp ? (parseFloat(entryComp.mileageRate) || 0.60) : defaultRate;
-                const km = entry.tripType === 'driving'
-                    ? (entry.stops || []).reduce((sum, s) => sum + (parseFloat(s.distanceKm) || 0), 0)
-                    : 0;
-                const expTotal = (parseFloat(entry.publicTransport) || 0)
-                    + (parseFloat(entry.parking) || 0)
-                    + (parseFloat(entry.toll) || 0)
-                    + (parseFloat(entry.meals) || 0)
-                    + (parseFloat(entry.entertainment) || 0)
-                    + (parseFloat(entry.others) || 0);
-                const grand = (km * rate) + expTotal;
+            const filtered = (appState.entries || [])
+                .filter(e => {
+                    if (!isAdminOrFinance() && !accessibleNames.has(e.staffName)) return false;
+                    if (e.companyCode !== compCode) return false;
+                    if (e.staffName !== staffName) return false;
+                    if (monthVal && !(e.date || '').startsWith(monthVal)) return false;
+                    return true;
+                })
+                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
-                const routeSummary = entry.tripType === 'driving'
-                    ? `${escapeHtml(entry.origin)} → ${(entry.stops || []).map(s => escapeHtml(s.destination)).join(' → ')}`
-                    : `${escapeHtml(entry.nonDrivePurpose)} ${entry.nonDriveDetails ? `(${escapeHtml(entry.nonDriveDetails)})` : ''}`;
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-2">
+                        <div class="text-3xl">📭</div>
+                        <h3 class="text-sm font-extrabold text-slate-800">No entries found for this period</h3>
+                        <p class="text-xs text-slate-500">Log a new claim in Tab 1 or choose another month above.</p>
+                    </div>
+                `;
+                return;
+            }
 
+            const comp = appState.companies.find(c => c.code === compCode);
+            const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
+
+            listEl.innerHTML = filtered.map((entry, idx) => {
                 const entryMonth = (entry.date || '').slice(0, 7);
-                const appKey = getApprovalKey(entry.companyCode, entry.staffName, entryMonth);
-                const appRec = (appState.approvals && appState.approvals[appKey]) || {};
-                const isLockedApproved = Boolean(appRec.approvedBy);
-                const isOwner = Boolean(loggedInStaff && loggedInStaff.name === entry.staffName);
+                const lockedByFinance = isMonthApprovedByFinance(entry.companyCode, entry.staffName, entryMonth);
+                const isOwner = isSuperAdmin() || (loggedInStaff && loggedInStaff.name === entry.staffName);
+                const canModify = isOwner && !lockedByFinance;
 
-                let actionControlsHtml = '';
-                if (isLockedApproved) {
-                    actionControlsHtml = `<span class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold"><i class="fa-solid fa-lock mr-1"></i> Approved</span>`;
-                } else if (isOwner) {
-                    actionControlsHtml = `
-                        <button type="button" onclick="editClaimEntry('${entry.id}')" class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition">
-                            Edit
-                        </button>
-                        <button type="button" onclick="deleteClaimEntry('${entry.id}')" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">
-                            Delete
-                        </button>
-                    `;
+                let totalKm = 0;
+                let totalExp = 0;
+                const legsHtml = [];
+
+                if (entry.tripType === 'driving' && Array.isArray(entry.stops)) {
+                    entry.stops.forEach((st, sIdx) => {
+                        const fromLoc = sIdx === 0 ? entry.origin : entry.stops[sIdx - 1].destination;
+                        const km = parseFloat(st.distanceKm) || 0;
+                        totalKm += km;
+
+                        const useLegacy = !entry.hasPerStopExpenses && sIdx === 0;
+                        const exp = useLegacy
+                            ? (parseFloat(entry.publicTransport) || 0) + (parseFloat(entry.parking) || 0) + (parseFloat(entry.toll) || 0) + (parseFloat(entry.meals) || 0) + (parseFloat(entry.entertainment) || 0) + (parseFloat(entry.others) || 0)
+                            : (parseFloat(st.publicTransport) || 0) + (parseFloat(st.parking) || 0) + (parseFloat(st.toll) || 0) + (parseFloat(st.meals) || 0) + (parseFloat(st.entertainment) || 0) + (parseFloat(st.others) || 0);
+                        totalExp += exp;
+
+                        legsHtml.push(`
+                            <div class="text-xs text-slate-700 flex flex-wrap items-center gap-2 py-1 border-t border-slate-100 first:border-t-0">
+                                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold text-[10px]">Stop ${sIdx + 1}</span>
+                                <span class="font-semibold">${escapeHtml(fromLoc)} &rarr; ${escapeHtml(st.destination)}</span>
+                                <span class="text-indigo-700 font-bold">(${km.toFixed(1)} KM)</span>
+                                <span class="text-slate-500">• ${escapeHtml(st.purpose)}</span>
+                                ${exp > 0 ? `<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold text-[10px]">+ RM ${exp.toFixed(2)} expenses</span>` : ''}
+                            </div>
+                        `);
+                    });
                 } else {
-                    actionControlsHtml = `<span class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold">View Only</span>`;
+                    totalExp = (parseFloat(entry.publicTransport) || 0) + (parseFloat(entry.parking) || 0) + (parseFloat(entry.toll) || 0) + (parseFloat(entry.meals) || 0) + (parseFloat(entry.entertainment) || 0) + (parseFloat(entry.others) || 0);
+                    legsHtml.push(`<div class="text-xs text-slate-700 font-semibold">${escapeHtml(entry.nonDrivePurpose || 'Expense Claim')}</div>`);
                 }
 
+                const grandTotal = (totalKm * rate) + totalExp;
+
                 return `
-                    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
-                        <div class="space-y-1 flex-1 min-w-[240px]">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-2.5">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
                             <div class="flex flex-wrap items-center gap-2">
-                                <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[11px] font-extrabold">#${idx + 1}</span>
-                                <span class="text-xs font-extrabold text-indigo-700">${formatDateDDMMMYYYY(entry.date)}</span>
-                                <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">${escapeHtml(entry.companyCode)}</span>
-                                <span class="text-xs font-bold text-slate-600">• ${escapeHtml(entry.staffName)}</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-xs font-extrabold">#${idx + 1}</span>
+                                <span class="font-extrabold text-sm text-slate-900">${formatDateDDMMMYYYY(entry.date)}</span>
+                                <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-xs font-bold">${escapeHtml(entry.companyCode)}</span>
+                                <span class="text-xs font-bold text-slate-600">${escapeHtml(entry.staffName)}</span>
                             </div>
-                            <div class="text-sm font-bold text-slate-900">${routeSummary}</div>
-                            <div class="text-xs text-slate-500">
-                                ${km > 0 ? `Distance: <strong>${km.toFixed(1)} KM</strong> • ` : ''}
-                                Other Expenses: <strong>RM ${expTotal.toFixed(2)}</strong>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-extrabold text-emerald-700 mr-2">RM ${grandTotal.toFixed(2)}</span>
+                                ${lockedByFinance ? `
+                                    <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                                        <i class="fa-solid fa-lock mr-1"></i> Approved (Locked)
+                                    </span>
+                                ` : canModify ? `
+                                    <button type="button" onclick="editClaimEntry('${escapeHtml(entry.id)}')" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition">
+                                        <i class="fa-solid fa-pen mr-1"></i> Edit
+                                    </button>
+                                    <button type="button" onclick="deleteClaimEntry('${escapeHtml(entry.id)}')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">
+                                        <i class="fa-solid fa-trash mr-1"></i> Delete
+                                    </button>
+                                ` : ''}
                             </div>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <div class="text-right">
-                                <div class="text-[10px] font-bold uppercase text-slate-400">Entry Total</div>
-                                <div class="text-base font-extrabold text-emerald-700">RM ${grand.toFixed(2)}</div>
-                            </div>
-                            ${actionControlsHtml}
-                        </div>
+                        <div class="pl-1">${legsHtml.join('')}</div>
                     </div>
                 `;
             }).join('');
@@ -2247,110 +2229,86 @@
         window.editClaimEntry = function (entryId) {
             const entry = appState.entries.find(e => e.id === entryId);
             if (!entry) return;
-            const loggedInStaff = getLoggedInStaff();
-            if (!loggedInStaff || loggedInStaff.name !== entry.staffName) {
-                showToast('Only the claim owner can edit their own claim entries.', 'error');
+
+            const entryMonth = (entry.date || '').slice(0, 7);
+            if (isMonthApprovedByFinance(entry.companyCode, entry.staffName, entryMonth)) {
+                showToast('Approved entries cannot be edited unless Finance clears approval first.', 'error');
                 return;
             }
 
             editingEntryId = entry.id;
             switchMainTab('log');
-            document.getElementById('form-heading-title').textContent = 'Editing Claim Entry';
-            document.getElementById('btn-submit-entry').innerHTML = '<i class="fa-solid fa-check mr-1.5"></i> Save Updated Entry';
+
+            document.getElementById('form-heading-title').textContent = 'Edit Travel & Expense Claim Entry';
+            document.getElementById('btn-submit-entry').innerHTML = '<i class="fa-solid fa-check-circle mr-1.5"></i> Update Claim Entry';
             document.getElementById('btn-cancel-edit').classList.remove('hidden');
 
-            syncEntryCompanyOptionsForSelectedStaff(false);
             document.getElementById('entry-company').value = entry.companyCode;
             document.getElementById('entry-date').value = entry.date;
+            document.getElementById('route-origin').value = entry.origin || '';
+            document.getElementById('route-depart-time').value = entry.departTime || '';
 
-            if (entry.tripType === 'driving' && Array.isArray(entry.stops) && entry.stops.length > 0) {
-                document.getElementById('route-origin').value = (entry.origin || '').toUpperCase();
-                document.getElementById('route-depart-time').value = entry.departTime || '';
-                draftStops = entry.stops.map((s, idx) => {
-                    const useLegacyOnFirst = !entry.hasPerStopExpenses && idx === 0;
-                    const pub = useLegacyOnFirst ? (entry.publicTransport || 0) : (s.publicTransport || 0);
-                    const park = useLegacyOnFirst ? (entry.parking || 0) : (s.parking || 0);
-                    const tollVal = useLegacyOnFirst ? (entry.toll || 0) : (s.toll || 0);
-                    const mealVal = useLegacyOnFirst ? (entry.meals || 0) : (s.meals || 0);
-                    const entVal = useLegacyOnFirst ? (entry.entertainment || 0) : (s.entertainment || 0);
-                    const othVal = useLegacyOnFirst ? (entry.others || 0) : (s.others || 0);
-
-                    const enabled = [];
-                    if (tollVal > 0) enabled.push('toll');
-                    if (park > 0) enabled.push('parking');
-                    if (mealVal > 0) enabled.push('meals');
-                    if (entVal > 0) enabled.push('entertainment');
-                    if (pub > 0) enabled.push('publicTransport');
-                    if (othVal > 0) enabled.push('others');
-
-                    return {
-                        destination: (s.destination || '').toUpperCase(),
-                        distanceKm: s.distanceKm || '',
-                        arrivalTime: s.arrivalTime || '',
-                        purpose: s.purpose || '',
-                        enabledExpenses: enabled,
-                        publicTransport: pub || '',
-                        parking: park || '',
-                        toll: tollVal || '',
-                        meals: mealVal || '',
-                        entertainment: entVal || '',
-                        others: othVal || '',
-                        expenseNote: s.expenseNote || ''
+            draftStops = [];
+            if (Array.isArray(entry.stops) && entry.stops.length > 0) {
+                entry.stops.forEach((st, idx) => {
+                    const useLegacy = !entry.hasPerStopExpenses && idx === 0;
+                    const merged = {
+                        destination: st.destination || '',
+                        distanceKm: st.distanceKm ?? '',
+                        arrivalTime: st.arrivalTime || '',
+                        purpose: st.purpose || '',
+                        publicTransport: useLegacy ? (entry.publicTransport || '') : (st.publicTransport || ''),
+                        parking: useLegacy ? (entry.parking || '') : (st.parking || ''),
+                        toll: useLegacy ? (entry.toll || '') : (st.toll || ''),
+                        meals: useLegacy ? (entry.meals || '') : (st.meals || ''),
+                        entertainment: useLegacy ? (entry.entertainment || '') : (st.entertainment || ''),
+                        others: useLegacy ? (entry.others || '') : (st.others || ''),
+                        expenseNote: st.expenseNote || ''
                     };
+                    merged.enabledExpenses = EXPENSE_CATEGORIES
+                        .filter(cat => (parseFloat(merged[cat.key]) || 0) > 0)
+                        .map(cat => cat.key);
+                    addRouteStop(merged);
                 });
             } else {
-                document.getElementById('route-origin').value = (entry.nonDriveDetails || 'OFFICE').toUpperCase();
-                document.getElementById('route-depart-time').value = '';
-                const enabled = [];
-                if ((entry.toll || 0) > 0) enabled.push('toll');
-                if ((entry.parking || 0) > 0) enabled.push('parking');
-                if ((entry.meals || 0) > 0) enabled.push('meals');
-                if ((entry.entertainment || 0) > 0) enabled.push('entertainment');
-                if ((entry.publicTransport || 0) > 0) enabled.push('publicTransport');
-                if ((entry.others || 0) > 0) enabled.push('others');
-
-                draftStops = [{
-                    destination: (entry.nonDriveDetails || 'CLIENT / VENDOR').toUpperCase(),
-                    distanceKm: '',
-                    arrivalTime: '',
-                    purpose: entry.nonDrivePurpose || 'Expense Claim',
-                    enabledExpenses: enabled,
-                    publicTransport: entry.publicTransport || '',
-                    parking: entry.parking || '',
-                    toll: entry.toll || '',
-                    meals: entry.meals || '',
-                    entertainment: entry.entertainment || '',
-                    others: entry.others || '',
-                    expenseNote: ''
-                }];
+                addRouteStop();
             }
-            renderDraftStops();
+
             updateBadgesAndLivePreview();
+            showToast('Editing entry — update fields and click Update Claim Entry.', 'warning');
         };
 
         window.deleteClaimEntry = function (entryId) {
             const entry = appState.entries.find(e => e.id === entryId);
             if (!entry) return;
-            const loggedInStaff = getLoggedInStaff();
-            if (!loggedInStaff || loggedInStaff.name !== entry.staffName) {
-                showToast('Only the claim owner can delete their own claim entries.', 'error');
+
+            const entryMonth = (entry.date || '').slice(0, 7);
+            if (isMonthApprovedByFinance(entry.companyCode, entry.staffName, entryMonth)) {
+                showToast('Approved entries cannot be deleted unless Finance clears approval first.', 'error');
                 return;
             }
+
             appState.entries = appState.entries.filter(e => e.id !== entryId);
             saveStateToLocalAndCloud();
+            syncSheetStatusOptions(false);
+            syncSheetCompanyOptions(false);
+            syncSheetStaffOptions(false);
+            syncSheetMonthOptions(false);
             renderSavedEntriesList();
+            renderOfficialClaimSheet();
             updateBadgesAndLivePreview();
-            showToast('Entry deleted.', 'warning');
+            showToast('Claim entry deleted.', 'warning');
         };
 
         window.printOfficialClaimSheet = function () {
+            const statusVal = document.getElementById('sheet-filter-status')?.value;
             const compCode = document.getElementById('sheet-filter-company')?.value;
             const staffName = document.getElementById('sheet-filter-staff')?.value;
-            if (!compCode || !staffName) {
-                showToast('Please select both Company Entity and Staff Claimant first.', 'warning');
+            const monthVal = document.getElementById('sheet-filter-month')?.value;
+            if (!statusVal || !compCode || !staffName || !monthVal) {
+                showToast('Please select Approval Status, Company Entity, Staff Claimant, and Claim Period first.', 'warning');
                 return;
             }
-            const monthVal = document.getElementById('sheet-filter-month')?.value || 'PERIOD';
             const originalTitle = document.title;
             document.title = `${monthVal}_${staffName}_${compCode}`;
             window.print();
@@ -2360,164 +2318,8 @@
         };
 
         // =========================================================================
-        // 8. OFFICIAL A4 LANDSCAPE CLAIM SHEET & MULTI-MONTH COMPACT OVERVIEW LIST
+        // 8. OFFICIAL A4 LANDSCAPE CLAIM SHEET & UNIFIED 4-DROPDOWN SELECTOR
         // =========================================================================
-        window.setTrackerSubTab = function (tab) {
-            trackerSubTab = tab === 'approved' ? 'approved' : 'pending';
-            renderApprovalStatusTracker();
-        };
-
-        window.setTrackerCompanyFilter = function (compCode) {
-            trackerCompanyFilter = compCode || 'ALL';
-            renderApprovalStatusTracker();
-        };
-
-        window.onTrackerSearchInput = function (val) {
-            trackerSearchQuery = (val || '').trim().toLowerCase();
-            renderApprovalStatusTracker();
-        };
-
-        function renderApprovalStatusTracker() {
-            const trackerCard = document.getElementById('approval-tracker-card');
-            const trackerList = document.getElementById('approval-tracker-list');
-            const pillsContainer = document.getElementById('tracker-company-pills');
-            if (!trackerCard || !trackerList) return;
-
-            const loggedIn = getLoggedInStaff();
-            const showTracker = hasAnySubordinates();
-            if (!showTracker) {
-                trackerCard.classList.add('hidden');
-                return;
-            }
-
-            trackerCard.classList.remove('hidden');
-
-            // Style Pending vs Approved Sub-Tabs
-            const tabPendingBtn = document.getElementById('tracker-tab-pending');
-            const tabApprovedBtn = document.getElementById('tracker-tab-approved');
-            if (tabPendingBtn && tabApprovedBtn) {
-                if (trackerSubTab === 'pending') {
-                    tabPendingBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-amber-500 text-slate-950 shadow-xs transition';
-                    tabApprovedBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
-                } else {
-                    tabApprovedBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow-xs transition';
-                    tabPendingBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
-                }
-            }
-
-            // Render Company Quick-Filter Pills (ABC Order)
-            const availableCompanies = sortCompaniesABC(
-                isAdminOrFinance()
-                    ? appState.companies
-                    : getAccessibleCompaniesForStaff(loggedIn)
-            );
-            if (trackerCompanyFilter !== 'ALL' && !availableCompanies.some(c => c.code === trackerCompanyFilter)) {
-                trackerCompanyFilter = 'ALL';
-            }
-            if (pillsContainer) {
-                const allBtnClass = trackerCompanyFilter === 'ALL'
-                    ? 'bg-slate-900 text-white border-slate-900'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100';
-                const compPills = availableCompanies.map(c => {
-                    const active = trackerCompanyFilter === c.code;
-                    return `<button type="button" onclick="setTrackerCompanyFilter('${escapeHtml(c.code)}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}">${escapeHtml(c.code)}</button>`;
-                }).join('');
-                pillsContainer.innerHTML = `
-                    <span class="text-[10px] font-bold uppercase text-slate-400 mr-1">Company:</span>
-                    <button type="button" onclick="setTrackerCompanyFilter('ALL')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${allBtnClass}">All Companies</button>
-                    ${compPills}
-                `;
-            }
-
-            const currentComp = document.getElementById('sheet-filter-company')?.value;
-            const currentStaff = document.getElementById('sheet-filter-staff')?.value;
-            const currentMonth = document.getElementById('sheet-filter-month')?.value;
-
-            const allSummaries = getAllAccessibleClaimSheetSummaries();
-            let totalPendingCount = 0;
-            let totalApprovedCount = 0;
-            const rowsHtml = [];
-
-            allSummaries.forEach(s => {
-                const rec = (appState.approvals && appState.approvals[s.key]) || {};
-                const isFullyApproved = Boolean(rec.approvedBy);
-
-                if (isFullyApproved) {
-                    totalApprovedCount++;
-                } else {
-                    totalPendingCount++;
-                }
-
-                if (trackerSubTab === 'pending' && isFullyApproved) return;
-                if (trackerSubTab === 'approved' && !isFullyApproved) return;
-                if (trackerCompanyFilter !== 'ALL' && s.companyCode !== trackerCompanyFilter) return;
-
-                const monthShort = formatMonthShort(s.monthVal);
-                if (trackerSearchQuery) {
-                    const haystack = `${s.staffName} ${s.companyCode} ${monthShort} ${s.monthVal}`.toLowerCase();
-                    if (!haystack.includes(trackerSearchQuery)) return;
-                }
-
-                const isSelected = currentComp === s.companyCode && currentStaff === s.staffName && currentMonth === s.monthVal;
-
-                const claimedBadge = rec.claimedBy
-                    ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Staff Signed</span>`
-                    : `<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold">⏳ Draft</span>`;
-                const verifiedBadge = rec.verifiedBy
-                    ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Mgr Verified</span>`
-                    : `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold">● Pending Mgr</span>`;
-                const approvedBadge = rec.approvedBy
-                    ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Fin Approved</span>`
-                    : `<span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold">● Pending Fin</span>`;
-                const paidBadge = rec.paidDate
-                    ? `<span class="px-2 py-0.5 rounded-md bg-teal-600 text-white text-[10px] font-extrabold">💰 Paid</span>`
-                    : '';
-
-                rowsHtml.push(`
-                    <button type="button" onclick="selectClaimSheetFromTracker('${escapeHtml(s.companyCode)}', '${escapeHtml(s.staffName)}', '${escapeHtml(s.monthVal)}')" class="w-full text-left px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 transition ${isSelected ? 'bg-indigo-50/90 border-l-4 border-l-indigo-600' : 'bg-white hover:bg-slate-50'}">
-                        <div class="flex flex-wrap items-center gap-2 min-w-[220px]">
-                            <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-900 text-[10px] font-extrabold tracking-wide">${escapeHtml(monthShort)}</span>
-                            <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] font-bold">${escapeHtml(s.companyCode)}</span>
-                            <span class="font-extrabold text-xs text-slate-900">${escapeHtml(s.staffName)}</span>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="text-xs font-extrabold text-slate-700 mr-1">${s.rowCount} row(s) • <span class="text-indigo-700">RM ${s.totalRm.toFixed(2)}</span></span>
-                            ${claimedBadge}
-                            ${verifiedBadge}
-                            ${approvedBadge}
-                            ${paidBadge}
-                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 ml-1"></i>
-                        </div>
-                    </button>
-                `);
-            });
-
-            const pendingCountEl = document.getElementById('tracker-count-pending');
-            const approvedCountEl = document.getElementById('tracker-count-approved');
-            if (pendingCountEl) pendingCountEl.textContent = totalPendingCount;
-            if (approvedCountEl) approvedCountEl.textContent = totalApprovedCount;
-
-            if (rowsHtml.length === 0) {
-                const emptyLabel = trackerSubTab === 'approved'
-                    ? `No approved claim sheets found${trackerCompanyFilter !== 'ALL' ? ` for ${trackerCompanyFilter}` : ''}.`
-                    : `No pending claim sheets found${trackerCompanyFilter !== 'ALL' ? ` for ${trackerCompanyFilter}` : ''}.`;
-                trackerList.innerHTML = `<div class="text-xs text-slate-500 italic py-4 text-center bg-slate-50">${emptyLabel}</div>`;
-            } else {
-                trackerList.innerHTML = rowsHtml.join('');
-            }
-        }
-
-        window.selectClaimSheetFromTracker = function (compCode, staffName, monthVal = null) {
-            const compSel = document.getElementById('sheet-filter-company');
-            const staffSel = document.getElementById('sheet-filter-staff');
-            const monthSel = document.getElementById('sheet-filter-month');
-            if (compSel) compSel.value = compCode;
-            syncFilterStaffOptions('sheet', false);
-            if (staffSel) staffSel.value = staffName;
-            if (monthVal && monthSel) monthSel.value = monthVal;
-            renderOfficialClaimSheet();
-        };
-
         function getApprovalKey(compCode, staffName, monthVal) {
             return `${compCode}__${staffName}__${monthVal}`;
         }
@@ -2542,12 +2344,22 @@
             if (tier === 'claimed') {
                 appState.approvals[key].claimedBy = staffName;
                 appState.approvals[key].claimedDate = formattedDate;
+                syncSheetStatusOptions(false);
             } else if (tier === 'verified') {
                 appState.approvals[key].verifiedBy = signerName;
                 appState.approvals[key].verifiedDate = formattedDate;
+                syncSheetStatusOptions(false);
             } else if (tier === 'approved') {
                 appState.approvals[key].approvedBy = signerName;
                 appState.approvals[key].approvedDate = formattedDate;
+                syncSheetStatusOptions(false);
+                document.getElementById('sheet-filter-status').value = 'approved';
+                syncSheetCompanyOptions(false);
+                document.getElementById('sheet-filter-company').value = compCode;
+                syncSheetStaffOptions(false);
+                document.getElementById('sheet-filter-staff').value = staffName;
+                syncSheetMonthOptions(false);
+                document.getElementById('sheet-filter-month').value = monthVal;
             }
 
             saveStateToLocalAndCloud();
@@ -2575,8 +2387,17 @@
                 delete appState.approvals[key].paidDate;
                 delete appState.approvals[key].paidRef;
                 delete appState.approvals[key].paidBy;
+                syncSheetStatusOptions(false);
+                document.getElementById('sheet-filter-status').value = 'pending';
+                syncSheetCompanyOptions(false);
+                document.getElementById('sheet-filter-company').value = compCode;
+                syncSheetStaffOptions(false);
+                document.getElementById('sheet-filter-staff').value = staffName;
+                syncSheetMonthOptions(false);
+                document.getElementById('sheet-filter-month').value = monthVal;
             }
 
+            syncSheetStatusOptions(false);
             saveStateToLocalAndCloud();
             renderOfficialClaimSheet();
             renderApprovedAndPaidTab();
@@ -2585,19 +2406,19 @@
 
         window.renderOfficialClaimSheet = function () {
             ensureListsSortedAndSync();
+            syncSheetStatusOptions(false);
+            const statusVal = document.getElementById('sheet-filter-status')?.value;
             const compCode = document.getElementById('sheet-filter-company')?.value;
             const staffName = document.getElementById('sheet-filter-staff')?.value;
             const monthVal = document.getElementById('sheet-filter-month')?.value;
 
-            renderApprovalStatusTracker();
             updatePendingApprovalsBadge();
 
             const sheetEl = document.getElementById('printable-claim-sheet');
             const promptEl = document.getElementById('sheet-empty-prompt');
             const printBtn = document.getElementById('btn-print-official-pdf');
 
-            // View only when both Company Entity and Staff Claimant are selected
-            if (!compCode || !staffName) {
+            if (!statusVal || !compCode || !staffName || !monthVal) {
                 if (sheetEl) sheetEl.classList.add('hidden');
                 if (printBtn) printBtn.classList.add('hidden');
                 if (promptEl) promptEl.classList.remove('hidden');
@@ -2612,7 +2433,6 @@
             const staff = appState.staffProfiles.find(s => s.name === staffName);
             const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
 
-            // Header Logo & Legal Name
             const logoImg = document.getElementById('pdf-logo-img');
             const legalNameEl = document.getElementById('pdf-company-legal-name');
             if (comp && comp.logoDataUrl) {
@@ -2627,13 +2447,11 @@
             const todayIso = new Date().toISOString().slice(0, 10);
             document.getElementById('pdf-generated-date').textContent = formatDateDDMMMYYYY(todayIso);
 
-            // Metadata Strip
             document.getElementById('pdf-staff-name').textContent = staff ? staff.name : staffName;
             document.getElementById('pdf-staff-nric').textContent = staff ? formatNricString(staff.nric) : '-';
             document.getElementById('pdf-staff-mobile').textContent = staff ? formatMobileString(staff.mobile) : '-';
             document.getElementById('pdf-claim-period').textContent = formatMonthTitle(monthVal);
 
-            // Filter & Expand Entries into Sequential Rows
             const entries = appState.entries
                 .filter(e => e.companyCode === compCode && e.staffName === staffName && (!monthVal || (e.date || '').startsWith(monthVal)))
                 .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
@@ -2773,7 +2591,6 @@
 
             tbody.innerHTML = rowsHtml.join('');
 
-            // Render 3-Tier Signature States & Role Action Buttons
             const approvalKey = getApprovalKey(compCode, staffName, monthVal || '');
             const approvalRec = (appState.approvals && appState.approvals[approvalKey]) || {};
             const loggedInStaff = getLoggedInStaff();
@@ -2873,7 +2690,6 @@
             const statusFilter = document.getElementById('paid-status-filter')?.value || 'ALL';
             const monthFilter = document.getElementById('paid-month-filter')?.value || '';
 
-            // Render Company Quick-Filter Pills
             const availableCompanies = sortCompaniesABC(
                 isAdminOrFinance()
                     ? appState.companies
@@ -2905,7 +2721,7 @@
 
             allSummaries.forEach(s => {
                 const rec = (appState.approvals && appState.approvals[s.key]) || {};
-                if (!rec.approvedBy) return; // Only Finance-approved sheets appear here
+                if (!rec.approvedBy) return;
 
                 if (paidCompanyFilter !== 'ALL' && s.companyCode !== paidCompanyFilter) return;
                 if (monthFilter && s.monthVal !== monthFilter) return;
@@ -3003,7 +2819,6 @@
             saveStateToLocalAndCloud();
             closeModal('mark-paid-modal');
             renderApprovedAndPaidTab();
-            renderApprovalStatusTracker();
             updatePendingApprovalsBadge();
             showToast('Claim sheet marked as Paid!');
         };
@@ -3015,14 +2830,29 @@
             delete appState.approvals[key].paidBy;
             saveStateToLocalAndCloud();
             renderApprovedAndPaidTab();
-            renderApprovalStatusTracker();
             updatePendingApprovalsBadge();
             showToast('Payout status cleared.', 'warning');
         };
 
         window.openPdfFromPaidTab = function (compCode, staffName, monthVal) {
             switchMainTab('sheet');
-            selectClaimSheetFromTracker(compCode, staffName, monthVal);
+            syncSheetStatusOptions(false);
+            const statusSel = document.getElementById('sheet-filter-status');
+            if (statusSel) statusSel.value = 'approved';
+
+            syncSheetCompanyOptions(false);
+            const compSel = document.getElementById('sheet-filter-company');
+            if (compSel) compSel.value = compCode;
+
+            syncSheetStaffOptions(false);
+            const staffSel = document.getElementById('sheet-filter-staff');
+            if (staffSel) staffSel.value = staffName;
+
+            syncSheetMonthOptions(false);
+            const monthSel = document.getElementById('sheet-filter-month');
+            if (monthSel) monthSel.value = monthVal;
+
+            renderOfficialClaimSheet();
         };
 
         // =========================================================================
@@ -3033,7 +2863,6 @@
             const canManage = isAdminOrFinance();
             const loggedInStaff = getLoggedInStaff();
 
-            // Notice board editor visibility
             const nbCard = document.getElementById('notice-board-editor-card');
             if (canManage) {
                 nbCard.classList.remove('hidden');
@@ -3042,7 +2871,6 @@
                 nbCard.classList.add('hidden');
             }
 
-            // SuperAdmin Backup / Go-Live Launch Tools visibility (SuperAdmin ONLY)
             const backupCard = document.getElementById('superadmin-backup-card');
             if (backupCard) {
                 if (isSuperAdmin()) {
@@ -3055,7 +2883,6 @@
             document.getElementById('btn-add-company').classList.toggle('hidden', !canManage);
             document.getElementById('btn-add-staff').classList.toggle('hidden', !canManage);
 
-            // Render Companies (ABC Order)
             const compContainer = document.getElementById('companies-list-container');
             compContainer.innerHTML = sortCompaniesABC(appState.companies).map(comp => `
                 <div class="rounded-2xl border border-slate-200 p-4 flex items-center justify-between gap-4 bg-slate-50/50">
@@ -3078,7 +2905,6 @@
                 </div>
             `).join('');
 
-            // Render Staff Profiles (ABC Order; Staff see ONLY their own info; NRIC & ID visible ONLY to owner, Finance & SuperAdmin)
             const staffContainer = document.getElementById('staff-list-container');
             const visibleProfiles = sortStaffABC(getAccessibleStaffProfiles());
 
@@ -3116,7 +2942,7 @@
                                 <div class="text-xs text-slate-600">
                                     ${canSeeSensitiveIdAndNric ? `NRIC: <strong>${escapeHtml(formatNricString(st.nric))}</strong> • ` : ''}Mobile: <strong>${escapeHtml(formatMobileString(st.mobile))}</strong>
                                 </div>
-                                <div class="text-xs text-slate-600">Employed Under: <strong>${escapeHtml(homeComp ? getCompanyLegalName(homeComp) : st.companyCode)}</strong></div>
+                                <div class="text-xs text-slate-600">Company Entity (Home): <strong>${escapeHtml(homeComp ? getCompanyLegalName(homeComp) : st.companyCode)}</strong></div>
                                 ${sisterList.length > 0 ? `<div class="text-[11px] text-indigo-700 font-semibold">Claim Access: ${escapeHtml(sisterList.join(', '))}</div>` : ''}
                                 ${managedNames ? `<div class="text-[11px] text-amber-800 font-semibold">Approves: ${escapeHtml(managedNames)}</div>` : ''}
                             </div>
@@ -3140,7 +2966,6 @@
             showToast('Notice Board updated!');
         };
 
-        // Company Modal Actions
         window.openCompanyModal = function (editCode = null) {
             if (!isAdminOrFinance()) return;
             const comp = editCode ? appState.companies.find(c => c.code === editCode) : null;
@@ -3244,7 +3069,6 @@
             showToast('Company removed.', 'warning');
         };
 
-        // Staff Modal Actions
         window.openStaffModal = function (editId = null) {
             if (!isAdminOrFinance()) return;
             sortAppStateListsABC();
@@ -3339,7 +3163,7 @@
                 return;
             }
             if (!companyCode) {
-                showToast('Please select Employed Under (Home Company).', 'warning');
+                showToast('Please select Company Entity (Home).', 'warning');
                 return;
             }
             if (nricDigits.length < 6) {
@@ -3494,10 +3318,120 @@
         }
 
         // =========================================================================
-        // 11. INITIALIZE ON WINDOW LOAD
+        // 11. LOCAL STORAGE & FIREBASE CLOUD FIRESTORE SYNC
+        // =========================================================================
+        let firestoreDocRef = null;
+        let isApplyingRemoteSnapshot = false;
+
+        function loadLocalState() {
+            try {
+                const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && Array.isArray(parsed.companies) && Array.isArray(parsed.staffProfiles)) {
+                        appState = {
+                            ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+                            ...parsed
+                        };
+                    }
+                }
+            } catch (err) {
+                console.warn('Failed to load local state:', err);
+            }
+        }
+
+        function saveStateToLocalAndCloud() {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
+            } catch (err) {
+                console.warn('Local storage save warning:', err);
+            }
+
+            if (firestoreDocRef && !isApplyingRemoteSnapshot) {
+                setDoc(firestoreDocRef, {
+                    ...appState,
+                    updatedAt: Date.now()
+                }, { merge: true }).catch(err => {
+                    console.warn('Cloud sync write skipped:', err);
+                });
+            }
+        }
+
+        function updateSyncStatusBadges(isOnline, labelText) {
+            const loginBadge = document.getElementById('sync-status-login');
+            const headerBadge = document.getElementById('sync-badge-header');
+            if (loginBadge) {
+                loginBadge.innerHTML = `<span class="w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-amber-400'}"></span> ${escapeHtml(labelText)}`;
+            }
+            if (headerBadge) {
+                headerBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}"></span> ${escapeHtml(labelText)}`;
+            }
+        }
+
+        async function initFirebaseSync() {
+            try {
+                let firebaseConfig = null;
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    firebaseConfig = typeof __firebase_config === 'string'
+                        ? JSON.parse(__firebase_config)
+                        : __firebase_config;
+                }
+
+                if (!firebaseConfig || !firebaseConfig.projectId) {
+                    updateSyncStatusBadges(true, 'Local Ready');
+                    return;
+                }
+
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const db = getFirestore(app);
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'onehax-claims';
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, user => {
+                    if (!user) return;
+                    firestoreDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'claimflow_state', 'shared');
+                    onSnapshot(firestoreDocRef, snap => {
+                        updateSyncStatusBadges(true, 'Cloud Synced');
+                        if (!snap.exists()) {
+                            saveStateToLocalAndCloud();
+                            return;
+                        }
+                        const remote = snap.data();
+                        if (remote && Array.isArray(remote.companies) && Array.isArray(remote.staffProfiles)) {
+                            isApplyingRemoteSnapshot = true;
+                            appState = {
+                                ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+                                ...remote
+                            };
+                            try {
+                                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
+                            } catch (_) {}
+                            if (currentSession) {
+                                refreshAllUI(false);
+                            }
+                            isApplyingRemoteSnapshot = false;
+                        }
+                    }, err => {
+                        console.warn('Firestore snapshot warning:', err);
+                        updateSyncStatusBadges(false, 'Offline Mode');
+                    });
+                });
+            } catch (err) {
+                console.warn('Firebase init fallback to local:', err);
+                updateSyncStatusBadges(true, 'Local Ready');
+            }
+        }
+
+        // =========================================================================
+        // 12. INITIALIZE ON WINDOW LOAD
         // =========================================================================
         window.onload = function () {
-            // Prevent mouse-wheel scroll from accidentally changing number inputs
             document.addEventListener('wheel', function (e) {
                 if (document.activeElement && document.activeElement.type === 'number') {
                     document.activeElement.blur();
