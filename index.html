@@ -69,32 +69,33 @@
             border-collapse: collapse;
             table-layout: fixed;
             font-size: 7.4pt;
+            border: 1px solid #475569;
         }
 
         .pdf-table th {
             background-color: #f1f5f9;
-            color: #1e293b;
+            color: #0f172a;
             font-weight: 800;
             text-transform: uppercase;
             padding: 6px 4px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #475569;
             line-height: 1.2;
             word-wrap: break-word;
         }
 
         .pdf-table td {
             padding: 5.5px 4px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #475569;
             vertical-align: middle;
             line-height: 1.25;
             word-wrap: break-word;
-            color: #1e293b;
+            color: #0f172a;
         }
 
         .pdf-table tr.totals-row td {
             background-color: #2c7a7b;
             font-weight: 800;
-            border: 1px solid #285e61;
+            border: 1px solid #1e293b;
             color: #ffffff;
             padding: 5.5px 4px;
         }
@@ -102,7 +103,53 @@
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 7mm 8mm;
+                margin: 8mm 10mm;
+            }
+            html, body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #app-shell {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+            #tab-panel-sheet {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            #printable-claim-sheet {
+                width: 99.6% !important;
+                max-width: 99.6% !important;
+                padding: 0 !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+                box-sizing: border-box !important;
+            }
+            .pdf-table th {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+                border-color: #475569 !important;
+            }
+            .pdf-table td {
+                border-color: #475569 !important;
+            }
+            .pdf-table tr.totals-row td {
+                background-color: #2c7a7b !important;
+                color: #ffffff !important;
+                border-color: #1e293b !important;
             }
             html, body {
                 background: #ffffff !important;
@@ -470,21 +517,21 @@
                 </div>
 
                 <!-- 4-Box Employee & Period Metadata Strip -->
-                <div class="grid grid-cols-4 border border-slate-300 rounded-xl bg-slate-50/50 mb-3.5 text-[7.8pt] overflow-hidden">
-                    <div class="p-2.5 border-r border-slate-200">
-                        <div class="text-[6.5pt] font-bold uppercase tracking-wider text-slate-500">Staff Name (As Per NRIC)</div>
+                <div class="grid grid-cols-4 border border-slate-600 rounded-xl bg-slate-50/50 mb-3.5 text-[7.8pt] overflow-hidden">
+                    <div class="p-2.5 border-r border-slate-600">
+                        <div class="text-[6.5pt] font-bold uppercase tracking-wider text-slate-600">Staff Name (As Per NRIC)</div>
                         <div id="pdf-staff-name" class="font-extrabold text-slate-900 uppercase mt-0.5">-</div>
                     </div>
-                    <div class="p-2.5 border-r border-slate-200">
-                        <div class="text-[6.5pt] font-bold uppercase tracking-wider text-slate-500">National Registration Identity Card Number</div>
+                    <div class="p-2.5 border-r border-slate-600">
+                        <div class="text-[6.5pt] font-bold uppercase tracking-wider text-slate-600">National Registration Identity Card Number</div>
                         <div id="pdf-staff-nric" class="font-extrabold text-slate-900 mt-0.5">-</div>
                     </div>
-                    <div class="p-2.5 border-r border-slate-200">
-                        <div class="text-[6.5pt] font-bold uppercase tracking-wider text-slate-500">Mobile Telephone Number</div>
+                    <div class="p-2.5 border-r border-slate-600">
+                        <div class="text-[6.5pt] font-bold uppercase tracking-wider text-slate-600">Mobile Telephone Number</div>
                         <div id="pdf-staff-mobile" class="font-extrabold text-slate-900 mt-0.5">-</div>
                     </div>
                     <div class="p-2.5">
-                        <div class="text-[6.5pt] font-bold uppercase tracking-wider text-slate-500">Claim Period</div>
+                        <div class="text-[6.5pt] font-bold uppercase tracking-wider text-slate-600">Claim Period</div>
                         <div id="pdf-claim-period" class="font-extrabold text-indigo-900 uppercase mt-0.5">-</div>
                     </div>
                 </div>
@@ -494,17 +541,17 @@
                     <thead>
                         <tr>
                             <th style="width: 3.4%;" class="text-center">No.</th>
-                            <th style="width: 8.4%;" class="text-center">Date</th>
-                            <th style="width: 30.8%;" class="text-left">Description &amp; Route Details</th>
-                            <th style="width: 7.8%;" class="text-center">Claim<br>Kilometers</th>
-                            <th style="width: 6.4%;" class="text-center">Mileage</th>
+                            <th style="width: 8.0%;" class="text-center">Date</th>
+                            <th style="width: 26.8%;" class="text-left">Description &amp; Route Details</th>
+                            <th style="width: 7.6%;" class="text-center">Claim<br>Kilometers</th>
+                            <th style="width: 6.2%;" class="text-center">Mileage</th>
                             <th style="width: 8.6%;" class="text-center">Public Transport/<br>Grab/Petrol</th>
-                            <th style="width: 6.1%;" class="text-center">Parking</th>
-                            <th style="width: 6.1%;" class="text-center">Toll</th>
-                            <th style="width: 6.1%;" class="text-center">Meals</th>
-                            <th style="width: 7.2%;" class="text-center">Entertain-<br>ment</th>
-                            <th style="width: 6.1%;" class="text-center">Others</th>
-                            <th style="width: 8.5%;" class="text-center">Total (RM)</th>
+                            <th style="width: 6.0%;" class="text-center">Parking</th>
+                            <th style="width: 6.0%;" class="text-center">Toll</th>
+                            <th style="width: 6.0%;" class="text-center">Meals</th>
+                            <th style="width: 7.0%;" class="text-center">Entertain-<br>ment</th>
+                            <th style="width: 6.0%;" class="text-center">Others</th>
+                            <th style="width: 8.4%;" class="text-center">Total (RM)</th>
                         </tr>
                     </thead>
                     <tbody id="pdf-table-body"></tbody>
