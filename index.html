@@ -386,17 +386,38 @@
         <!-- TAB 3: OFFICIAL CLAIM SHEET & PDF -->
         <main id="tab-panel-sheet" class="hidden max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
             <!-- Monthly Submission & Approval Status Tracker (Supervisors, Managers, Finance & SuperAdmin) -->
-            <div id="approval-tracker-card" class="no-print hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3">
+            <div id="approval-tracker-card" class="no-print hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3.5">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-clipboard-check text-indigo-600"></i> Monthly Claim Submission &amp; Approval Overview
                         </h3>
-                        <p class="text-xs text-slate-500">Click any row below to load that staff member's claim sheet and verify or approve.</p>
+                        <p class="text-xs text-slate-500">Switch between Pending and Approved claims, filter by company, or click any staff card to open their PDF sheet.</p>
                     </div>
                     <span id="tracker-period-pill" class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 text-xs font-extrabold uppercase">PERIOD</span>
                 </div>
-                <div id="approval-tracker-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+
+                <!-- Pending vs Already Approved Sub-Tabs + Search -->
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="tracker-tab-pending" onclick="setTrackerSubTab('pending')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-amber-500 text-slate-950 shadow-xs transition">
+                            🟠 Pending Approval <span id="tracker-count-pending" class="ml-1 px-1.5 py-0.5 rounded-full bg-white/80 text-slate-900 text-[10px]">0</span>
+                        </button>
+                        <button type="button" id="tracker-tab-approved" onclick="setTrackerSubTab('approved')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+                            ✅ Already Approved <span id="tracker-count-approved" class="ml-1 px-1.5 py-0.5 rounded-full bg-white text-slate-700 text-[10px]">0</span>
+                        </button>
+                    </div>
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="tracker-search-input" oninput="onTrackerSearchInput(this.value)" placeholder="Search staff name..." class="w-full rounded-xl border border-slate-300 pl-8 pr-3 py-1.5 text-xs font-medium focus:border-indigo-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Dynamic Company Quick-Filter Pills -->
+                <div id="tracker-company-pills" class="flex flex-wrap items-center gap-1.5"></div>
+
+                <!-- Scrollable Staff Claim Cards Grid -->
+                <div id="approval-tracker-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-80 overflow-y-auto pr-1"></div>
             </div>
 
             <!-- Filter & Action Toolbar (Hidden in Print) -->
@@ -660,9 +681,9 @@
                         <select id="staff-modal-role" required onchange="toggleManagerSubordinatesBox()" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold focus:border-indigo-500 outline-none">
                             <option value="">--- Please Select ---</option>
                             <option value="staff">Executive / Staff (Claimant)</option>
-                            <option value="supervisor">Supervisor (Approves Assigned Staff)</option>
-                            <option value="manager">Manager (Approves Assigned Staff / Supervisors)</option>
                             <option value="finance">Finance (Final Approval &amp; Full Setup)</option>
+                            <option value="manager">Manager (Approves Assigned Staff / Supervisors)</option>
+                            <option value="supervisor">Supervisor (Approves Assigned Staff)</option>
                         </select>
                     </div>
                 </div>
@@ -846,6 +867,50 @@
         let draftStops = [];
         let editingEntryId = null;
         let modalTempLogoDataUrl = '';
+        let trackerSubTab = 'pending'; // 'pending' | 'approved'
+        let trackerCompanyFilter = 'ALL';
+        let trackerSearchQuery = '';
+
+        function sortCompaniesABC(list) {
+            return [...(list || [])].sort((a, b) =>
+                (a.fullName || a.name || a.code || '').localeCompare(b.fullName || b.name || b.code || '', undefined, { sensitivity: 'base' })
+            );
+        }
+
+        function sortStaffABC(list) {
+            return [...(list || [])].sort((a, b) =>
+                (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+            );
+        }
+
+        function sortAppStateListsABC() {
+            if (Array.isArray(appState.companies)) {
+                appState.companies = sortCompaniesABC(appState.companies);
+            }
+            if (Array.isArray(appState.staffProfiles)) {
+                appState.staffProfiles = sortStaffABC(appState.staffProfiles);
+            }
+            if (appState.staffLocations && typeof appState.staffLocations === 'object') {
+                Object.keys(appState.staffLocations).forEach(k => {
+                    if (Array.isArray(appState.staffLocations[k])) {
+                        appState.staffLocations[k] = [...appState.staffLocations[k]].sort((a, b) =>
+                            String(a).localeCompare(String(b), undefined, { sensitivity: 'base' })
+                        );
+                    }
+                });
+            }
+        }
+
+        function ensureListsSortedAndSync() {
+            const beforeComp = (appState.companies || []).map(c => c.code).join(',');
+            const beforeStaff = (appState.staffProfiles || []).map(s => s.id).join(',');
+            sortAppStateListsABC();
+            const afterComp = (appState.companies || []).map(c => c.code).join(',');
+            const afterStaff = (appState.staffProfiles || []).map(s => s.id).join(',');
+            if ((beforeComp !== afterComp || beforeStaff !== afterStaff) && typeof populateAllSelectors === 'function') {
+                populateAllSelectors();
+            }
+        }
 
         // Cloud Sync Handles
         let firestoreDb = null;
@@ -868,6 +933,7 @@
         }
 
         function saveStateToLocalAndCloud() {
+            sortAppStateListsABC();
             try {
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
             } catch (e) {
@@ -894,6 +960,7 @@
                         ...parsed
                     };
                 }
+                sortAppStateListsABC();
             } catch (e) {
                 console.error('Failed to parse local state:', e);
             }
@@ -901,7 +968,6 @@
 
         async function initFirebaseSync() {
             try {
-                // Live Firebase configuration for project: onehax-claims
                 const liveFirebaseConfig = {
                     apiKey: "AIzaSyBkoqynJLUy6HOpwAab5QALMq83PW8iamk",
                     authDomain: "onehax-claims.firebaseapp.com",
@@ -941,6 +1007,7 @@
                                     ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
                                     ...remoteState
                                 };
+                                sortAppStateListsABC();
                                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
                                 refreshAllUI();
                             } catch (err) {
@@ -963,26 +1030,23 @@
         }
 
         // =========================================================================
-        // 3. CURSOR-SAFE UPPERCASE, NRIC & MOBILE AUTO-FORMATTERS + HELPERS
+        // 3. CURSOR-PRESERVING FORMATTERS & HELPERS
         // =========================================================================
         window.applyUppercasePreserveCursor = function (inputEl) {
-            if (!inputEl) return;
             const start = inputEl.selectionStart;
             const end = inputEl.selectionEnd;
             const upper = inputEl.value.toUpperCase();
             if (inputEl.value !== upper) {
                 inputEl.value = upper;
                 if (typeof start === 'number' && typeof end === 'number') {
-                    try {
-                        inputEl.setSelectionRange(start, end);
-                    } catch (e) { /* ignore non-text inputs */ }
+                    inputEl.setSelectionRange(start, end);
                 }
             }
         };
 
         window.formatNricInputLive = function (inputEl) {
             const rawVal = inputEl.value;
-            const caretPos = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : rawVal.length;
+            const caretPos = inputEl.selectionStart ?? rawVal.length;
             const digitsBeforeCaret = rawVal.slice(0, caretPos).replace(/\D/g, '').length;
 
             const digits = rawVal.replace(/\D/g, '').slice(0, 12);
@@ -994,20 +1058,14 @@
             }
             inputEl.value = formatted;
 
-            // Restore cursor position right after the same digit count
-            let newCaret = formatted.length;
-            if (digitsBeforeCaret <= digits.length) {
-                let counted = 0;
-                newCaret = 0;
-                for (let i = 0; i < formatted.length; i++) {
-                    if (counted >= digitsBeforeCaret) break;
-                    if (/\d/.test(formatted[i])) counted++;
-                    newCaret = i + 1;
-                }
+            // Restore caret right after the same digit count
+            let newCaret = 0;
+            let seenDigits = 0;
+            while (newCaret < formatted.length && seenDigits < digitsBeforeCaret) {
+                if (/\d/.test(formatted[newCaret])) seenDigits++;
+                newCaret++;
             }
-            try {
-                inputEl.setSelectionRange(newCaret, newCaret);
-            } catch (e) { /* ignore */ }
+            inputEl.setSelectionRange(newCaret, newCaret);
 
             const pwInput = document.getElementById('staff-modal-password');
             if (pwInput && digits.length >= 4 && !pwInput.dataset.userEdited) {
@@ -1023,7 +1081,7 @@
 
         window.formatMobileInputLive = function (inputEl) {
             const rawVal = inputEl.value;
-            const caretPos = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : rawVal.length;
+            const caretPos = inputEl.selectionStart ?? rawVal.length;
             const digitsBeforeCaret = rawVal.slice(0, caretPos).replace(/\D/g, '').length;
 
             const digits = rawVal.replace(/\D/g, '').slice(0, 11);
@@ -1043,19 +1101,13 @@
             }
             inputEl.value = formatted;
 
-            let newCaret = formatted.length;
-            if (digitsBeforeCaret <= digits.length) {
-                let counted = 0;
-                newCaret = 0;
-                for (let i = 0; i < formatted.length; i++) {
-                    if (counted >= digitsBeforeCaret) break;
-                    if (/\d/.test(formatted[i])) counted++;
-                    newCaret = i + 1;
-                }
+            let newCaret = 0;
+            let seenDigits = 0;
+            while (newCaret < formatted.length && seenDigits < digitsBeforeCaret) {
+                if (/\d/.test(formatted[newCaret])) seenDigits++;
+                newCaret++;
             }
-            try {
-                inputEl.setSelectionRange(newCaret, newCaret);
-            } catch (e) { /* ignore */ }
+            inputEl.setSelectionRange(newCaret, newCaret);
         };
 
         function formatMobileString(raw) {
@@ -1128,7 +1180,7 @@
         }
 
         // =========================================================================
-        // 4. AUTHENTICATION & MULTI-TIER HIERARCHY (MANAGER > SUPERVISOR > STAFF)
+        // 4. AUTHENTICATION & MULTI-TIER ROLE-BASED ACCESS CONTROL (RBAC)
         // =========================================================================
         function getLoggedInStaff() {
             if (!currentSession || currentSession.type !== 'user') return null;
@@ -1146,48 +1198,48 @@
         }
 
         function isSupervisorOrManagerRole(role) {
-            return role === 'manager' || role === 'supervisor';
+            return role === 'supervisor' || role === 'manager';
         }
 
-        // Recursively collect all direct & indirect subordinates (e.g., Manager -> Supervisor -> Executive/Staff)
-        function getTransitiveManagedStaffIds(rootUserObj) {
-            const collected = new Set();
-            if (!rootUserObj || !Array.isArray(rootUserObj.managedStaffIds)) return collected;
+        // Recursively collects direct & indirect subordinates (e.g. Manager -> Supervisor -> Executive/Staff)
+        function getTransitiveManagedStaffIds(leaderObj) {
+            const result = new Set();
+            if (!leaderObj || !Array.isArray(leaderObj.managedStaffIds)) return result;
 
-            const queue = [...rootUserObj.managedStaffIds];
+            const queue = [...leaderObj.managedStaffIds];
             while (queue.length > 0) {
                 const subId = queue.shift();
-                if (!subId || subId === rootUserObj.id || collected.has(subId)) continue;
-                collected.add(subId);
-                const subObj = appState.staffProfiles.find(s => s.id === subId);
-                if (subObj && Array.isArray(subObj.managedStaffIds)) {
-                    subObj.managedStaffIds.forEach(nestedId => {
-                        if (!collected.has(nestedId)) queue.push(nestedId);
+                if (!subId || subId === leaderObj.id || result.has(subId)) continue;
+                result.add(subId);
+                const subProfile = appState.staffProfiles.find(s => s.id === subId);
+                if (subProfile && Array.isArray(subProfile.managedStaffIds)) {
+                    subProfile.managedStaffIds.forEach(nestedId => {
+                        if (!result.has(nestedId)) queue.push(nestedId);
                     });
                 }
             }
-            return collected;
+            return result;
         }
 
         function getAccessibleStaffProfiles() {
             if (isAdminOrFinance()) {
-                return appState.staffProfiles;
+                return sortStaffABC(appState.staffProfiles);
             }
             const staff = getLoggedInStaff();
             if (!staff) return [];
             if (isSupervisorOrManagerRole(staff.role)) {
                 const managedSet = getTransitiveManagedStaffIds(staff);
                 managedSet.add(staff.id);
-                return appState.staffProfiles.filter(s => managedSet.has(s.id));
+                return sortStaffABC(appState.staffProfiles.filter(s => managedSet.has(s.id)));
             }
             return [staff];
         }
 
         function getAccessibleCompaniesForStaff(staffObj) {
-            if (isAdminOrFinance()) return appState.companies;
+            if (isAdminOrFinance()) return sortCompaniesABC(appState.companies);
             if (!staffObj) return [];
             const codes = new Set([staffObj.companyCode, ...(staffObj.allowedCompanies || [])]);
-            return appState.companies.filter(c => codes.has(c.code));
+            return sortCompaniesABC(appState.companies.filter(c => codes.has(c.code)));
         }
 
         window.switchLoginMode = function (mode) {
@@ -1276,17 +1328,11 @@
             document.getElementById('filter-entries-month').value = yyyyMm;
             document.getElementById('sheet-filter-month').value = yyyyMm;
 
-            // Reset all dropdowns to "--- Please Select ---" on fresh login
-            ['entry-company', 'entry-staff', 'filter-entries-company', 'filter-entries-staff', 'sheet-filter-company', 'sheet-filter-staff'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-            });
-
             if (draftStops.length === 0) {
                 addRouteStop();
             }
 
-            refreshAllUI();
+            refreshAllUI(true);
             switchMainTab('log');
         }
 
@@ -1299,7 +1345,7 @@
         };
 
         // =========================================================================
-        // 5. NAVIGATION & WORKSPACE UI REFRESH
+        // 5. NAVIGATION & WORKSPACE UI REFRESH (ABC ORDER + "--- PLEASE SELECT ---")
         // =========================================================================
         window.switchMainTab = function (tabName) {
             ['log', 'entries', 'sheet', 'setup'].forEach(t => {
@@ -1319,8 +1365,9 @@
             if (tabName === 'setup') renderSetupDirectory();
         };
 
-        function refreshAllUI() {
+        function refreshAllUI(resetDropdownsToDefault = false) {
             if (!currentSession) return;
+            sortAppStateListsABC();
 
             const subtitleEl = document.getElementById('header-user-subtitle');
             const changePwBtn = document.getElementById('btn-change-password');
@@ -1336,11 +1383,7 @@
                 }
                 const roleLabel = staff.role === 'finance'
                     ? 'Finance'
-                    : staff.role === 'manager'
-                        ? 'Manager'
-                        : staff.role === 'supervisor'
-                            ? 'Supervisor'
-                            : 'Executive / Staff';
+                    : (staff.role === 'manager' ? 'Manager' : (staff.role === 'supervisor' ? 'Supervisor' : 'Staff / Executive'));
                 subtitleEl.textContent = `${staff.name} • ${roleLabel}`;
                 changePwBtn.classList.remove('hidden');
             }
@@ -1356,7 +1399,7 @@
                 noticeBanner.classList.add('hidden');
             }
 
-            populateAllSelectors();
+            populateAllSelectors(resetDropdownsToDefault);
             renderLocationMemoryForSelectedStaff();
             updateBadgesAndLivePreview();
             renderSavedEntriesList();
@@ -1364,13 +1407,13 @@
             renderSetupDirectory();
         }
 
-        function populateAllSelectors() {
+        function populateAllSelectors(resetToPleaseSelect = false) {
             const accessibleStaff = getAccessibleStaffProfiles();
             const loggedInStaff = getLoggedInStaff();
 
-            // 1. Entry Form Staff Dropdown (Defaults to "--- Please Select ---")
+            // 1. Entry Form Staff Dropdown (ABC order, defaults to "--- Please Select ---")
             const entryStaffSel = document.getElementById('entry-staff');
-            const prevEntryStaff = entryStaffSel.value;
+            const prevEntryStaff = resetToPleaseSelect ? '' : entryStaffSel.value;
             entryStaffSel.innerHTML = PLEASE_SELECT_OPTION + accessibleStaff.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
             if (prevEntryStaff && accessibleStaff.some(s => s.name === prevEntryStaff)) {
                 entryStaffSel.value = prevEntryStaff;
@@ -1378,18 +1421,18 @@
                 entryStaffSel.value = '';
             }
 
-            // 2. Entry Form Company Dropdown (Defaults to "--- Please Select ---")
-            syncEntryCompanyOptionsForSelectedStaff();
+            // 2. Entry Form Company Dropdown (ABC order, defaults to "--- Please Select ---")
+            syncEntryCompanyOptionsForSelectedStaff(resetToPleaseSelect);
 
-            // 3. Filter Dropdowns for Tab 2 (Entries) & Tab 3 (Sheet) (Defaults to "--- Please Select ---")
+            // 3. Filter Dropdowns for Tab 2 (Entries) & Tab 3 (Sheet) — ABC order, default "--- Please Select ---"
             const filterCompanies = isAdminOrFinance()
-                ? appState.companies
+                ? sortCompaniesABC(appState.companies)
                 : getAccessibleCompaniesForStaff(loggedInStaff);
 
             ['filter-entries-company', 'sheet-filter-company'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                const prev = el.value;
+                const prev = resetToPleaseSelect ? '' : el.value;
                 el.innerHTML = PLEASE_SELECT_OPTION + filterCompanies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
                 if (prev && filterCompanies.some(c => c.code === prev)) {
                     el.value = prev;
@@ -1398,21 +1441,22 @@
                 }
             });
 
-            syncFilterStaffOptions('entries');
-            syncFilterStaffOptions('sheet');
+            syncFilterStaffOptions('entries', resetToPleaseSelect);
+            syncFilterStaffOptions('sheet', resetToPleaseSelect);
         }
 
-        function syncEntryCompanyOptionsForSelectedStaff() {
+        function syncEntryCompanyOptionsForSelectedStaff(resetToPleaseSelect = false) {
             const entryStaffName = document.getElementById('entry-staff').value;
             const staffObj = entryStaffName
                 ? appState.staffProfiles.find(s => s.name === entryStaffName)
                 : getLoggedInStaff();
+
             const allowedComps = isAdminOrFinance()
-                ? appState.companies
-                : (staffObj ? getAccessibleCompaniesForStaff(staffObj) : appState.companies);
+                ? sortCompaniesABC(appState.companies)
+                : (staffObj ? getAccessibleCompaniesForStaff(staffObj) : sortCompaniesABC(appState.companies));
 
             const entryCompSel = document.getElementById('entry-company');
-            const prevComp = entryCompSel.value;
+            const prevComp = resetToPleaseSelect ? '' : entryCompSel.value;
             entryCompSel.innerHTML = PLEASE_SELECT_OPTION + allowedComps.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
 
             if (prevComp && allowedComps.some(c => c.code === prevComp)) {
@@ -1423,7 +1467,7 @@
         }
 
         window.onEntryStaffChange = function () {
-            syncEntryCompanyOptionsForSelectedStaff();
+            syncEntryCompanyOptionsForSelectedStaff(false);
             renderLocationMemoryForSelectedStaff();
             updateBadgesAndLivePreview();
         };
@@ -1433,21 +1477,21 @@
         };
 
         window.onFilterCompanyChange = function (target) {
-            syncFilterStaffOptions(target);
+            syncFilterStaffOptions(target, false);
             if (target === 'entries') renderSavedEntriesList();
             if (target === 'sheet') renderOfficialClaimSheet();
         };
 
-        function syncFilterStaffOptions(target) {
+        function syncFilterStaffOptions(target, resetToPleaseSelect = false) {
             const compSel = document.getElementById(target === 'entries' ? 'filter-entries-company' : 'sheet-filter-company');
             const staffSel = document.getElementById(target === 'entries' ? 'filter-entries-staff' : 'sheet-filter-staff');
             if (!compSel || !staffSel) return;
             const selectedCompCode = compSel.value;
-            const prevStaff = staffSel.value;
+            const prevStaff = resetToPleaseSelect ? '' : staffSel.value;
 
             const allAccessible = getAccessibleStaffProfiles();
             let candidates = allAccessible;
-            if (isAdminOrFinance() && selectedCompCode) {
+            if (selectedCompCode) {
                 const byComp = allAccessible.filter(s => {
                     const codes = new Set([s.companyCode, ...(s.allowedCompanies || [])]);
                     return codes.has(selectedCompCode);
@@ -1455,7 +1499,7 @@
                 candidates = byComp.length > 0 ? byComp : allAccessible;
             }
 
-            staffSel.innerHTML = PLEASE_SELECT_OPTION + candidates.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+            staffSel.innerHTML = PLEASE_SELECT_OPTION + sortStaffABC(candidates).map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
             if (prevStaff && candidates.some(s => s.name === prevStaff)) {
                 staffSel.value = prevStaff;
             } else {
@@ -1470,7 +1514,8 @@
             const staffName = document.getElementById('entry-staff')?.value || '';
             const datalist = document.getElementById('staff-location-memory');
             if (!datalist) return;
-            const savedList = (appState.staffLocations && appState.staffLocations[staffName]) || [];
+            const savedList = [...((appState.staffLocations && appState.staffLocations[staffName]) || [])]
+                .sort((a, b) => String(a).localeCompare(String(b), undefined, { sensitivity: 'base' }));
             datalist.innerHTML = savedList.map(loc => `<option value="${escapeHtml(loc)}"></option>`).join('');
         }
 
@@ -1482,7 +1527,9 @@
                 const clean = (loc || '').trim().toUpperCase();
                 if (clean.length >= 2) existing.add(clean);
             });
-            appState.staffLocations[staffName] = Array.from(existing).slice(0, 60);
+            appState.staffLocations[staffName] = Array.from(existing)
+                .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+                .slice(0, 80);
             renderLocationMemoryForSelectedStaff();
         }
 
@@ -1506,7 +1553,7 @@
 
         window.removeRouteStop = function (idx) {
             if (draftStops.length <= 1) {
-                showToast('At least one destination stop is required for driving claims.', 'warning');
+                showToast('At least one destination stop is required.', 'warning');
                 return;
             }
             draftStops.splice(idx, 1);
@@ -1514,9 +1561,14 @@
             updateBadgesAndLivePreview();
         };
 
-        window.updateDraftStopField = function (idx, field, value) {
+        window.updateDraftStopField = function (idx, field, value, inputEl = null) {
             if (!draftStops[idx]) return;
-            draftStops[idx][field] = field === 'destination' ? value.toUpperCase() : value;
+            if (field === 'destination') {
+                if (inputEl) applyUppercasePreserveCursor(inputEl);
+                draftStops[idx][field] = inputEl ? inputEl.value : value.toUpperCase();
+            } else {
+                draftStops[idx][field] = value;
+            }
             if (['distanceKm', 'publicTransport', 'parking', 'toll', 'meals', 'entertainment', 'others'].includes(field)) {
                 updateBadgesAndLivePreview();
             }
@@ -1601,7 +1653,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
                             <div class="sm:col-span-5">
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Destination / Client *</label>
-                                <input type="text" list="staff-location-memory" autocomplete="off" value="${escapeHtml(stop.destination)}" oninput="applyUppercasePreserveCursor(this); updateDraftStopField(${idx}, 'destination', this.value)" placeholder="e.g. FOREVER PRODUCTS" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 outline-none">
+                                <input type="text" list="staff-location-memory" autocomplete="off" value="${escapeHtml(stop.destination)}" oninput="updateDraftStopField(${idx}, 'destination', this.value, this)" placeholder="e.g. FOREVER PRODUCTS" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 outline-none">
                             </div>
                             <div class="sm:col-span-3">
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Distance (KM) *</label>
@@ -1634,11 +1686,7 @@
             const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
 
             const ratePill = document.getElementById('active-rate-pill');
-            if (ratePill) {
-                ratePill.textContent = comp
-                    ? `${comp.code}: RM ${rate.toFixed(2)} / KM`
-                    : `Rate: RM ${rate.toFixed(2)} / KM`;
-            }
+            if (ratePill) ratePill.textContent = `Rate: RM ${rate.toFixed(2)} / KM`;
 
             const totalKm = draftStops.reduce((sum, s) => sum + (parseFloat(s.distanceKm) || 0), 0);
             const expRm = draftStops.reduce((sum, s) => sum + getStopExpenseSum(s), 0);
@@ -1707,26 +1755,21 @@
             const staffName = document.getElementById('entry-staff').value;
             const date = document.getElementById('entry-date').value;
 
-            if (!companyCode || !staffName || !date) {
-                showToast('Please select Claiming Under Company, Staff Claimant, and Claim Date.', 'warning');
+            if (!companyCode) {
+                showToast('Please select "1. Claiming Under Company" first.', 'warning');
+                return;
+            }
+            if (!staffName) {
+                showToast('Please select "2. Staff Claimant" first.', 'warning');
+                return;
+            }
+            if (!date) {
+                showToast('Please select "3. Claim Date".', 'warning');
                 return;
             }
 
-            let origin = '';
-            let departTime = '';
-            let stops = [];
-            const nonDrivePurpose = '';
-            const nonDriveDetails = '';
-
-            let publicTransport = 0;
-            let parking = 0;
-            let toll = 0;
-            let meals = 0;
-            let entertainment = 0;
-            let others = 0;
-
-            origin = document.getElementById('route-origin').value.trim().toUpperCase();
-            departTime = document.getElementById('route-depart-time').value.trim();
+            const origin = document.getElementById('route-origin').value.trim().toUpperCase();
+            const departTime = document.getElementById('route-depart-time').value.trim();
             if (!origin) {
                 showToast('Please enter the Starting Point (Origin).', 'warning');
                 return;
@@ -1735,6 +1778,15 @@
                 showToast('Please add at least one destination stop.', 'warning');
                 return;
             }
+
+            const stops = [];
+            let publicTransport = 0;
+            let parking = 0;
+            let toll = 0;
+            let meals = 0;
+            let entertainment = 0;
+            let others = 0;
+
             for (let i = 0; i < draftStops.length; i++) {
                 const s = draftStops[i];
                 if (!s.destination.trim() || !s.purpose.trim()) {
@@ -1781,8 +1833,8 @@
                 departTime,
                 stops,
                 hasPerStopExpenses: true,
-                nonDrivePurpose,
-                nonDriveDetails,
+                nonDrivePurpose: '',
+                nonDriveDetails: '',
                 publicTransport,
                 parking,
                 toll,
@@ -1801,7 +1853,14 @@
             }
 
             const yyyyMm = date.slice(0, 7);
+            document.getElementById('filter-entries-company').value = companyCode;
+            syncFilterStaffOptions('entries', false);
+            document.getElementById('filter-entries-staff').value = staffName;
             document.getElementById('filter-entries-month').value = yyyyMm;
+
+            document.getElementById('sheet-filter-company').value = companyCode;
+            syncFilterStaffOptions('sheet', false);
+            document.getElementById('sheet-filter-staff').value = staffName;
             document.getElementById('sheet-filter-month').value = yyyyMm;
 
             resetClaimEntryForm();
@@ -1848,22 +1907,12 @@
             const staffName = document.getElementById('filter-entries-staff')?.value;
             const monthVal = document.getElementById('filter-entries-month')?.value;
 
-            if (!compCode || !staffName) {
-                container.innerHTML = `
-                    <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center space-y-2">
-                        <div class="text-2xl text-indigo-600"><i class="fa-solid fa-filter"></i></div>
-                        <h3 class="text-sm font-extrabold text-slate-800">Select Company &amp; Staff Above</h3>
-                        <p class="text-xs text-slate-500">Please select both a <strong>Filter Company</strong> and <strong>Filter Staff</strong> from the dropdowns above to view saved entries.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const comp = appState.companies.find(c => c.code === compCode) || appState.companies[0];
-            const rate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
+            const accessibleNames = new Set(getAccessibleStaffProfiles().map(s => s.name));
+            const comp = compCode ? appState.companies.find(c => c.code === compCode) : null;
+            const defaultRate = comp ? (parseFloat(comp.mileageRate) || 0.60) : 0.60;
 
             const filtered = appState.entries
-                .filter(e => e.companyCode === compCode && e.staffName === staffName && (!monthVal || (e.date || '').startsWith(monthVal)))
+                .filter(e => accessibleNames.has(e.staffName) && (!compCode || e.companyCode === compCode) && (!staffName || e.staffName === staffName) && (!monthVal || (e.date || '').startsWith(monthVal)))
                 .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
             if (filtered.length === 0) {
@@ -1871,13 +1920,15 @@
                     <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-2">
                         <div class="text-3xl">📭</div>
                         <h3 class="text-sm font-extrabold text-slate-800">No entries logged for this selection</h3>
-                        <p class="text-xs text-slate-500">Use Tab 1 (Log New Claim) to record daily travel or expenses.</p>
+                        <p class="text-xs text-slate-500">Select a Company &amp; Staff filter above or use Tab 1 (Log New Claim) to record daily travel.</p>
                     </div>
                 `;
                 return;
             }
 
             container.innerHTML = filtered.map((entry, idx) => {
+                const entryComp = appState.companies.find(c => c.code === entry.companyCode);
+                const rate = entryComp ? (parseFloat(entryComp.mileageRate) || 0.60) : defaultRate;
                 const km = entry.tripType === 'driving'
                     ? (entry.stops || []).reduce((sum, s) => sum + (parseFloat(s.distanceKm) || 0), 0)
                     : 0;
@@ -1900,6 +1951,7 @@
                                 <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[11px] font-extrabold">#${idx + 1}</span>
                                 <span class="text-xs font-extrabold text-indigo-700">${formatDateDDMMMYYYY(entry.date)}</span>
                                 <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">${escapeHtml(entry.companyCode)}</span>
+                                <span class="text-xs font-bold text-slate-600">• ${escapeHtml(entry.staffName)}</span>
                             </div>
                             <div class="text-sm font-bold text-slate-900">${routeSummary}</div>
                             <div class="text-xs text-slate-500">
@@ -1935,7 +1987,7 @@
             document.getElementById('btn-cancel-edit').classList.remove('hidden');
 
             document.getElementById('entry-staff').value = entry.staffName;
-            syncEntryCompanyOptionsForSelectedStaff();
+            syncEntryCompanyOptionsForSelectedStaff(false);
             document.getElementById('entry-company').value = entry.companyCode;
             document.getElementById('entry-date').value = entry.date;
 
@@ -2016,7 +2068,7 @@
             const compCode = document.getElementById('sheet-filter-company')?.value;
             const staffName = document.getElementById('sheet-filter-staff')?.value;
             if (!compCode || !staffName) {
-                showToast('Please select Company Entity and Staff Claimant first.', 'warning');
+                showToast('Please select both Company Entity and Staff Claimant first.', 'warning');
                 return;
             }
             const monthVal = document.getElementById('sheet-filter-month')?.value || 'PERIOD';
@@ -2031,10 +2083,29 @@
         // =========================================================================
         // 8. OFFICIAL A4 LANDSCAPE CLAIM SHEET & 3-TIER ELECTRONIC SIGNATURES
         // =========================================================================
+        window.setTrackerSubTab = function (tab) {
+            trackerSubTab = tab === 'approved' ? 'approved' : 'pending';
+            const monthVal = document.getElementById('sheet-filter-month')?.value;
+            renderApprovalStatusTracker(monthVal);
+        };
+
+        window.setTrackerCompanyFilter = function (compCode) {
+            trackerCompanyFilter = compCode || 'ALL';
+            const monthVal = document.getElementById('sheet-filter-month')?.value;
+            renderApprovalStatusTracker(monthVal);
+        };
+
+        window.onTrackerSearchInput = function (val) {
+            trackerSearchQuery = (val || '').trim().toLowerCase();
+            const monthVal = document.getElementById('sheet-filter-month')?.value;
+            renderApprovalStatusTracker(monthVal);
+        };
+
         function renderApprovalStatusTracker(monthVal) {
             const trackerCard = document.getElementById('approval-tracker-card');
             const trackerList = document.getElementById('approval-tracker-list');
             const periodPill = document.getElementById('tracker-period-pill');
+            const pillsContainer = document.getElementById('tracker-company-pills');
             if (!trackerCard || !trackerList) return;
 
             const loggedIn = getLoggedInStaff();
@@ -2047,9 +2118,49 @@
             trackerCard.classList.remove('hidden');
             if (periodPill) periodPill.textContent = formatMonthTitle(monthVal);
 
-            const accessibleStaff = getAccessibleStaffProfiles();
+            // Style Pending vs Approved Sub-Tabs
+            const tabPendingBtn = document.getElementById('tracker-tab-pending');
+            const tabApprovedBtn = document.getElementById('tracker-tab-approved');
+            if (tabPendingBtn && tabApprovedBtn) {
+                if (trackerSubTab === 'pending') {
+                    tabPendingBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-amber-500 text-slate-950 shadow-xs transition';
+                    tabApprovedBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+                } else {
+                    tabApprovedBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow-xs transition';
+                    tabPendingBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+                }
+            }
+
+            // Render Company Quick-Filter Pills (ABC Order)
+            const availableCompanies = sortCompaniesABC(
+                isAdminOrFinance()
+                    ? appState.companies
+                    : getAccessibleCompaniesForStaff(loggedIn)
+            );
+            if (trackerCompanyFilter !== 'ALL' && !availableCompanies.some(c => c.code === trackerCompanyFilter)) {
+                trackerCompanyFilter = 'ALL';
+            }
+            if (pillsContainer) {
+                const allBtnClass = trackerCompanyFilter === 'ALL'
+                    ? 'bg-slate-900 text-white border-slate-900'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100';
+                const compPills = availableCompanies.map(c => {
+                    const active = trackerCompanyFilter === c.code;
+                    return `<button type="button" onclick="setTrackerCompanyFilter('${escapeHtml(c.code)}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}">${escapeHtml(c.code)}</button>`;
+                }).join('');
+                pillsContainer.innerHTML = `
+                    <span class="text-[10px] font-bold uppercase text-slate-400 mr-1">Company:</span>
+                    <button type="button" onclick="setTrackerCompanyFilter('ALL')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${allBtnClass}">All Companies</button>
+                    ${compPills}
+                `;
+            }
+
+            const accessibleStaff = sortStaffABC(getAccessibleStaffProfiles());
             const currentComp = document.getElementById('sheet-filter-company')?.value;
             const currentStaff = document.getElementById('sheet-filter-staff')?.value;
+
+            let totalPendingCount = 0;
+            let totalApprovedCount = 0;
             const cardsHtml = [];
 
             accessibleStaff.forEach(st => {
@@ -2062,6 +2173,21 @@
                     );
                     if (matchingEntries.length === 0) return;
 
+                    const key = getApprovalKey(cCode, st.name, monthVal);
+                    const rec = (appState.approvals && appState.approvals[key]) || {};
+                    const isFullyApproved = Boolean(rec.approvedBy);
+
+                    if (isFullyApproved) {
+                        totalApprovedCount++;
+                    } else {
+                        totalPendingCount++;
+                    }
+
+                    if (trackerSubTab === 'pending' && isFullyApproved) return;
+                    if (trackerSubTab === 'approved' && !isFullyApproved) return;
+                    if (trackerCompanyFilter !== 'ALL' && cCode !== trackerCompanyFilter) return;
+                    if (trackerSearchQuery && !st.name.toLowerCase().includes(trackerSearchQuery)) return;
+
                     const compObj = appState.companies.find(c => c.code === cCode);
                     const rate = compObj ? (parseFloat(compObj.mileageRate) || 0.60) : 0.60;
                     let totalRm = 0;
@@ -2073,8 +2199,6 @@
                         totalRm += (km * rate) + exp;
                     });
 
-                    const key = getApprovalKey(cCode, st.name, monthVal);
-                    const rec = (appState.approvals && appState.approvals[key]) || {};
                     const isSelected = currentComp === cCode && currentStaff === st.name;
 
                     const claimedBadge = rec.claimedBy
@@ -2084,16 +2208,16 @@
                         ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Mgr Verified</span>`
                         : `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold">● Pending Mgr</span>`;
                     const approvedBadge = rec.approvedBy
-                        ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Fin Approved</span>`
+                        ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">✓ Fin Approved (${escapeHtml(rec.approvedDate || '')})</span>`
                         : `<span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold">● Pending Fin</span>`;
 
                     cardsHtml.push(`
-                        <button type="button" onclick="selectClaimSheetFromTracker('${escapeHtml(cCode)}', '${escapeHtml(st.name)}')" class="text-left p-3.5 rounded-xl border transition ${isSelected ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-200' : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-indigo-300'}">
+                        <button type="button" onclick="selectClaimSheetFromTracker('${escapeHtml(cCode)}', '${escapeHtml(st.name)}')" class="text-left p-3 rounded-xl border transition ${isSelected ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-200' : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-indigo-300'}">
                             <div class="flex items-center justify-between gap-2 mb-1">
                                 <span class="font-extrabold text-xs text-slate-900 truncate">${escapeHtml(st.name)}</span>
                                 <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] font-bold shrink-0">${escapeHtml(cCode)}</span>
                             </div>
-                            <div class="text-xs font-bold text-indigo-700 mb-2">${matchingEntries.length} entry(s) • RM ${totalRm.toFixed(2)}</div>
+                            <div class="text-xs font-bold text-indigo-700 mb-1.5">${matchingEntries.length} row(s) • RM ${totalRm.toFixed(2)}</div>
                             <div class="flex flex-wrap gap-1">
                                 ${claimedBadge}
                                 ${verifiedBadge}
@@ -2104,8 +2228,16 @@
                 });
             });
 
+            const pendingCountEl = document.getElementById('tracker-count-pending');
+            const approvedCountEl = document.getElementById('tracker-count-approved');
+            if (pendingCountEl) pendingCountEl.textContent = totalPendingCount;
+            if (approvedCountEl) approvedCountEl.textContent = totalApprovedCount;
+
             if (cardsHtml.length === 0) {
-                trackerList.innerHTML = `<div class="col-span-full text-xs text-slate-500 italic py-2">No claims submitted yet for ${formatMonthTitle(monthVal)}.</div>`;
+                const emptyLabel = trackerSubTab === 'approved'
+                    ? `No approved claim sheets yet for ${formatMonthTitle(monthVal)}${trackerCompanyFilter !== 'ALL' ? ` (${trackerCompanyFilter})` : ''}.`
+                    : `No pending claim sheets for ${formatMonthTitle(monthVal)}${trackerCompanyFilter !== 'ALL' ? ` (${trackerCompanyFilter})` : ''}.`;
+                trackerList.innerHTML = `<div class="col-span-full text-xs text-slate-500 italic py-3 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">${emptyLabel}</div>`;
             } else {
                 trackerList.innerHTML = cardsHtml.join('');
             }
@@ -2115,7 +2247,7 @@
             const compSel = document.getElementById('sheet-filter-company');
             const staffSel = document.getElementById('sheet-filter-staff');
             if (compSel) compSel.value = compCode;
-            syncFilterStaffOptions('sheet');
+            syncFilterStaffOptions('sheet', false);
             if (staffSel) staffSel.value = staffName;
             renderOfficialClaimSheet();
         };
@@ -2181,6 +2313,7 @@
         };
 
         window.renderOfficialClaimSheet = function () {
+            ensureListsSortedAndSync();
             const compCode = document.getElementById('sheet-filter-company')?.value;
             const staffName = document.getElementById('sheet-filter-staff')?.value;
             const monthVal = document.getElementById('sheet-filter-month')?.value;
@@ -2444,6 +2577,7 @@
         // 9. TAB 4: COMPANIES, STAFF PROFILES, NOTICE BOARD & BACKUP MANAGEMENT
         // =========================================================================
         window.renderSetupDirectory = function () {
+            ensureListsSortedAndSync();
             const canManage = isAdminOrFinance();
             const loggedInStaff = getLoggedInStaff();
 
@@ -2469,9 +2603,9 @@
             document.getElementById('btn-add-company').classList.toggle('hidden', !canManage);
             document.getElementById('btn-add-staff').classList.toggle('hidden', !canManage);
 
-            // Render Companies
+            // Render Companies (ABC Order)
             const compContainer = document.getElementById('companies-list-container');
-            compContainer.innerHTML = appState.companies.map(comp => `
+            compContainer.innerHTML = sortCompaniesABC(appState.companies).map(comp => `
                 <div class="rounded-2xl border border-slate-200 p-4 flex items-center justify-between gap-4 bg-slate-50/50">
                     <div class="flex items-center gap-3.5 min-w-0">
                         ${comp.logoDataUrl
@@ -2492,9 +2626,9 @@
                 </div>
             `).join('');
 
-            // Render Staff Profiles (Staff see ONLY their own info; NRIC & ID visible ONLY to owner, Finance & SuperAdmin)
+            // Render Staff Profiles (ABC Order; Staff see ONLY their own info; NRIC & ID visible ONLY to owner, Finance & SuperAdmin)
             const staffContainer = document.getElementById('staff-list-container');
-            const visibleProfiles = getAccessibleStaffProfiles();
+            const visibleProfiles = sortStaffABC(getAccessibleStaffProfiles());
 
             if (visibleProfiles.length === 0) {
                 staffContainer.innerHTML = `<div class="col-span-full text-xs text-slate-500 italic">No user profiles available.</div>`;
@@ -2550,7 +2684,7 @@
             if (!isAdminOrFinance()) return;
             appState.noticeBoard = document.getElementById('notice-board-input').value.trim();
             saveStateToLocalAndCloud();
-            refreshAllUI();
+            refreshAllUI(false);
             showToast('Notice Board updated!');
         };
 
@@ -2646,7 +2780,7 @@
 
             saveStateToLocalAndCloud();
             closeModal('company-modal');
-            refreshAllUI();
+            refreshAllUI(false);
             showToast('Company saved!');
         };
 
@@ -2654,13 +2788,14 @@
             if (!isAdminOrFinance() || appState.companies.length <= 1) return;
             appState.companies = appState.companies.filter(c => c.code !== code);
             saveStateToLocalAndCloud();
-            refreshAllUI();
+            refreshAllUI(false);
             showToast('Company removed.', 'warning');
         };
 
         // Staff Modal Actions
         window.openStaffModal = function (editId = null) {
             if (!isAdminOrFinance()) return;
+            sortAppStateListsABC();
             const staff = editId ? appState.staffProfiles.find(s => s.id === editId) : null;
 
             document.getElementById('staff-modal-title').textContent = staff ? `Edit ${staff.name}` : 'Add New User Profile';
@@ -2671,7 +2806,7 @@
             document.getElementById('staff-modal-mobile').value = staff ? formatMobileString(staff.mobile) : '';
 
             const compSel = document.getElementById('staff-modal-company');
-            compSel.innerHTML = PLEASE_SELECT_OPTION + appState.companies.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
+            compSel.innerHTML = PLEASE_SELECT_OPTION + sortCompaniesABC(appState.companies).map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(getCompanyLegalName(c))}</option>`).join('');
             compSel.value = staff ? staff.companyCode : '';
 
             const digits = staff ? (staff.nric || '').replace(/\D/g, '') : '';
@@ -2691,7 +2826,7 @@
             const container = document.getElementById('staff-modal-sister-companies');
             const selectedSet = new Set(Array.isArray(preselectedCodes) ? preselectedCodes : []);
 
-            const others = appState.companies.filter(c => c.code !== homeCode);
+            const others = sortCompaniesABC(appState.companies.filter(c => c.code !== homeCode));
             if (others.length === 0) {
                 container.innerHTML = '<span class="text-xs text-slate-400 italic">No other companies registered yet.</span>';
                 return;
@@ -2710,7 +2845,6 @@
             const listEl = document.getElementById('manager-subordinates-checkboxes');
             const currentEditingId = selfId || document.getElementById('staff-modal-id').value;
 
-            // Supervisor, Manager, and Finance can all optionally have subordinates assigned
             if (!['supervisor', 'manager', 'finance'].includes(role)) {
                 box.classList.add('hidden');
                 return;
@@ -2718,7 +2852,7 @@
             box.classList.remove('hidden');
             const selectedSet = new Set(Array.isArray(preselectedIds) ? preselectedIds : []);
 
-            const candidates = appState.staffProfiles.filter(s => s.id !== currentEditingId);
+            const candidates = sortStaffABC(appState.staffProfiles.filter(s => s.id !== currentEditingId));
             if (candidates.length === 0) {
                 listEl.innerHTML = '<span class="text-xs text-amber-800 italic">Add staff profiles first to assign them here.</span>';
                 return;
@@ -2789,7 +2923,7 @@
 
             saveStateToLocalAndCloud();
             closeModal('staff-modal');
-            refreshAllUI();
+            refreshAllUI(false);
             showToast('User profile saved!');
         };
 
@@ -2797,7 +2931,7 @@
             if (!isAdminOrFinance()) return;
             appState.staffProfiles = appState.staffProfiles.filter(s => s.id !== id);
             saveStateToLocalAndCloud();
-            refreshAllUI();
+            refreshAllUI(false);
             showToast('User profile deleted.', 'warning');
         };
 
@@ -2850,7 +2984,7 @@
             appState.approvals = {};
             saveStateToLocalAndCloud();
             closeModal('reset-testdata-modal');
-            refreshAllUI();
+            refreshAllUI(false);
             showToast('All test claims & signatures cleared! Ready for Go-Live.');
         };
 
@@ -2884,7 +3018,7 @@
                         ...imported
                     };
                     saveStateToLocalAndCloud();
-                    refreshAllUI();
+                    refreshAllUI(true);
                     showToast('Backup restored successfully!');
                 } catch (err) {
                     showToast('Failed to read backup file.', 'error');
@@ -2919,6 +3053,7 @@
             }, { passive: true });
 
             loadLocalState();
+            sortAppStateListsABC();
             const dateInput = document.getElementById('entry-date');
             if (dateInput && !dateInput.value) {
                 dateInput.value = new Date().toISOString().slice(0, 10);
@@ -2938,7 +3073,7 @@
                 expenseNote: ''
             }];
             renderDraftStops();
-            refreshAllUI();
+            refreshAllUI(true);
             initFirebaseSync();
         };
     </script>
