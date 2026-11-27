@@ -3760,4 +3760,87 @@
                     updateSyncStatusBadges(true, 'Local Ready');
                     return;
                 }
-// ... existing code ... -->
+
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const db = getFirestore(app);
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'onehax-claims';
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, user => {
+                    if (!user) return;
+                    firestoreDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'claimflow_state', 'shared');
+                    onSnapshot(firestoreDocRef, snap => {
+                        updateSyncStatusBadges(true, 'Cloud Synced');
+                        if (!snap.exists()) {
+                            saveStateToLocalAndCloud();
+                            return;
+                        }
+                        const remote = snap.data();
+                        if (remote && Array.isArray(remote.companies) && Array.isArray(remote.staffProfiles)) {
+                            isApplyingRemoteSnapshot = true;
+                            appState = {
+                                ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+                                ...remote
+                            };
+                            try {
+                                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
+                            } catch (_) {}
+                            if (currentSession) {
+                                refreshAllUI(false);
+                            }
+                            isApplyingRemoteSnapshot = false;
+                        }
+                    }, err => {
+                        console.warn('Firestore snapshot warning:', err);
+                        updateSyncStatusBadges(false, 'Offline Mode');
+                    });
+                });
+            } catch (err) {
+                console.warn('Firebase init fallback to local:', err);
+                updateSyncStatusBadges(true, 'Local Ready');
+            }
+        }
+
+        // =========================================================================
+        // 12. INITIALIZE ON WINDOW LOAD
+        // =========================================================================
+        window.onload = function () {
+            document.addEventListener('wheel', function (e) {
+                if (document.activeElement && document.activeElement.type === 'number') {
+                    document.activeElement.blur();
+                }
+            }, { passive: true });
+
+            loadLocalState();
+            sortAppStateListsABC();
+            const dateInput = document.getElementById('entry-date');
+            if (dateInput && !dateInput.value) {
+                dateInput.value = new Date().toISOString().slice(0, 10);
+            }
+            draftStops = [{
+                destination: '',
+                distanceKm: '',
+                arrivalTime: '',
+                purpose: '',
+                enabledExpenses: [],
+                publicTransport: '',
+                parking: '',
+                toll: '',
+                meals: '',
+                entertainment: '',
+                others: '',
+                expenseNote: ''
+            }];
+            renderDraftStops();
+            refreshAllUI(true);
+            initFirebaseSync();
+        };
+    </script>
+</body>
+</html>
